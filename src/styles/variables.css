@@ -1,0 +1,61 @@
+/* ==========================================================================
+   CONSTRUCTA — Sistema de Diseño Negro Elegante / Empresarial
+   ========================================================================== */
+
+:root {
+  /* Fondos y Superficies */
+  --bg-app: #0a0d14;
+  --bg-sidebar: #0d121c;
+  --bg-header: rgba(13, 18, 28, 0.85);
+  --bg-card: #131926;
+  --bg-card-hover: #182030;
+  --bg-surface-elevated: #1a2336;
+  --bg-input: #0e1420;
+  --bg-input-focus: #141c2d;
+
+  /* Bordes y Separadores */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.13);
+  --border-focus: #f59e0b;
+  --border-card: #202b3f;
+
+  /* Tipografía y Colores de Texto */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0b0f17;
+
+  /* Paleta Corporativa / Acentos */
+  --accent-amber: #f59e0b;
+  --accent-amber-light: #fbbf24;
+  --accent-amber-dark: #d97706;
+  --accent-amber-glow: rgba(245, 158, 11, 0.15);
+
+  --accent-blue: #38bdf8;
+  --accent-blue-dark: #0284c7;
+  --accent-blue-glow: rgba(56, 189, 248, 0.15);
+
+  --accent-green: #10b981;
+  --accent-green-dark: #059669;
+  --accent-green-glow: rgba(16, 185, 129, 0.15);
+
+  --accent-red: #ef4444;
+  --accent-red-dark: #dc2626;
+  --accent-red-glow: rgba(239, 68, 68, 0.15);
+
+  /* Sombras sutiles de profundidad */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.65);
+  --shadow-glow-amber: 0 0 25px rgba(245, 158, 11, 0.2);
+
+  /* Radio de bordes */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
