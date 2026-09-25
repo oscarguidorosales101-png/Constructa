@@ -447,7 +447,7 @@
   font-weight: 900;
   letter-spacing: -0.04em;
   background: linear-gradient(135deg, #f59e0b, #ef4444);
-  -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
   margin-bottom: 1rem;
