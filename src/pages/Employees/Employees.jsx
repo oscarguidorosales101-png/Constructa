@@ -40,12 +40,18 @@ export default function Employees() {
 
   // Filtered employees
   const filteredEmployees = useMemo(() => {
+    const query = searchTerm.toLowerCase();
     return data.employees.filter(emp => {
+      const name = (emp.nombre || '').toLowerCase();
+      const role = (emp.puesto || '').toLowerCase();
+      const dni = (emp.dni || '').toLowerCase();
+      const email = (emp.email || '').toLowerCase();
+
       const matchesSearch = 
-        emp.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.puesto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.dni.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.email.toLowerCase().includes(searchTerm.toLowerCase());
+        name.includes(query) ||
+        role.includes(query) ||
+        dni.includes(query) ||
+        email.includes(query);
       
       const matchesProject = selectedProject === 'ALL' || emp.proyectoId === selectedProject;
       const matchesRole = selectedRole === 'ALL' || emp.puesto === selectedRole;

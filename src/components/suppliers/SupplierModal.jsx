@@ -30,13 +30,13 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
   useEffect(() => {
     if (supplier) {
       setFormData({
-        nombre: supplier.nombre || '',
+        nombre: supplier.nombre || supplier.nombreComercial || '',
         contacto: supplier.contacto || '',
-        especialidad: supplier.especialidad || 'Cementos y Hormigones',
+        especialidad: supplier.especialidad || supplier.categoria || 'Cementos y Hormigones',
         telefono: supplier.telefono || '',
         email: supplier.email || '',
         direccion: supplier.direccion || '',
-        rfc: supplier.rfc || '',
+        rfc: supplier.rfc || supplier.cif || '',
         estado: supplier.estado || 'Activo'
       });
     } else {
@@ -81,7 +81,9 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
 
     onSave({
       ...(supplier ? { id: supplier.id } : {}),
-      ...formData
+      ...formData,
+      nombreComercial: formData.nombre,
+      categoria: formData.especialidad,
     });
     onClose();
   };
@@ -186,7 +188,7 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
               <option value="Inactivo">Inactivo</option>
             </select>
           </div>
-
+            
           <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
             <label className="constructa-label">Dirección / Centro Logístico</label>
             <input

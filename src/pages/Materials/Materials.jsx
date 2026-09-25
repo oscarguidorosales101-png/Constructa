@@ -283,7 +283,7 @@ export default function Materials() {
               {filteredMaterials.map(m => {
                 const isLow = m.stock <= m.stockMinimo;
                 const isZero = m.stock === 0;
-                const imgSrc = materialImages[m.imagen] || materialImages['cemento-portland'];
+                const imgSrc = materialImages[m.imagen || m.imagenKey] || materialImages['cemento-portland'];
 
                 return (
                   <div 

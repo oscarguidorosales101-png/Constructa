@@ -26,18 +26,24 @@ export default function Suppliers() {
   const [editingSupplier, setEditingSupplier] = useState(null);
 
   const specialties = useMemo(() => {
-    const list = new Set(data.suppliers.map(s => s.especialidad));
+    const list = new Set(data.suppliers.map(s => s.especialidad || s.categoria || 'General'));
     return Array.from(list).sort();
   }, [data.suppliers]);
 
   const filteredSuppliers = useMemo(() => {
+    const query = searchTerm.toLowerCase();
     return data.suppliers.filter(s => {
+      const name = (s.nombre || s.nombreComercial || '').toLowerCase();
+      const contact = (s.contacto || '').toLowerCase();
+      const spec = (s.especialidad || s.categoria || '').toLowerCase();
+
       const matchesSearch = 
-        s.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.contacto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.especialidad.toLowerCase().includes(searchTerm.toLowerCase());
+        name.includes(query) ||
+        contact.includes(query) ||
+        spec.includes(query);
       
-      const matchesSpec = selectedSpecialty === 'ALL' || s.especialidad === selectedSpecialty;
+      const currentSpec = s.especialidad || s.categoria || 'General';
+      const matchesSpec = selectedSpecialty === 'ALL' || currentSpec === selectedSpecialty;
 
       return matchesSearch && matchesSpec;
     });

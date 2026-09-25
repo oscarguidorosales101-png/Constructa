@@ -98,20 +98,21 @@ export const constructaService = {
 
     return {
       ok: false,
-      mensaje: 'Las credenciales ingresadas no corresponden a un usuario autorizado.',
+      mensaje: 'Credenciales inválidas. Comprueba tu usuario y clave corporativa.',
     };
   },
 
   logout() {
     storageService.remove(KEYS.AUTH);
+    return true;
   },
 
-  // HISTORIAL Y AUDITORÍA INTERNA
+  // HISTORIAL Y AUDITORÍA
   getHistory() {
     return storageService.get(KEYS.HISTORY, []);
   },
 
-  addHistoryEntry(tipo, descripcion, proyectoRelacionado = 'General', monto = null) {
+  addHistoryEntry(tipo, descripcion, proyectoRelacionado = null, monto = null) {
     const list = this.getHistory();
     const dateStr = new Date().toLocaleString('es-MX', {
       year: 'numeric',
@@ -126,7 +127,8 @@ export const constructaService = {
       fecha: dateStr,
       tipo,
       descripcion,
-      proyectoRelacionado,
+      proyectoRelacionado: proyectoRelacionado || 'General',
+      proyecto: proyectoRelacionado || 'General',
       monto,
     };
 
@@ -135,9 +137,19 @@ export const constructaService = {
     return newEntry;
   },
 
-  // PROYECTOS
+  // PROYECTOS (con normalización de fechas y montos)
   getProjects() {
-    return storageService.get(KEYS.PROJECTS, []);
+    const list = storageService.get(KEYS.PROJECTS, []);
+    return list.map((p) => {
+      const endDate = p.fechaFinEstimada || p.fechaFin || '';
+      return {
+        ...p,
+        fechaFin: endDate,
+        fechaFinEstimada: endDate,
+        presupuesto: Number(p.presupuesto) || 0,
+        avance: Number(p.avance) || 0,
+      };
+    });
   },
 
   getProjectById(id) {
@@ -149,6 +161,7 @@ export const constructaService = {
     const list = this.getProjects();
     let updated;
     const isNew = !project.id || !list.some((p) => p.id === project.id);
+    const endDate = project.fechaFinEstimada || project.fechaFin || '';
 
     if (isNew) {
       const newId = 'PRJ-' + String(list.length + 1).padStart(3, '0');
@@ -156,6 +169,8 @@ export const constructaService = {
         ...project,
         id: newId,
         codigo: project.codigo || 'OBR-' + new Date().getFullYear() + '-' + String(list.length + 1).padStart(2, '0'),
+        fechaFin: endDate,
+        fechaFinEstimada: endDate,
         avance: Number(project.avance) || 0,
         presupuesto: Number(project.presupuesto) || 0,
       };
@@ -167,7 +182,9 @@ export const constructaService = {
           ? {
               ...p,
               ...project,
-              avance: Number(project.avance) || p.avance,
+              fechaFin: endDate,
+              fechaFinEstimada: endDate,
+              avance: Number(project.avance) >= 0 ? Number(project.avance) : p.avance,
               presupuesto: Number(project.presupuesto) || p.presupuesto,
             }
           : p
@@ -196,9 +213,16 @@ export const constructaService = {
     const target = list.find((p) => p.id === id);
     const clampedProgress = Math.min(100, Math.max(0, Number(newProgress) || 0));
 
-    const updated = list.map((p) =>
-      p.id === id ? { ...p, avance: clampedProgress } : p
-    );
+    const updated = list.map((p) => {
+      if (p.id === id) {
+        return {
+          ...p,
+          avance: clampedProgress,
+          estado: clampedProgress === 100 ? 'Finalizado' : p.estado === 'Finalizado' ? 'En construcción' : p.estado,
+        };
+      }
+      return p;
+    });
     storageService.set(KEYS.PROJECTS, updated);
 
     if (target) {
@@ -211,9 +235,13 @@ export const constructaService = {
     return updated;
   },
 
-  // EMPLEADOS
+  // EMPLEADOS (con normalización de dni y campos)
   getEmployees() {
-    return storageService.get(KEYS.EMPLOYEES, []);
+    const list = storageService.get(KEYS.EMPLOYEES, []);
+    return list.map((e) => ({
+      ...e,
+      dni: e.dni || (e.id ? 'DNI-' + e.id.replace('EMP-', '') : 'DNI-000'),
+    }));
   },
 
   saveEmployee(employee) {
@@ -226,6 +254,7 @@ export const constructaService = {
       const itemToSave = {
         ...employee,
         id: newId,
+        dni: employee.dni || ('DNI-' + String(list.length + 1).padStart(3, '0')),
         fechaIngreso: employee.fechaIngreso || new Date().toISOString().split('T')[0],
       };
       updated = [itemToSave, ...list];
@@ -251,22 +280,40 @@ export const constructaService = {
     return updated;
   },
 
-  // MATERIALES
+  // MATERIALES (con normalización de stock/stockActual e imagen/imagenKey)
   getMaterials() {
-    return storageService.get(KEYS.MATERIALS, []);
+    const list = storageService.get(KEYS.MATERIALS, []);
+    return list.map((m) => {
+      const stock = m.stockActual !== undefined ? Number(m.stockActual) : Number(m.stock || 0);
+      const img = m.imagenKey || m.imagen || 'cemento-portland';
+      return {
+        ...m,
+        stock,
+        stockActual: stock,
+        imagen: img,
+        imagenKey: img,
+        stockMinimo: Number(m.stockMinimo) || 0,
+        precioUnitario: Number(m.precioUnitario) || 0,
+      };
+    });
   },
 
   saveMaterial(material) {
     const list = this.getMaterials();
     let updated;
     const isNew = !material.id || !list.some((m) => m.id === material.id);
+    const stockVal = material.stockActual !== undefined ? Number(material.stockActual) : Number(material.stock || 0);
+    const imgKey = material.imagenKey || material.imagen || 'cemento-portland';
 
     if (isNew) {
       const newId = 'MAT-' + String(list.length + 1).padStart(3, '0');
       const itemToSave = {
         ...material,
         id: newId,
-        stockActual: Number(material.stockActual) || 0,
+        stock: stockVal,
+        stockActual: stockVal,
+        imagen: imgKey,
+        imagenKey: imgKey,
         stockMinimo: Number(material.stockMinimo) || 0,
         precioUnitario: Number(material.precioUnitario) || 0,
       };
@@ -278,7 +325,10 @@ export const constructaService = {
           ? {
               ...m,
               ...material,
-              stockActual: Number(material.stockActual) >= 0 ? Number(material.stockActual) : m.stockActual,
+              stock: stockVal,
+              stockActual: stockVal,
+              imagen: imgKey,
+              imagenKey: imgKey,
               stockMinimo: Number(material.stockMinimo) >= 0 ? Number(material.stockMinimo) : m.stockMinimo,
               precioUnitario: Number(material.precioUnitario) || m.precioUnitario,
             }
@@ -333,7 +383,7 @@ export const constructaService = {
 
     // Actualizar stock del material
     const updatedMaterials = materials.map((m) =>
-      m.id === materialId ? { ...m, stockActual: newStock } : m
+      m.id === materialId ? { ...m, stock: newStock, stockActual: newStock } : m
     );
     storageService.set(KEYS.MATERIALS, updatedMaterials);
 
@@ -356,7 +406,8 @@ export const constructaService = {
       motivo: motivo || (tipo === 'Entrada' ? 'Recepción de compra' : 'Envío para ejecución de obra'),
     };
 
-    storageService.set(KEYS.MOVEMENTS, [newMov, ...movements]);
+    const nextMovements = [newMov, ...movements];
+    storageService.set(KEYS.MOVEMENTS, nextMovements);
 
     // Historial
     const actionDesc =
@@ -369,26 +420,65 @@ export const constructaService = {
       projectName
     );
 
-    return { ok: true, material: { ...material, stockActual: newStock }, movimiento: newMov };
+    return { 
+      ok: true, 
+      materials: updatedMaterials,
+      movements: nextMovements,
+      material: { ...material, stock: newStock, stockActual: newStock }, 
+      movimiento: newMov 
+    };
   },
 
-  // PROVEEDORES
+  // PROVEEDORES (con normalización de nombre/nombreComercial y especialidad/categoria)
   getSuppliers() {
-    return storageService.get(KEYS.SUPPLIERS, []);
+    const list = storageService.get(KEYS.SUPPLIERS, []);
+    return list.map((s) => {
+      const name = s.nombreComercial || s.nombre || 'Proveedor Comercial';
+      const cat = s.categoria || s.especialidad || 'Suministro General';
+      return {
+        ...s,
+        nombre: name,
+        nombreComercial: name,
+        especialidad: cat,
+        categoria: cat,
+        rfc: s.rfc || s.cif || '',
+      };
+    });
   },
 
   saveSupplier(supplier) {
     const list = this.getSuppliers();
     let updated;
     const isNew = !supplier.id || !list.some((s) => s.id === supplier.id);
+    const name = supplier.nombreComercial || supplier.nombre || '';
+    const cat = supplier.categoria || supplier.especialidad || 'General';
 
     if (isNew) {
       const newId = 'PRV-' + String(list.length + 1).padStart(3, '0');
-      updated = [{ ...supplier, id: newId }, ...list];
-      this.addHistoryEntry('Proveedor Registrado', `Alta de proveedor: ${supplier.nombreComercial}`);
+      const itemToSave = {
+        ...supplier,
+        id: newId,
+        nombre: name,
+        nombreComercial: name,
+        especialidad: cat,
+        categoria: cat,
+      };
+      updated = [itemToSave, ...list];
+      this.addHistoryEntry('Proveedor Registrado', `Alta de proveedor: ${name}`);
     } else {
-      updated = list.map((s) => (s.id === supplier.id ? { ...s, ...supplier } : s));
-      this.addHistoryEntry('Proveedor Modificado', `Actualización de proveedor: ${supplier.nombreComercial}`);
+      updated = list.map((s) =>
+        s.id === supplier.id
+          ? {
+              ...s,
+              ...supplier,
+              nombre: name,
+              nombreComercial: name,
+              especialidad: cat,
+              categoria: cat,
+            }
+          : s
+      );
+      this.addHistoryEntry('Proveedor Modificado', `Actualización de proveedor: ${name}`);
     }
 
     storageService.set(KEYS.SUPPLIERS, updated);
@@ -402,14 +492,23 @@ export const constructaService = {
     storageService.set(KEYS.SUPPLIERS, updated);
 
     if (target) {
-      this.addHistoryEntry('Proveedor Retirado', `Baja de proveedor: ${target.nombreComercial}`);
+      this.addHistoryEntry('Proveedor Retirado', `Baja de proveedor: ${target.nombre || target.nombreComercial}`);
     }
     return updated;
   },
 
-  // GASTOS
+  // GASTOS (con normalización de concepto y descripcion)
   getExpenses() {
-    return storageService.get(KEYS.EXPENSES, []);
+    const list = storageService.get(KEYS.EXPENSES, []);
+    return list.map((g) => {
+      const desc = g.concepto || g.descripcion || 'Gasto operativo';
+      return {
+        ...g,
+        concepto: desc,
+        descripcion: desc,
+        monto: Number(g.monto) || 0,
+      };
+    });
   },
 
   saveExpense(expense) {
@@ -417,6 +516,7 @@ export const constructaService = {
     const projects = this.getProjects();
     const project = projects.find((p) => p.id === expense.proyectoId);
     const projectName = project ? project.nombre : 'Proyecto General';
+    const desc = expense.concepto || expense.descripcion || 'Gasto operativo';
 
     let updated;
     const isNew = !expense.id || !list.some((g) => g.id === expense.id);
@@ -426,22 +526,26 @@ export const constructaService = {
       const itemToSave = {
         ...expense,
         id: newId,
+        concepto: desc,
+        descripcion: desc,
         monto: Number(expense.monto) || 0,
         fecha: expense.fecha || new Date().toISOString().split('T')[0],
       };
       updated = [itemToSave, ...list];
-      this.addHistoryEntry('Gasto Registrado', `${expense.descripcion} (${expense.categoria})`, projectName, itemToSave.monto);
+      this.addHistoryEntry('Gasto Registrado', `${desc} (${expense.categoria})`, projectName, itemToSave.monto);
     } else {
       updated = list.map((g) =>
         g.id === expense.id
           ? {
               ...g,
               ...expense,
+              concepto: desc,
+              descripcion: desc,
               monto: Number(expense.monto) || g.monto,
             }
           : g
       );
-      this.addHistoryEntry('Gasto Actualizado', `Modificación de gasto: ${expense.descripcion}`, projectName, expense.monto);
+      this.addHistoryEntry('Gasto Actualizado', `Modificación de gasto: ${desc}`, projectName, expense.monto);
     }
 
     storageService.set(KEYS.EXPENSES, updated);
@@ -451,29 +555,35 @@ export const constructaService = {
   deleteExpense(id) {
     const list = this.getExpenses();
     const target = list.find((g) => g.id === id);
-    const projects = this.getProjects();
-    const project = target ? projects.find((p) => p.id === target.proyectoId) : null;
-    const projectName = project ? project.nombre : 'Proyecto General';
-
     const updated = list.filter((g) => g.id !== id);
     storageService.set(KEYS.EXPENSES, updated);
 
     if (target) {
-      this.addHistoryEntry('Gasto Cancelado', `Eliminación de gasto por: ${target.descripcion}`, projectName, target.monto);
+      const desc = target.concepto || target.descripcion || 'Gasto';
+      this.addHistoryEntry('Gasto Eliminado', `Cancelación de gasto: ${desc}`, null, target.monto);
     }
     return updated;
   },
 
-  // CRONOGRAMA
+  // CRONOGRAMA Y ACTIVIDADES (con normalización de estado)
   getSchedule() {
-    return storageService.get(KEYS.SCHEDULE, []);
+    const list = storageService.get(KEYS.SCHEDULE, []);
+    return list.map((a) => {
+      const est = a.estado === 'Completado' ? 'Completada' : a.estado || 'Pendiente';
+      return {
+        ...a,
+        estado: est,
+        avance: Number(a.avance) || 0,
+      };
+    });
   },
 
   saveActivity(activity) {
     const list = this.getSchedule();
     const projects = this.getProjects();
     const project = projects.find((p) => p.id === activity.proyectoId);
-    const projectName = project ? project.nombre : 'General';
+    const projectName = project ? project.nombre : 'Proyecto General';
+    const est = activity.estado === 'Completado' ? 'Completada' : activity.estado || 'Pendiente';
 
     let updated;
     const isNew = !activity.id || !list.some((a) => a.id === activity.id);
@@ -483,16 +593,18 @@ export const constructaService = {
       const itemToSave = {
         ...activity,
         id: newId,
+        estado: est,
         avance: Number(activity.avance) || 0,
       };
       updated = [itemToSave, ...list];
-      this.addHistoryEntry('Actividad Creada', `Nueva tarea en cronograma: ${activity.actividad}`, projectName);
+      this.addHistoryEntry('Actividad Programada', `Nueva tarea en cronograma: ${activity.actividad}`, projectName);
     } else {
       updated = list.map((a) =>
         a.id === activity.id
           ? {
               ...a,
               ...activity,
+              estado: est,
               avance: Number(activity.avance) >= 0 ? Number(activity.avance) : a.avance,
             }
           : a
@@ -527,7 +639,7 @@ export const constructaService = {
     const totalBudget = projects.reduce((acc, p) => acc + (Number(p.presupuesto) || 0), 0);
     const totalSpent = expenses.reduce((acc, g) => acc + (Number(g.monto) || 0), 0);
     const availableBudget = totalBudget - totalSpent;
-    const budgetUtilization = totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : 0;
+    const budgetUtilization = totalBudget > 0 ? Number(((totalSpent / totalBudget) * 100).toFixed(1)) : 0;
 
     // Proyectos
     const activeProjects = projects.filter((p) => p.estado === 'En construcción').length;
@@ -609,11 +721,14 @@ export const constructaService = {
       totalSpent,
       availableBudget,
       budgetUtilization,
+      budgetUsagePercent: budgetUtilization,
       activeProjects,
       completedProjects,
+      finishedProjects: completedProjects,
       plannedProjects,
       pausedProjects,
       averageProgress,
+      avgProgress: averageProgress,
       totalEmployees,
       activeEmployees,
       employeesByProject: Object.values(employeesByProject),
@@ -645,11 +760,11 @@ export const constructaService = {
     try {
       const [year, month, day] = dateStr.split('-');
       if (!year || !month || !day) return dateStr;
-      const d = new Date(year, month - 1, day);
+      const d = new Date(Number(year), Number(month) - 1, Number(day));
       return d.toLocaleDateString('es-MX', {
-        year: 'numeric',
+        day: '2-digit',
         month: 'short',
-        day: 'numeric',
+        year: 'numeric',
       });
     } catch {
       return dateStr;
@@ -657,7 +772,7 @@ export const constructaService = {
   },
 };
 
-// Autoinicializar datos al importar
+// Auto-inicializar almacenamiento
 constructaService.initData();
 
 export default constructaService;
