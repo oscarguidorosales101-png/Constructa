@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useConstructa } from '../../context/ConstructaContext';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -19,11 +19,21 @@ import {
   Trash2, 
   Building2,
   Table as TableIcon,
-  LayoutGrid
+  LayoutGrid,
+  ChevronDown,
+  X
 } from 'lucide-react';
 
 export default function Employees() {
-  const { data, saveEmployee, deleteEmployee, requestConfirm } = useConstructa();
+  const { 
+    data, 
+    saveEmployee, 
+    deleteEmployee, 
+    requestConfirm, 
+    navigationIntent, 
+    clearNavigationIntent 
+  } = useConstructa();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState('ALL');
   const [selectedRole, setSelectedRole] = useState('ALL');
@@ -31,6 +41,15 @@ export default function Employees() {
   const [viewMode, setViewMode] = useState('agenda'); // 'agenda' | 'cards'
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Escuchar si venimos de Dashboard "Ver Horarios de Personal"
+  useEffect(() => {
+    if (navigationIntent?.viewMode) {
+      setViewMode(navigationIntent.viewMode);
+      if (clearNavigationIntent) clearNavigationIntent();
+    }
+  }, [navigationIntent, clearNavigationIntent]);
 
   // List of unique roles
   const uniqueRoles = useMemo(() => {
@@ -187,50 +206,172 @@ export default function Employees() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="constructa-card" style={{ padding: '16px 20px', marginBottom: '24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'center' }}>
-          <SearchInput
-            placeholder="Buscar por nombre, puesto o DNI..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Filter and Search Bar (Responsive Desktop y Móvil - Prompt #14) */}
+      <div className="constructa-card" style={{ padding: '14px 18px', marginBottom: '20px' }}>
+        {/* Barra de escritorio */}
+        <div className="desktop-filter-bar">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', alignItems: 'center' }}>
+            <SearchInput
+              placeholder="Buscar por nombre, puesto o DNI..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
 
-          <select
-            className="constructa-input"
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-          >
-            <option value="ALL">Todos los Proyectos</option>
-            {data.projects.map(p => (
-              <option key={p.id} value={p.id}>{p.nombre}</option>
-            ))}
-          </select>
+            <select
+              className="constructa-input"
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+            >
+              <option value="ALL">Todos los Proyectos</option>
+              {data.projects.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
 
-          <select
-            className="constructa-input"
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-          >
-            <option value="ALL">Todas las Especialidades</option>
-            {uniqueRoles.map(role => (
-              <option key={role} value={role}>{role}</option>
-            ))}
-          </select>
+            <select
+              className="constructa-input"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+            >
+              <option value="ALL">Todas las Especialidades</option>
+              {uniqueRoles.map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
 
-          <select
-            className="constructa-input"
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            <select
+              className="constructa-input"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            >
+              <option value="ALL">Todos los Estados</option>
+              <option value="Activo">Activo</option>
+              <option value="Descanso">Descanso</option>
+              <option value="Licencia">Licencia</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Barra móvil: Búsqueda y botón de Filtros */}
+        <div className="mobile-filter-bar">
+          <div style={{ flex: 1 }}>
+            <SearchInput
+              placeholder="Buscar personal..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary mobile-filter-toggle"
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            style={{
+              borderColor: ((selectedProject !== 'ALL' ? 1 : 0) + (selectedRole !== 'ALL' ? 1 : 0) + (selectedStatus !== 'ALL' ? 1 : 0)) > 0 ? 'var(--color-gold)' : undefined,
+              color: ((selectedProject !== 'ALL' ? 1 : 0) + (selectedRole !== 'ALL' ? 1 : 0) + (selectedStatus !== 'ALL' ? 1 : 0)) > 0 ? 'var(--color-gold)' : undefined
+            }}
           >
-            <option value="ALL">Todos los Estados</option>
-            <option value="Activo">Activo</option>
-            <option value="Descanso">Descanso</option>
-            <option value="Licencia">Licencia</option>
-            <option value="Inactivo">Inactivo</option>
-          </select>
+            <Filter size={15} />
+            <span>Filtros</span>
+            {((selectedProject !== 'ALL' ? 1 : 0) + (selectedRole !== 'ALL' ? 1 : 0) + (selectedStatus !== 'ALL' ? 1 : 0)) > 0 && (
+              <span style={{
+                background: 'var(--color-gold)',
+                color: '#000000',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {(selectedProject !== 'ALL' ? 1 : 0) + (selectedRole !== 'ALL' ? 1 : 0) + (selectedStatus !== 'ALL' ? 1 : 0)}
+              </span>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Drawer desplegable de filtros para móvil */}
+      {mobileFiltersOpen && (
+        <div className="mobile-filter-drawer">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-gold)', fontWeight: 600, fontSize: '0.9rem' }}>
+              <Filter size={16} /> Filtros de Personal
+            </div>
+            <button
+              onClick={() => setMobileFiltersOpen(false)}
+              style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '4px' }}
+              aria-label="Cerrar filtros"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div>
+              <label className="constructa-label" style={{ marginBottom: '4px', display: 'block' }}>Proyecto Asignado</label>
+              <select
+                className="constructa-input"
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+              >
+                <option value="ALL">Todos los Proyectos</option>
+                {data.projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="constructa-label" style={{ marginBottom: '4px', display: 'block' }}>Especialidad / Perfil</label>
+              <select
+                className="constructa-input"
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+              >
+                <option value="ALL">Todas las Especialidades</option>
+                {uniqueRoles.map(role => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="constructa-label" style={{ marginBottom: '4px', display: 'block' }}>Estado Laboral</label>
+              <select
+                className="constructa-input"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="ALL">Todos los Estados</option>
+                <option value="Activo">Activo</option>
+                <option value="Descanso">Descanso</option>
+                <option value="Licencia">Licencia</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--color-border)' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedProject('ALL');
+                setSelectedRole('ALL');
+                setSelectedStatus('ALL');
+              }}
+              style={{ background: 'none', border: 'none', color: 'var(--color-rose)', fontSize: '0.82rem', cursor: 'pointer' }}
+            >
+              Limpiar filtros
+            </button>
+            <Button size="sm" variant="primary" onClick={() => setMobileFiltersOpen(false)}>
+              Aplicar ({filteredEmployees.length})
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       {filteredEmployees.length === 0 ? (
@@ -246,129 +387,197 @@ export default function Employees() {
           }}
         />
       ) : viewMode === 'agenda' ? (
-        /* Agenda & Schedule Table View */
-        <div className="constructa-card" style={{ overflow: 'hidden' }}>
-          <div className="constructa-table-container">
-            <table className="constructa-table">
-              <thead>
-                <tr>
-                  <th>Empleado</th>
-                  <th>Especialidad / Puesto</th>
-                  <th>Proyecto Asignado</th>
-                  <th>Jornada y Días</th>
-                  <th>Horario Laboral</th>
-                  <th>Estado</th>
-                  <th style={{ textAlign: 'right' }}>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEmployees.map(emp => (
-                  <tr key={emp.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-                          border: '1px solid var(--color-border)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 700,
-                          fontSize: '0.85rem',
-                          color: 'var(--color-gold)'
-                        }}>
-                          {emp.nombre.charAt(0)}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                            {emp.nombre}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                            DNI: {emp.dni}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Briefcase size={14} style={{ color: 'var(--color-gold)' }} />
-                        <span>{emp.puesto}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Building2 size={14} style={{ color: 'var(--color-text-muted)' }} />
-                        <span>{getProjectName(emp.proyectoId)}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                        <Calendar size={14} style={{ color: 'var(--color-cyan)' }} />
-                        <span>{emp.diasLaborales}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '6px', 
-                        background: 'rgba(255,255,255,0.03)', 
-                        padding: '4px 10px', 
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        fontSize: '0.85rem'
-                      }}>
-                        <Clock size={13} style={{ color: 'var(--color-amber)' }} />
-                        <span>{emp.horario}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <Badge variant={emp.estado === 'Activo' ? 'success' : emp.estado === 'Descanso' ? 'warning' : 'neutral'}>
-                        {emp.estado}
-                      </Badge>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                        <button
-                          onClick={() => handleOpenEdit(emp)}
-                          className="btn-icon"
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--color-text-muted)',
-                            cursor: 'pointer',
-                            padding: '6px',
-                            borderRadius: 'var(--radius-sm)'
-                          }}
-                          title="Editar información"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(emp)}
-                          className="btn-icon"
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--color-rose)',
-                            cursor: 'pointer',
-                            padding: '6px',
-                            borderRadius: 'var(--radius-sm)'
-                          }}
-                          title="Dar de baja"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+        <>
+          {/* Vista Agenda & Horarios — Tabla Desktop (Prompt #13) */}
+          <div className="desktop-only-table constructa-card" style={{ overflow: 'hidden' }}>
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Empleado</th>
+                    <th>Especialidad / Puesto</th>
+                    <th>Proyecto Asignado</th>
+                    <th>Jornada y Días</th>
+                    <th>Horario Laboral</th>
+                    <th>Estado</th>
+                    <th style={{ textAlign: 'right' }}>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredEmployees.map(emp => (
+                    <tr key={emp.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+                            border: '1px solid var(--color-border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                            color: 'var(--color-gold)'
+                          }}>
+                            {emp.nombre.charAt(0)}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                              {emp.nombre}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                              DNI: {emp.dni}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Briefcase size={14} style={{ color: 'var(--color-gold)' }} />
+                          <span>{emp.puesto}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Building2 size={14} style={{ color: 'var(--color-text-muted)' }} />
+                          <span>{getProjectName(emp.proyectoId)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                          <Calendar size={14} style={{ color: 'var(--color-cyan)' }} />
+                          <span>{emp.diasLaborales}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          gap: '6px', 
+                          background: 'rgba(255,255,255,0.03)', 
+                          padding: '4px 10px', 
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          fontSize: '0.85rem'
+                        }}>
+                          <Clock size={13} style={{ color: 'var(--color-amber)' }} />
+                          <span>{emp.horario}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <Badge variant={emp.estado === 'Activo' ? 'success' : emp.estado === 'Descanso' ? 'warning' : 'neutral'}>
+                          {emp.estado}
+                        </Badge>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                          <button
+                            onClick={() => handleOpenEdit(emp)}
+                            className="btn-icon"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--color-text-muted)',
+                              cursor: 'pointer',
+                              padding: '6px',
+                              borderRadius: 'var(--radius-sm)'
+                            }}
+                            title="Editar información"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(emp)}
+                            className="btn-icon"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--color-rose)',
+                              cursor: 'pointer',
+                              padding: '6px',
+                              borderRadius: 'var(--radius-sm)'
+                            }}
+                            title="Dar de baja"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Vista Tarjetas de Horario para Móvil (Prompt #13 y #15) */}
+          <div className="mobile-only-cards">
+            {filteredEmployees.map(emp => (
+              <div key={emp.id} className="mobile-schedule-card">
+                <div className="mobile-schedule-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+                      border: '1px solid var(--color-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
+                      color: 'var(--color-gold)'
+                    }}>
+                      {emp.nombre.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontSize: '0.95rem' }}>
+                        {emp.nombre}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                        DNI: {emp.dni}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge variant={emp.estado === 'Activo' ? 'success' : emp.estado === 'Descanso' ? 'warning' : 'neutral'}>
+                    {emp.estado}
+                  </Badge>
+                </div>
+
+                <div className="mobile-schedule-body">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Briefcase size={14} style={{ color: 'var(--color-gold)' }} />
+                    <span><strong>Puesto:</strong> {emp.puesto}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Building2 size={14} style={{ color: 'var(--color-text-muted)' }} />
+                    <span><strong>Proyecto:</strong> {getProjectName(emp.proyectoId)}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Calendar size={14} style={{ color: 'var(--color-cyan)' }} />
+                    <span><strong>Días:</strong> {emp.diasLaborales}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Clock size={14} style={{ color: 'var(--color-amber)' }} />
+                    <span><strong>Horario:</strong> <span style={{ color: 'var(--color-amber)', fontWeight: 600 }}>{emp.horario}</span></span>
+                  </div>
+                </div>
+
+                <div className="mobile-schedule-actions">
+                  <Button size="sm" variant="secondary" icon={<Edit size={14} />} onClick={() => handleOpenEdit(emp)}>
+                    Editar
+                  </Button>
+                  <Button size="sm" variant="danger" icon={<Trash2 size={14} />} onClick={() => handleDelete(emp)}>
+                    Baja
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
         /* Employee Cards Grid View */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>

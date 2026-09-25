@@ -165,7 +165,7 @@ export default function Suppliers() {
           }}
         />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
           {filteredSuppliers.map(sup => {
             const matCount = getMaterialsCount(sup.id);
 

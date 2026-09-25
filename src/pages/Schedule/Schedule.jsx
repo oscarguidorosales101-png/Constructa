@@ -215,7 +215,7 @@ export default function Schedule() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ flex: 1, minWidth: '280px' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--color-gold)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Building2 size={13} /> {getProjectName(task.proyectoId)}

@@ -15,6 +15,8 @@
   transition: all var(--transition-fast);
   white-space: nowrap;
   user-select: none;
+  cursor: pointer;
+  min-height: 38px;
 }
 
 .btn:active {
@@ -30,12 +32,14 @@
 .btn-primary {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: #0b0f17;
+  border: 1px solid #d97706;
   box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+  border-color: #fbbf24;
 }
 
 .btn-secondary {
@@ -46,7 +50,8 @@
 
 .btn-secondary:hover:not(:disabled) {
   background: #27334a;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 .btn-outline {
@@ -63,7 +68,7 @@
 .btn-danger {
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
 .btn-danger:hover:not(:disabled) {
@@ -75,6 +80,7 @@
 .btn-danger-solid {
   background: #dc2626;
   color: #ffffff;
+  border: 1px solid #b91c1c;
 }
 
 .btn-danger-solid:hover:not(:disabled) {
@@ -82,8 +88,9 @@
 }
 
 .btn-sm {
-  padding: 0.4rem 0.75rem;
+  padding: 0.45rem 0.85rem;
   font-size: 0.8rem;
+  min-height: 32px;
   border-radius: var(--radius-sm);
 }
 
@@ -92,6 +99,13 @@
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  min-height: 36px;
+  min-width: 36px;
 }
 
 .btn-icon:hover {
@@ -100,7 +114,7 @@
 }
 
 /* 2. TARJETAS (CARDS) */
-.card {
+.card, .constructa-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
@@ -109,8 +123,8 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.card:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+.card:hover, .constructa-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .card-header {
@@ -136,55 +150,157 @@
   margin-top: 0.25rem;
 }
 
-/* 3. FORMULARIOS Y CAMPOS DE ENTRADA */
-.form-group {
+/* 3. PÁGINAS Y ENCABEZADOS DE PÁGINA */
+.constructa-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.constructa-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.constructa-page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.constructa-page-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
+  max-width: 800px;
+  line-height: 1.45;
+}
+
+/* 4. FORMULARIOS Y CONTROLES (SOLUCIÓN DEFINITIVA DE SELECTS Y INPUTS) */
+.form-group, .constructa-form-group {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
   margin-bottom: 1.15rem;
 }
 
-.form-label {
+.form-label, .constructa-label {
   font-size: 0.84rem;
   font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 0.02em;
 }
 
-.form-input, .form-select, .form-textarea {
+/* ESTILO BASE UNIVERSAL PARA ENTRADAS Y TEXTAREAS */
+input.constructa-input,
+textarea.constructa-input,
+.form-input,
+.form-textarea {
   width: 100%;
-  background: var(--bg-input);
-  border: 1px solid var(--border-medium);
+  background-color: #0e1420;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--radius-sm);
-  padding: 0.65rem 0.85rem;
-  color: var(--text-primary);
+  padding: 0.65rem 0.95rem;
+  color: #f8fafc;
   font-size: 0.9rem;
+  font-family: inherit;
   transition: all var(--transition-fast);
 }
 
-.form-input:focus, .form-select:focus, .form-textarea:focus {
+input.constructa-input:focus,
+textarea.constructa-input:focus,
+.form-input:focus,
+.form-textarea:focus {
   outline: none;
-  background: var(--bg-input-focus);
-  border-color: var(--accent-amber);
-  box-shadow: 0 0 0 3px var(--accent-amber-glow);
+  background-color: #141c2d;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
 }
 
-.form-input::placeholder, .form-textarea::placeholder {
-  color: var(--text-muted);
+input.constructa-input::placeholder,
+textarea.constructa-input::placeholder,
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #64748b;
 }
 
-.form-error {
+/* REGLA CRÍTICA: ESTILIZADO NEGRO ELEGANTE PARA TODOS LOS SELECTS */
+select,
+select.constructa-input,
+select.form-select,
+.constructa-input[type="select"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 100%;
+  background-color: #0e1420 !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0.65rem 2.5rem 0.65rem 0.95rem !important;
+  font-size: 0.9rem !important;
+  font-family: inherit !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+  transition: all var(--transition-fast) !important;
+  
+  /* Icono de chevron dorado/ámbar perfectamente integrado */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.85rem center !important;
+  background-size: 16px 16px !important;
+}
+
+select:hover,
+select.constructa-input:hover,
+select.form-select:hover {
+  background-color: #141c2d !important;
+  border-color: rgba(245, 158, 11, 0.6) !important;
+}
+
+select:focus,
+select.constructa-input:focus,
+select.form-select:focus {
+  outline: none !important;
+  background-color: #141c2d !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22) !important;
+}
+
+/* Opciones del menú desplegable */
+select option,
+select.constructa-input option,
+select.form-select option {
+  background-color: #0d121c !important;
+  color: #f8fafc !important;
+  padding: 10px 14px !important;
+  font-size: 0.9rem !important;
+}
+
+select option:checked,
+select option:hover {
+  background-color: #1a2336 !important;
+  color: #f59e0b !important;
+}
+
+/* Errores y validaciones */
+.form-error, .constructa-error-text {
   font-size: 0.8rem;
   color: #f87171;
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
 
-.form-hint {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+.input-error {
+  border-color: #ef4444 !important;
 }
 
 .form-grid-2 {
@@ -205,23 +321,26 @@
   }
 }
 
-/* 4. TABLAS LIMPIAS Y EMPRESARIALES */
-.table-container {
+/* 5. TABLAS Y CONTENEDORES CON SCROLL INTERNO AISLADO */
+.table-container, .constructa-table-container {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
   background: var(--bg-card);
+  margin-bottom: 1rem;
 }
 
-.table {
+.table, .constructa-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.88rem;
+  min-width: 640px; /* Asegura legibilidad en scroll horizontal interno */
 }
 
-.table th {
+.table th, .constructa-table th {
   background: #0f1420;
   color: var(--text-secondary);
   font-weight: 600;
@@ -233,26 +352,42 @@
   text-transform: uppercase;
 }
 
-.table td {
+.table td, .constructa-table td {
   padding: 0.95rem 1rem;
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-primary);
   vertical-align: middle;
 }
 
-.table tbody tr {
-  transition: background var(--transition-fast);
-}
-
-.table tbody tr:hover {
+.table tbody tr:hover, .constructa-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.table tbody tr:last-child td {
+.table tbody tr:last-child td, .constructa-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* 5. BADGES / ETIQUETAS DE ESTADO */
+/* RESPONSIVE TABLE Y TARJETAS ADAPTATIVAS PARA TELÉFONO */
+.desktop-only-table {
+  display: block;
+}
+
+.mobile-only-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-only-table {
+    display: none !important;
+  }
+  .mobile-only-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+}
+
+/* 6. BADGES / ETIQUETAS DE ESTADO */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -295,7 +430,7 @@
   border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
-/* 6. BARRAS DE PROGRESO */
+/* 7. BARRAS DE PROGRESO */
 .progress-container {
   width: 100%;
 }
@@ -335,51 +470,11 @@
   background: linear-gradient(90deg, #ef4444, #b91c1c);
 }
 
-/* 7. BARRA DE BÚSQUEDA Y FILTROS */
-.filter-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  background: var(--bg-card);
-  padding: 1rem;
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
-}
-
-.search-box {
-  position: relative;
-  flex: 1;
-  min-width: 240px;
-}
-
-.search-box svg {
-  position: absolute;
-  left: 0.85rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.search-box input {
-  padding-left: 2.5rem;
-}
-
-.filter-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-/* 8. MODAL EMPRESARIAL */
+/* 8. MODAL RESPONSIVE */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -408,12 +503,13 @@
 }
 
 .modal-header {
-  padding: 1.25rem 1.5rem;
+  padding: 1.15rem 1.4rem;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #111724;
+  flex-shrink: 0;
 }
 
 .modal-title {
@@ -423,21 +519,45 @@
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 1.35rem 1.4rem;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.4rem;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
   background: #111724;
+  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
-/* 9. ESTADOS VACÍOS Y SIN RESULTADOS */
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+  .modal-content {
+    max-height: 94vh;
+  }
+  .modal-body {
+    padding: 1rem;
+  }
+  .modal-footer {
+    padding: 0.85rem 1rem;
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+  }
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* 9. ESTADOS VACÍOS */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -477,7 +597,7 @@
   margin-bottom: 1.25rem;
 }
 
-/* 10. SISTEMA DE TOASTS / ALERTAS FLOTANTES */
+/* 10. TOASTS */
 .toast-container {
   position: fixed;
   bottom: 1.5rem;
@@ -507,15 +627,15 @@
   animation: slideInRight 0.25s ease-out;
 }
 
-.toast-item.exito {
+.toast-item.exito, .toast-item.success {
   border-left: 4px solid var(--accent-green);
 }
 
-.toast-item.error {
+.toast-item.error, .toast-item.danger {
   border-left: 4px solid var(--accent-red);
 }
 
-.toast-item.advertencia {
+.toast-item.advertencia, .toast-item.warning {
   border-left: 4px solid var(--accent-amber);
 }
 
@@ -523,7 +643,7 @@
   border-left: 4px solid var(--accent-blue);
 }
 
-/* Animaciones */
+/* ANIMACIONES */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

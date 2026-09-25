@@ -3,7 +3,7 @@
    ========================================================================== */
 
 :root {
-  /* Fondos y Superficies */
+  /* Fondos y Superficies Principales */
   --bg-app: #0a0d14;
   --bg-sidebar: #0d121c;
   --bg-header: rgba(13, 18, 28, 0.85);
@@ -12,6 +12,22 @@
   --bg-surface-elevated: #1a2336;
   --bg-input: #0e1420;
   --bg-input-focus: #141c2d;
+
+  /* Alias Semánticos */
+  --color-bg-page: #0a0d14;
+  --color-bg-card: #131926;
+  --color-bg-card-hover: #182030;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-gold: #f59e0b;
+  --color-amber: #f59e0b;
+  --color-emerald: #10b981;
+  --color-rose: #ef4444;
+  --color-cyan: #38bdf8;
+  --color-purple: #a855f7;
 
   /* Bordes y Separadores */
   --border-subtle: rgba(255, 255, 255, 0.07);

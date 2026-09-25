@@ -41,6 +41,7 @@ function AppContent() {
     currentUser, 
     activeView, 
     setActiveView, 
+    navigateTo,
     confirmState, 
     closeConfirm 
   } = useConstructa();
@@ -116,7 +117,7 @@ function AppContent() {
     let pageComponent = null;
     switch (activeView) {
       case 'dashboard':
-        pageComponent = <Dashboard />;
+        pageComponent = <Dashboard onNavigate={navigateTo || setActiveView} />;
         break;
       case 'proyectos':
         pageComponent = <Projects />;
@@ -147,7 +148,7 @@ function AppContent() {
         break;
       case 'login':
         // If logged in and enters login, redirect to dashboard
-        pageComponent = <Dashboard />;
+        pageComponent = <Dashboard onNavigate={navigateTo || setActiveView} />;
         break;
       default:
         return <Status404 onBackToHome={() => setActiveView('dashboard')} />;

@@ -172,7 +172,7 @@ export default function Reports() {
             className="constructa-input"
             value={projectFilter}
             onChange={(e) => setProjectFilter(e.target.value)}
-            style={{ width: 'auto', minWidth: '240px' }}
+            style={{ width: 'auto', minWidth: '200px', maxWidth: '100%' }}
           >
             <option value="ALL">Consolidado General (Todos los Proyectos)</option>
             {data.projects.map(p => (

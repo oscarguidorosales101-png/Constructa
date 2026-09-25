@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useConstructa } from '../../context/ConstructaContext';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -16,18 +16,35 @@ import {
   Trash2, 
   TrendingDown, 
   TrendingUp, 
-  Building2,
-  DollarSign,
-  History,
-  Layers
+  Building2, 
+  DollarSign, 
+  History, 
+  Layers 
 } from 'lucide-react';
 
 export default function Materials() {
-  const { data, saveMaterial, deleteMaterial, registerStockMovement, requestConfirm } = useConstructa();
+  const { 
+    data, 
+    saveMaterial, 
+    deleteMaterial, 
+    registerStockMovement, 
+    requestConfirm,
+    navigationIntent,
+    clearNavigationIntent 
+  } = useConstructa();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL'); // 'ALL' | 'low' | 'ok'
   const [viewTab, setViewTab] = useState('inventory'); // 'inventory' | 'movements'
+
+  // Escuchar si venimos de Dashboard "Revisar Inventario" / "Stock Bajo" (Prompt #9)
+  useEffect(() => {
+    if (navigationIntent?.filterLowStock) {
+      setSelectedStatus('low');
+      if (clearNavigationIntent) clearNavigationIntent();
+    }
+  }, [navigationIntent, clearNavigationIntent]);
   
   // Modals state
   const [modalOpen, setModalOpen] = useState(false);
@@ -279,7 +296,7 @@ export default function Materials() {
               }}
             />
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '20px' }}>
+            <div className="materials-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
               {filteredMaterials.map(m => {
                 const isLow = m.stock <= m.stockMinimo;
                 const isZero = m.stock === 0;

@@ -20,36 +20,43 @@ import Button from '../../components/common/Button.jsx';
 import Badge from '../../components/common/Badge.jsx';
 
 export const Dashboard = ({ onNavigate }) => {
-  const { metrics, history, materials, projects, formatCurrency, formatNumber } = useConstructa();
+  const { 
+    metrics, 
+    history, 
+    materials, 
+    projects, 
+    formatCurrency, 
+    formatNumber,
+    navigateTo,
+    setActiveView 
+  } = useConstructa();
+
+  // Helper unificado de navegación con paso de intenciones/parámetros
+  const navigate = (view, intent = null) => {
+    if (navigateTo) {
+      navigateTo(view, intent);
+    } else if (onNavigate) {
+      onNavigate(view);
+    } else if (setActiveView) {
+      setActiveView(view);
+    }
+  };
 
   // Materiales en stock crítico
   const lowStockItems = materials.filter(
-    (m) => Number(m.stockActual) <= Number(m.stockMinimo)
+    (m) => Number(m.stockActual ?? m.stock) <= Number(m.stockMinimo)
   );
 
   return (
     <div className="dashboard-page">
-      {/* Alerta si existen materiales en stock crítico */}
+      {/* Alerta si existen materiales en stock crítico (Responsive y accionable) */}
       {lowStockItems.length > 0 && (
-        <div
-          style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: 'var(--radius-md)',
-            padding: '1rem 1.25rem',
-            marginBottom: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="dashboard-alert-banner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div
               style={{
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 borderRadius: '50%',
                 background: 'rgba(239, 68, 68, 0.2)',
                 color: '#f87171',
@@ -59,13 +66,13 @@ export const Dashboard = ({ onNavigate }) => {
                 flexShrink: 0,
               }}
             >
-              <AlertTriangle size={20} />
+              <AlertTriangle size={22} />
             </div>
             <div>
               <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
-                Atención requerida en almacén: {lowStockItems.length} materiales con stock bajo
+                Atención requerida en almacén: {lowStockItems.length} insumos con stock bajo
               </strong>
-              <p style={{ color: '#fca5a5', fontSize: '0.82rem', margin: 0 }}>
+              <p style={{ color: '#fca5a5', fontSize: '0.82rem', margin: '2px 0 0 0' }}>
                 {lowStockItems.map((m) => m.nombre).slice(0, 3).join(', ')}
                 {lowStockItems.length > 3 ? ` y ${lowStockItems.length - 3} más...` : '.'}
               </p>
@@ -74,7 +81,7 @@ export const Dashboard = ({ onNavigate }) => {
           <Button
             variant="danger"
             size="sm"
-            onClick={() => onNavigate('materiales')}
+            onClick={() => navigate('materiales', { filterLowStock: true })}
             icon={ArrowRight}
           >
             Revisar Inventario
@@ -82,10 +89,10 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
       )}
 
-      {/* KPI GRID DE 8 TARJETAS DINÁMICAS (Requerimiento Prompt #13) */}
+      {/* KPI GRID DE 8 TARJETAS DINÁMICAS (Requerimiento Prompt #13 - Responsive 4 col / 2 col / 1 col) */}
       <div className="kpi-grid">
         {/* 1. Proyectos activos */}
-        <div className="kpi-card" onClick={() => onNavigate('proyectos')} style={{ cursor: 'pointer' }}>
+        <div className="kpi-card" onClick={() => navigate('proyectos')} style={{ cursor: 'pointer' }} title="Ir a Proyectos Activos">
           <div className="kpi-header">
             <span className="kpi-title">Proyectos Activos</span>
             <div className="kpi-icon-box amber">
@@ -101,7 +108,7 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
 
         {/* 2. Proyectos finalizados */}
-        <div className="kpi-card" onClick={() => onNavigate('proyectos')} style={{ cursor: 'pointer' }}>
+        <div className="kpi-card" onClick={() => navigate('proyectos')} style={{ cursor: 'pointer' }} title="Ir a Obras Finalizadas">
           <div className="kpi-header">
             <span className="kpi-title">Proyectos Finalizados</span>
             <div className="kpi-icon-box green">
@@ -117,7 +124,7 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
 
         {/* 3. Total de empleados */}
-        <div className="kpi-card" onClick={() => onNavigate('empleados')} style={{ cursor: 'pointer' }}>
+        <div className="kpi-card" onClick={() => navigate('empleados')} style={{ cursor: 'pointer' }} title="Ir a Personal de Obra">
           <div className="kpi-header">
             <span className="kpi-title">Total de Personal</span>
             <div className="kpi-icon-box blue">
@@ -133,7 +140,7 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
 
         {/* 4. Materiales registrados */}
-        <div className="kpi-card" onClick={() => onNavigate('materiales')} style={{ cursor: 'pointer' }}>
+        <div className="kpi-card" onClick={() => navigate('materiales')} style={{ cursor: 'pointer' }} title="Ir a Catálogo de Materiales">
           <div className="kpi-header">
             <span className="kpi-title">Materiales Registrados</span>
             <div className="kpi-icon-box blue">
@@ -149,7 +156,12 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
 
         {/* 5. Materiales con stock bajo */}
-        <div className="kpi-card" onClick={() => onNavigate('materiales')} style={{ cursor: 'pointer' }}>
+        <div 
+          className="kpi-card" 
+          onClick={() => navigate('materiales', { filterLowStock: true })} 
+          style={{ cursor: 'pointer' }} 
+          title="Ver Insumos en Alerta de Stock"
+        >
           <div className="kpi-header">
             <span className="kpi-title">Stock Bajo</span>
             <div className="kpi-icon-box red">
@@ -157,19 +169,19 @@ export const Dashboard = ({ onNavigate }) => {
             </div>
           </div>
           <div>
-            <div className="kpi-value" style={{ color: metrics?.lowStockCount > 0 ? '#f87171' : 'inherit' }}>
-              {metrics?.lowStockCount || 0}
+            <div className="kpi-value" style={{ color: (metrics?.lowStockCount > 0 || lowStockItems.length > 0) ? '#f87171' : 'inherit' }}>
+              {metrics?.lowStockCount || lowStockItems.length || 0}
             </div>
             <div className="kpi-subtext">
-              <span style={{ color: metrics?.lowStockCount > 0 ? '#f87171' : 'var(--text-muted)' }}>
-                {metrics?.lowStockCount > 0 ? 'Requieren reposición inmediata' : 'Existencias estables'}
+              <span style={{ color: (metrics?.lowStockCount > 0 || lowStockItems.length > 0) ? '#f87171' : 'var(--text-muted)' }}>
+                {(metrics?.lowStockCount > 0 || lowStockItems.length > 0) ? 'Requieren reposición inmediata' : 'Existencias estables'}
               </span>
             </div>
           </div>
         </div>
 
         {/* 6. Presupuesto total */}
-        <div className="kpi-card" onClick={() => onNavigate('presupuestos')} style={{ cursor: 'pointer' }}>
+        <div className="kpi-card" onClick={() => navigate('presupuestos')} style={{ cursor: 'pointer' }} title="Ir a Presupuestos">
           <div className="kpi-header">
             <span className="kpi-title">Presupuesto Total</span>
             <div className="kpi-icon-box amber">
@@ -187,7 +199,7 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
 
         {/* 7. Gastos acumulados */}
-        <div className="kpi-card" onClick={() => onNavigate('gastos')} style={{ cursor: 'pointer' }}>
+        <div className="kpi-card" onClick={() => navigate('gastos')} style={{ cursor: 'pointer' }} title="Ir a Control de Gastos">
           <div className="kpi-header">
             <span className="kpi-title">Gastos Acumulados</span>
             <div className="kpi-icon-box amber">
@@ -199,13 +211,13 @@ export const Dashboard = ({ onNavigate }) => {
               {formatCurrency(metrics?.totalSpent)}
             </div>
             <div className="kpi-subtext">
-              <span>{metrics?.budgetUtilization}% del presupuesto utilizado</span>
+              <span>{metrics?.budgetUtilization || metrics?.budgetUsagePercent}% del presupuesto</span>
             </div>
           </div>
         </div>
 
         {/* 8. Presupuesto disponible */}
-        <div className="kpi-card" onClick={() => onNavigate('presupuestos')} style={{ cursor: 'pointer' }}>
+        <div className="kpi-card" onClick={() => navigate('presupuestos')} style={{ cursor: 'pointer' }} title="Ir a Balance Presupuestario">
           <div className="kpi-header">
             <span className="kpi-title">Presupuesto Disponible</span>
             <div className="kpi-icon-box green">
@@ -223,32 +235,41 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* ACCIONES RÁPIDAS EMPRESARIALES */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.75rem',
-          flexWrap: 'wrap',
-          marginBottom: '2rem',
-          padding: '1rem',
-          background: 'var(--bg-card)',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-card)',
-        }}
-      >
-        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', alignSelf: 'center', marginRight: '0.5rem' }}>
+      {/* ACCIONES RÁPIDAS EMPRESARIALES (Totalmente funcionales y adaptables a móvil) */}
+      <div className="quick-actions-bar">
+        <span className="quick-actions-title">
           Accesos Rápidos:
         </span>
-        <Button variant="secondary" size="sm" icon={HardHat} onClick={() => onNavigate('proyectos')}>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          icon={HardHat} 
+          onClick={() => navigate('proyectos')}
+        >
           Explorar Proyectos
         </Button>
-        <Button variant="secondary" size="sm" icon={Receipt} onClick={() => onNavigate('gastos')}>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          icon={Receipt} 
+          onClick={() => navigate('gastos', { openCreateModal: true })}
+        >
           Registrar Gasto
         </Button>
-        <Button variant="secondary" size="sm" icon={Package} onClick={() => onNavigate('materiales')}>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          icon={Package} 
+          onClick={() => navigate('materiales')}
+        >
           Gestionar Materiales
         </Button>
-        <Button variant="secondary" size="sm" icon={Users} onClick={() => onNavigate('empleados')}>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          icon={Users} 
+          onClick={() => navigate('empleados', { viewMode: 'agenda' })}
+        >
           Ver Horarios de Personal
         </Button>
       </div>
@@ -266,7 +287,7 @@ export const Dashboard = ({ onNavigate }) => {
             </h3>
             <p className="card-desc">Registro cronológico de operaciones operativas, financieras y de personal</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => onNavigate('reportes')}>
+          <Button variant="outline" size="sm" onClick={() => navigate('reportes')}>
             Ver Reporte Completo
           </Button>
         </div>

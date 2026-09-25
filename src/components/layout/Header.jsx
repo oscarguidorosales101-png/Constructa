@@ -1,7 +1,6 @@
 import React from 'react';
-import { Menu, Calendar, LogOut, ShieldCheck } from 'lucide-react';
+import { Menu, Calendar, ShieldCheck, User } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
-import Button from '../common/Button.jsx';
 
 const ROUTE_INFO = {
   dashboard: {
@@ -46,28 +45,14 @@ const ROUTE_INFO = {
   },
 };
 
-export const Header = ({ currentRoute, onToggleMobileMenu, onNavigate }) => {
-  const { currentUser, requestConfirm, logout } = useConstructa();
+export const Header = ({ currentRoute, onToggleMobileMenu }) => {
+  const { currentUser } = useConstructa();
   const info = ROUTE_INFO[currentRoute] || {
     title: 'CONSTRUCTA',
     description: 'Sistema de Gestión para Empresa Constructora',
   };
 
-  const handleLogoutClick = () => {
-    requestConfirm({
-      title: 'Cerrar sesión',
-      message: '¿Deseas cerrar tu sesión actual en CONSTRUCTA?',
-      confirmText: 'Cerrar sesión',
-      cancelText: 'Cancelar',
-      isDestructive: true,
-      onConfirm: () => {
-        logout();
-        onNavigate('login');
-      },
-    });
-  };
-
-  // Fecha en español profesional
+  // Fecha actual en español corporativo
   const todayStr = new Date().toLocaleDateString('es-MX', {
     weekday: 'long',
     day: 'numeric',
@@ -100,33 +85,19 @@ export const Header = ({ currentRoute, onToggleMobileMenu, onNavigate }) => {
           <span>{capitalizedDate}</span>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            fontSize: '0.78rem',
-            padding: '0.35rem 0.75rem',
-            borderRadius: 'var(--radius-full)',
-            background: 'rgba(16, 185, 129, 0.1)',
-            color: '#34d399',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
-          }}
-          className="header-status-pill"
-        >
+        <div className="header-status-pill">
           <ShieldCheck size={14} />
           <span>{currentUser?.rol || 'Administrador'}</span>
         </div>
 
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={LogOut}
-          onClick={handleLogoutClick}
-          className="header-logout-btn"
-        >
-          Cerrar sesión
-        </Button>
+        <div className="header-user-avatar-tag" title={currentUser?.nombre || 'Administrador'}>
+          <div className="avatar-mini">
+            {currentUser?.nombre ? currentUser.nombre.charAt(0) : 'A'}
+          </div>
+          <span className="user-short-name">
+            {currentUser?.nombre ? currentUser.nombre.split(' ')[0] : 'Admin'}
+          </span>
+        </div>
       </div>
     </header>
   );

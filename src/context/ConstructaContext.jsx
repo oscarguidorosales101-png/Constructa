@@ -19,6 +19,18 @@ export const ConstructaProvider = ({ children }) => {
     return hash || 'dashboard';
   });
 
+  // Intención de navegación (parámetros entre módulos como abrir modal o activar pestaña)
+  const [navigationIntent, setNavigationIntent] = useState(null);
+
+  const navigateTo = useCallback((view, intent = null) => {
+    setNavigationIntent(intent);
+    setActiveView(view);
+  }, []);
+
+  const clearNavigationIntent = useCallback(() => {
+    setNavigationIntent(null);
+  }, []);
+
   // Estado de datos principales
   const [projects, setProjects] = useState(() => constructaService.getProjects());
   const [employees, setEmployees] = useState(() => constructaService.getEmployees());
@@ -298,6 +310,9 @@ export const ConstructaProvider = ({ children }) => {
         isAuthenticated: !!session && !!currentUser,
         activeView,
         setActiveView,
+        navigateTo,
+        navigationIntent,
+        clearNavigationIntent,
         login,
         logout,
         data,

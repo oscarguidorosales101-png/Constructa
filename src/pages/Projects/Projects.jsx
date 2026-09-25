@@ -25,6 +25,7 @@ import ProjectDetailModal from '../../components/projects/ProjectDetailModal.jsx
 export const Projects = () => {
   const {
     projects,
+    expenses,
     saveProject,
     deleteProject,
     requestConfirm,
@@ -56,6 +57,14 @@ export const Projects = () => {
       return matchesSearch && matchesStatus;
     });
   }, [projects, searchTerm, statusFilter]);
+
+  // Cálculo de gasto ejecutado por proyecto
+  const getProjectSpent = (projectId) => {
+    if (!expenses) return 0;
+    return expenses
+      .filter((e) => e.proyectoId === projectId)
+      .reduce((acc, curr) => acc + Number(curr.monto || 0), 0);
+  };
 
   const handleOpenCreate = () => {
     setSelectedProject(null);
@@ -172,51 +181,63 @@ export const Projects = () => {
           onAction={handleOpenCreate}
         />
       ) : viewMode === 'cards' ? (
-        /* VISTA DE TARJETAS EMPRESARIALES */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
-          {filteredProjects.map((project) => (
-            <div key={project.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', letterSpacing: '0.04em' }}>
-                    {project.codigo || 'OBR-2026'}
-                  </span>
-                  <Badge variant={getStatusVariant(project.estado)}>
-                    {project.estado}
-                  </Badge>
-                </div>
+        /* VISTA DE TARJETAS EMPRESARIALES (Prompt Requerimiento #16) */
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
+          {filteredProjects.map((project) => {
+            const spent = getProjectSpent(project.id);
+            const targetDate = project.fechaFin || project.fechaFinEstimada || project.fechaInicio || 'En curso';
 
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.35rem', lineHeight: 1.3 }}>
-                  {project.nombre}
-                </h3>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  {project.cliente}
-                </p>
-
-                <div style={{ background: '#0e1420', padding: '0.75rem 0.9rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                    <span>Presupuesto</span>
-                    <strong style={{ color: '#ffffff', fontSize: '0.85rem' }}>
-                      {formatCurrency(project.presupuesto)}
-                    </strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    <span>Responsable</span>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                      {project.responsable}
+            return (
+              <div key={project.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', letterSpacing: '0.04em' }}>
+                      {project.codigo || 'OBR-2026'}
                     </span>
+                    <Badge variant={getStatusVariant(project.estado)}>
+                      {project.estado}
+                    </Badge>
+                  </div>
+
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.35rem', lineHeight: 1.3 }}>
+                    {project.nombre}
+                  </h3>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                    {project.cliente}
+                  </p>
+
+                  <div style={{ background: '#0e1420', padding: '0.85rem 0.95rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      <span>Presupuesto</span>
+                      <strong style={{ color: '#ffffff', fontSize: '0.88rem' }}>
+                        {formatCurrency(project.presupuesto)}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      <span>Gastado Ejecutado</span>
+                      <strong style={{ color: '#fbbf24', fontSize: '0.88rem' }}>
+                        {formatCurrency(spent)}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', paddingTop: '0.35rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Calendar size={13} style={{ color: 'var(--accent-amber)' }} /> Plazo:
+                      </span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                        {targetDate}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '1rem' }}>
+                    <ProgressBar
+                      value={project.avance}
+                      max={100}
+                      labelPrefix="Avance de obra"
+                      size="md"
+                    />
                   </div>
                 </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <ProgressBar
-                    value={project.avance}
-                    max={100}
-                    labelPrefix="Avance de obra"
-                    size="md"
-                  />
-                </div>
-              </div>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.85rem', borderTop: '1px solid var(--border-subtle)' }}>
                 <Button
@@ -251,9 +272,10 @@ export const Projects = () => {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
+          );
+        })}
+      </div>
+    ) : (
         /* VISTA DE TABLA */
         <div className="table-container">
           <table className="table">

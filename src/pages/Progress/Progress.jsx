@@ -144,7 +144,7 @@ export default function Progress() {
           }}
         />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
           {filteredProjects.map(prj => {
             const isCompleted = prj.avance === 100;
             const tasks = data.schedule.filter(t => t.proyectoId === prj.id);

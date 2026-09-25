@@ -16,7 +16,8 @@ import {
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 
 export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
-  const { currentUser, metrics, requestConfirm, logout } = useConstructa();
+  const { currentUser, metrics, requestConfirm, logout, setActiveView } = useConstructa();
+  const navigate = onNavigate || setActiveView;
 
   const handleLogoutClick = () => {
     requestConfirm({
@@ -27,7 +28,7 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
       isDestructive: true,
       onConfirm: () => {
         logout();
-        onNavigate('login');
+        navigate('login');
       },
     });
   };
@@ -61,7 +62,7 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
   ];
 
   const handleItemClick = (id) => {
-    onNavigate(id);
+    navigate(id);
     if (onClose) onClose();
   };
 

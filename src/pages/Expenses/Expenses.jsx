@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useConstructa } from '../../context/ConstructaContext';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -29,12 +29,29 @@ const CATEGORIES = [
 ];
 
 export default function Expenses() {
-  const { data, saveExpense, deleteExpense, requestConfirm } = useConstructa();
+  const { 
+    data, 
+    saveExpense, 
+    deleteExpense, 
+    requestConfirm, 
+    navigationIntent, 
+    clearNavigationIntent 
+  } = useConstructa();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState('ALL');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
+
+  // Escuchar si venimos de Dashboard "Registrar Gasto" (Prompt #6)
+  useEffect(() => {
+    if (navigationIntent?.openCreateModal) {
+      setEditingExpense(null);
+      setModalOpen(true);
+      if (clearNavigationIntent) clearNavigationIntent();
+    }
+  }, [navigationIntent, clearNavigationIntent]);
 
   // Filtered expenses list
   const filteredExpenses = useMemo(() => {
@@ -191,115 +208,182 @@ export default function Expenses() {
           }}
         />
       ) : (
-        <div className="constructa-card" style={{ overflow: 'hidden' }}>
-          <div className="constructa-table-container">
-            <table className="constructa-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Concepto / Descripción</th>
-                  <th>Proyecto Destino</th>
-                  <th>Categoría</th>
-                  <th>Proveedor / Folio</th>
-                  <th style={{ textAlign: 'right' }}>Importe ($)</th>
-                  <th style={{ textAlign: 'right' }}>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredExpenses.map(exp => (
-                  <tr key={exp.id}>
-                    <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={13} style={{ color: 'var(--color-text-muted)' }} />
-                        <span>{exp.fecha}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                        {exp.concepto || exp.descripcion || 'Gasto operativo'}
-                      </div>
-                      {exp.notas && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                          {exp.notas}
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                        <Building2 size={14} style={{ color: 'var(--color-gold)' }} />
-                        <span>{getProjectName(exp.proyectoId)}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span style={{
-                        background: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid var(--color-border)',
-                        padding: '3px 8px',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.78rem',
-                        color: 'var(--color-cyan)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
-                        <Tag size={11} /> {exp.categoria}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                        {exp.proveedor || 'Sin proveedor'}
-                      </div>
-                      {exp.comprobante && (
-                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                          Factura: {exp.comprobante}
-                        </div>
-                      )}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-gold)' }}>
-                        ${Number(exp.monto).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                        <button
-                          onClick={() => handleOpenEdit(exp)}
-                          className="btn-icon"
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--color-text-muted)',
-                            cursor: 'pointer',
-                            padding: '6px',
-                            borderRadius: 'var(--radius-sm)'
-                          }}
-                          title="Editar"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(exp)}
-                          className="btn-icon"
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--color-rose)',
-                            cursor: 'pointer',
-                            padding: '6px',
-                            borderRadius: 'var(--radius-sm)'
-                          }}
-                          title="Eliminar"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+        <>
+          {/* Vista Tabla Desktop */}
+          <div className="desktop-only-table constructa-card" style={{ overflow: 'hidden' }}>
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Concepto / Descripción</th>
+                    <th>Proyecto Destino</th>
+                    <th>Categoría</th>
+                    <th>Proveedor / Folio</th>
+                    <th style={{ textAlign: 'right' }}>Importe ($)</th>
+                    <th style={{ textAlign: 'right' }}>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredExpenses.map(exp => (
+                    <tr key={exp.id}>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Calendar size={13} style={{ color: 'var(--color-text-muted)' }} />
+                          <span>{exp.fecha}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                          {exp.concepto || exp.descripcion || 'Gasto operativo'}
+                        </div>
+                        {exp.notas && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                            {exp.notas}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                          <Building2 size={14} style={{ color: 'var(--color-gold)' }} />
+                          <span>{getProjectName(exp.proyectoId)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--color-border)',
+                          padding: '3px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '0.78rem',
+                          color: 'var(--color-cyan)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <Tag size={11} /> {exp.categoria}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+                          {exp.proveedor || 'Sin proveedor'}
+                        </div>
+                        {exp.comprobante && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                            Factura: {exp.comprobante}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-gold)' }}>
+                          ${Number(exp.monto).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                          <button
+                            onClick={() => handleOpenEdit(exp)}
+                            className="btn-icon"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--color-text-muted)',
+                              cursor: 'pointer',
+                              padding: '6px',
+                              borderRadius: 'var(--radius-sm)'
+                            }}
+                            title="Editar"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(exp)}
+                            className="btn-icon"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--color-rose)',
+                              cursor: 'pointer',
+                              padding: '6px',
+                              borderRadius: 'var(--radius-sm)'
+                            }}
+                            title="Eliminar"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Vista Tarjetas para Móvil (Prompt Requerimiento #19) */}
+          <div className="mobile-only-cards">
+            {filteredExpenses.map(exp => (
+              <div key={exp.id} className="constructa-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                      {exp.concepto || exp.descripcion || 'Gasto operativo'}
+                    </h3>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                      <Calendar size={12} /> {exp.fecha}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-gold)', whiteSpace: 'nowrap' }}>
+                    ${Number(exp.monto).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'var(--color-bg-page)',
+                  padding: '10px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                  fontSize: '0.82rem',
+                  color: 'var(--color-text-secondary)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Building2 size={13} style={{ color: 'var(--color-gold)' }} />
+                    <span><strong>Proyecto:</strong> {getProjectName(exp.proyectoId)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span><strong>Proveedor:</strong> {exp.proveedor || 'Sin proveedor'}</span>
+                    <span style={{
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid var(--color-border)',
+                      padding: '2px 6px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.72rem',
+                      color: 'var(--color-cyan)'
+                    }}>
+                      {exp.categoria}
+                    </span>
+                  </div>
+                  {exp.comprobante && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                      Folio: {exp.comprobante}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
+                  <Button size="sm" variant="secondary" icon={<Edit size={14} />} onClick={() => handleOpenEdit(exp)}>
+                    Editar
+                  </Button>
+                  <Button size="sm" variant="danger" icon={<Trash2 size={14} />} onClick={() => handleDelete(exp)}>
+                    Eliminar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Expense Modal */}
