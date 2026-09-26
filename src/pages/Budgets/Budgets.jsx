@@ -5,6 +5,7 @@ import Badge from '../../components/common/Badge';
 import ProgressBar from '../../components/common/ProgressBar';
 import SearchInput from '../../components/common/SearchInput';
 import EmptyState from '../../components/common/EmptyState';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -53,10 +54,15 @@ export default function Budgets() {
 
   const filteredProjects = useMemo(() => {
     return projectBudgets.filter(prj => {
-      const matchesSearch = 
-        prj.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prj.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prj.cliente.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = matchSearch(searchTerm, [
+        prj.nombre,
+        prj.codigo,
+        prj.id,
+        prj.cliente,
+        prj.responsable,
+        prj.estado,
+        prj.ubicacion,
+      ]);
       
       const matchesStatus = selectedStatus === 'ALL' || prj.estado === selectedStatus;
 
@@ -140,9 +146,9 @@ export default function Budgets() {
       <div className="constructa-card" style={{ padding: '16px 20px', marginBottom: '24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', alignItems: 'center' }}>
           <SearchInput
-            placeholder="Buscar por proyecto o código..."
+            placeholder="Buscar por proyecto, código, cliente o responsable..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
 
           <select
@@ -162,9 +168,10 @@ export default function Budgets() {
       {/* Project Budgets List */}
       {filteredProjects.length === 0 ? (
         <EmptyState
-          title="Sin resultados de presupuesto"
-          description="No se encontraron proyectos que coincidan con la búsqueda o filtro aplicado."
-          actionText="Limpiar filtros"
+          isSearch={Boolean(searchTerm || selectedStatus !== 'ALL')}
+          title="No encontramos resultados para tu búsqueda"
+          message="No se encontraron proyectos o presupuestos que coincidan con la búsqueda o filtro aplicado."
+          actionText="Limpiar búsqueda y filtros"
           onAction={() => {
             setSearchTerm('');
             setSelectedStatus('ALL');

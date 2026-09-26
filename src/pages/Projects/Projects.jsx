@@ -21,6 +21,7 @@ import SearchInput from '../../components/common/SearchInput.jsx';
 import EmptyState from '../../components/common/EmptyState.jsx';
 import ProjectModal from '../../components/projects/ProjectModal.jsx';
 import ProjectDetailModal from '../../components/projects/ProjectDetailModal.jsx';
+import { matchSearch } from '../../utils/searchUtils.js';
 
 export const Projects = () => {
   const {
@@ -42,14 +43,19 @@ export const Projects = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [detailProject, setDetailProject] = useState(null);
 
-  // Filtrado y búsqueda conjunta (Prompt Regla #34)
+  // Filtrado y búsqueda conjunta tolerante a acentos
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
-      const matchesSearch =
-        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.responsable.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.codigo && p.codigo.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = matchSearch(searchTerm, [
+        p.nombre,
+        p.codigo,
+        p.id,
+        p.cliente,
+        p.responsable,
+        p.estado,
+        p.ubicacion,
+        p.descripcion,
+      ]);
 
       const matchesStatus =
         statusFilter === 'Todos' || p.estado === statusFilter;
@@ -165,20 +171,27 @@ export const Projects = () => {
           isSearch={searchTerm !== '' || statusFilter !== 'Todos'}
           title={
             searchTerm !== '' || statusFilter !== 'Todos'
-              ? 'Sin resultados'
+              ? 'No encontramos resultados para tu búsqueda'
               : 'No hay proyectos registrados'
           }
           message={
             searchTerm !== '' || statusFilter !== 'Todos'
-              ? 'No encontramos información que coincida con tu búsqueda o los filtros seleccionados.'
+              ? 'No encontramos obras o proyectos que coincidan con la búsqueda o filtros seleccionados.'
               : 'Agrega un proyecto para comenzar a registrar actividades, personal y presupuestos.'
           }
           actionText={
             searchTerm !== '' || statusFilter !== 'Todos'
-              ? null
+              ? 'Limpiar búsqueda y filtros'
               : 'Crear Primer Proyecto'
           }
-          onAction={handleOpenCreate}
+          onAction={
+            searchTerm !== '' || statusFilter !== 'Todos'
+              ? () => {
+                  setSearchTerm('');
+                  setStatusFilter('Todos');
+                }
+              : handleOpenCreate
+          }
         />
       ) : viewMode === 'cards' ? (
         /* VISTA DE TARJETAS EMPRESARIALES (Prompt Requerimiento #16) */

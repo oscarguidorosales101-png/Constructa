@@ -7,6 +7,7 @@ import EmptyState from '../../components/common/EmptyState';
 import MaterialModal from '../../components/materials/MaterialModal';
 import StockMovementModal from '../../components/materials/StockMovementModal';
 import { materialImages } from '../../assets/imgs/materiales';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   Package, 
   Plus, 
@@ -63,16 +64,27 @@ export default function Materials() {
     return data.materials.filter(m => m.stock <= m.stockMinimo);
   }, [data.materials]);
 
-  // Filtered materials
+  // Filtered materials con búsqueda avanzada y tolerante a acentos
   const filteredMaterials = useMemo(() => {
     return data.materials.filter(m => {
-      const matchesSearch = 
-        m.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (m.descripcion && m.descripcion.toLowerCase().includes(searchTerm.toLowerCase()));
+      const supplier = data.suppliers.find(s => s.id === m.proveedorId);
+      const supplierName = supplier ? (supplier.nombre || supplier.nombreComercial) : '';
+      const isLow = m.stock <= m.stockMinimo;
+      const statusText = isLow ? 'Stock bajo crítico alerta reorden' : 'Stock normal óptimo suficiente';
+
+      const matchesSearch = matchSearch(searchTerm, [
+        m.nombre,
+        m.codigo,
+        m.id,
+        m.categoria,
+        m.unidad,
+        m.ubicacionAlmacen,
+        statusText,
+        supplierName,
+        m.descripcion,
+      ]);
       
       const matchesCategory = selectedCategory === 'ALL' || m.categoria === selectedCategory;
-      const isLow = m.stock <= m.stockMinimo;
       const matchesStatus = 
         selectedStatus === 'ALL' ? true :
         selectedStatus === 'low' ? isLow :
@@ -80,7 +92,7 @@ export default function Materials() {
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [data.materials, searchTerm, selectedCategory, selectedStatus]);
+  }, [data.materials, data.suppliers, searchTerm, selectedCategory, selectedStatus]);
 
   const handleOpenCreate = () => {
     setEditingMaterial(null);
@@ -255,9 +267,9 @@ export default function Materials() {
           <div className="constructa-card" style={{ padding: '16px 20px', marginBottom: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', alignItems: 'center' }}>
               <SearchInput
-                placeholder="Buscar material o especificación..."
+                placeholder="Buscar por nombre, código, categoría, unidad..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={setSearchTerm}
               />
 
               <select
@@ -286,9 +298,10 @@ export default function Materials() {
           {/* Material Cards Grid */}
           {filteredMaterials.length === 0 ? (
             <EmptyState
-              title="Sin materiales coincidentes"
-              description="No encontramos insumos que correspondan con los filtros de búsqueda seleccionados."
-              actionText="Restablecer filtros"
+              isSearch={Boolean(searchTerm || selectedCategory !== 'ALL' || selectedStatus !== 'ALL')}
+              title="No encontramos resultados para tu búsqueda"
+              message="No encontramos insumos que correspondan con los filtros o términos de búsqueda seleccionados."
+              actionText="Limpiar búsqueda y filtros"
               onAction={() => {
                 setSearchTerm('');
                 setSelectedCategory('ALL');

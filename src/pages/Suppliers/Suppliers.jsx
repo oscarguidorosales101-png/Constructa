@@ -5,6 +5,7 @@ import Badge from '../../components/common/Badge';
 import SearchInput from '../../components/common/SearchInput';
 import EmptyState from '../../components/common/EmptyState';
 import SupplierModal from '../../components/suppliers/SupplierModal';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   Truck, 
   Plus, 
@@ -14,8 +15,8 @@ import {
   Mail, 
   MapPin, 
   UserCheck, 
-  FileText,
-  Package
+  FileText, 
+  Package 
 } from 'lucide-react';
 
 export default function Suppliers() {
@@ -31,23 +32,32 @@ export default function Suppliers() {
   }, [data.suppliers]);
 
   const filteredSuppliers = useMemo(() => {
-    const query = searchTerm.toLowerCase();
     return data.suppliers.filter(s => {
-      const name = (s.nombre || s.nombreComercial || '').toLowerCase();
-      const contact = (s.contacto || '').toLowerCase();
-      const spec = (s.especialidad || s.categoria || '').toLowerCase();
+      // Insumos suministrados por este proveedor
+      const suppliedMaterials = (data.materials || [])
+        .filter(m => m.proveedorId === s.id)
+        .map(m => m.nombre);
 
-      const matchesSearch = 
-        name.includes(query) ||
-        contact.includes(query) ||
-        spec.includes(query);
+      const matchesSearch = matchSearch(searchTerm, [
+        s.nombre,
+        s.nombreComercial,
+        s.contacto,
+        s.categoria,
+        s.especialidad,
+        s.rfc,
+        s.cif,
+        s.email,
+        s.telefono,
+        s.direccion,
+        suppliedMaterials,
+      ]);
       
       const currentSpec = s.especialidad || s.categoria || 'General';
       const matchesSpec = selectedSpecialty === 'ALL' || currentSpec === selectedSpecialty;
 
       return matchesSearch && matchesSpec;
     });
-  }, [data.suppliers, searchTerm, selectedSpecialty]);
+  }, [data.suppliers, data.materials, searchTerm, selectedSpecialty]);
 
   const handleOpenCreate = () => {
     setEditingSupplier(null);
@@ -135,9 +145,9 @@ export default function Suppliers() {
       <div className="constructa-card" style={{ padding: '16px 20px', marginBottom: '24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', alignItems: 'center' }}>
           <SearchInput
-            placeholder="Buscar por razón social, contacto o rubro..."
+            placeholder="Buscar por razón social, contacto, RFC, insumo..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
 
           <select
@@ -156,9 +166,10 @@ export default function Suppliers() {
       {/* Suppliers Cards */}
       {filteredSuppliers.length === 0 ? (
         <EmptyState
-          title="Sin proveedores encontrados"
-          description="No se encontraron proveedores que coincidan con la búsqueda o el rubro seleccionado."
-          actionText="Restablecer filtros"
+          isSearch={Boolean(searchTerm || selectedSpecialty !== 'ALL')}
+          title="No encontramos resultados para tu búsqueda"
+          message="No se encontraron proveedores que coincidan con la búsqueda o el rubro seleccionado."
+          actionText="Limpiar búsqueda y filtros"
           onAction={() => {
             setSearchTerm('');
             setSelectedSpecialty('ALL');

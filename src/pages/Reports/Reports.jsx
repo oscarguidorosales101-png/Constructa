@@ -3,6 +3,9 @@ import { useConstructa } from '../../context/ConstructaContext';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import ProgressBar from '../../components/common/ProgressBar';
+import SearchInput from '../../components/common/SearchInput';
+import EmptyState from '../../components/common/EmptyState';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   FileSpreadsheet, 
   Download, 
@@ -25,22 +28,94 @@ export default function Reports() {
   const { data, metrics } = useConstructa();
   const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'projects' | 'expenses' | 'materials' | 'employees' | 'history'
   const [projectFilter, setProjectFilter] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Filtered data based on project
+  // Filtered data based on project and search
   const filteredProjects = useMemo(() => {
-    if (projectFilter === 'ALL') return data.projects;
-    return data.projects.filter(p => p.id === projectFilter);
-  }, [data.projects, projectFilter]);
+    let list = projectFilter === 'ALL' ? data.projects : data.projects.filter(p => p.id === projectFilter);
+    if (searchTerm) {
+      list = list.filter(p => matchSearch(searchTerm, [
+        p.nombre,
+        p.codigo,
+        p.cliente,
+        p.responsable,
+        p.estado,
+        p.ubicacion,
+      ]));
+    }
+    return list;
+  }, [data.projects, projectFilter, searchTerm]);
 
   const filteredExpenses = useMemo(() => {
-    if (projectFilter === 'ALL') return data.expenses;
-    return data.expenses.filter(e => e.proyectoId === projectFilter);
-  }, [data.expenses, projectFilter]);
+    let list = projectFilter === 'ALL' ? data.expenses : data.expenses.filter(e => e.proyectoId === projectFilter);
+    if (searchTerm) {
+      list = list.filter(e => {
+        const prj = data.projects.find(p => p.id === e.proyectoId);
+        return matchSearch(searchTerm, [
+          e.concepto,
+          e.descripcion,
+          e.categoria,
+          e.proveedor,
+          e.comprobante,
+          e.fecha,
+          e.monto,
+          prj?.nombre,
+          prj?.codigo,
+        ]);
+      });
+    }
+    return list;
+  }, [data.expenses, data.projects, projectFilter, searchTerm]);
+
+  const filteredMaterials = useMemo(() => {
+    let list = data.materials;
+    if (searchTerm) {
+      list = list.filter(m => matchSearch(searchTerm, [
+        m.nombre,
+        m.codigo,
+        m.categoria,
+        m.unidad,
+        m.stockActual ?? m.stock,
+        m.precioUnitario,
+      ]));
+    }
+    return list;
+  }, [data.materials, searchTerm]);
 
   const filteredEmployees = useMemo(() => {
-    if (projectFilter === 'ALL') return data.employees;
-    return data.employees.filter(e => e.proyectoId === projectFilter);
-  }, [data.employees, projectFilter]);
+    let list = projectFilter === 'ALL' ? data.employees : data.employees.filter(e => e.proyectoId === projectFilter);
+    if (searchTerm) {
+      list = list.filter(e => {
+        const prj = data.projects.find(p => p.id === e.proyectoId);
+        return matchSearch(searchTerm, [
+          e.nombre,
+          e.puesto,
+          e.dni,
+          e.email,
+          e.telefono,
+          e.estado,
+          e.horario,
+          prj?.nombre,
+        ]);
+      });
+    }
+    return list;
+  }, [data.employees, data.projects, projectFilter, searchTerm]);
+
+  const filteredHistory = useMemo(() => {
+    let list = data.history;
+    if (searchTerm) {
+      list = list.filter(h => matchSearch(searchTerm, [
+        h.descripcion,
+        h.tipo,
+        h.proyecto,
+        h.proyectoRelacionado,
+        h.fecha,
+        h.monto,
+      ]));
+    }
+    return list;
+  }, [data.history, searchTerm]);
 
   // Expenses grouped by category
   const expensesByCategory = useMemo(() => {
@@ -72,7 +147,7 @@ export default function Reports() {
       });
     } else if (activeTab === 'materials') {
       csvContent += "Material,Categoria,Unidad,Stock_Actual,Stock_Minimo,Precio_Unitario,Valor_Total,Estado\r\n";
-      data.materials.forEach(m => {
+      filteredMaterials.forEach(m => {
         const val = m.stock * m.precioUnitario;
         const est = m.stock <= m.stockMinimo ? 'Stock Bajo' : 'Normal';
         csvContent += `"${m.nombre}","${m.categoria}","${m.unidad}",${m.stock},${m.stockMinimo},${m.precioUnitario},${val},"${est}"\r\n`;
@@ -85,7 +160,7 @@ export default function Reports() {
       });
     } else {
       csvContent += "Fecha,Tipo,Descripcion,Proyecto,Monto\r\n";
-      data.history.forEach(h => {
+      filteredHistory.forEach(h => {
         csvContent += `"${h.fecha}","${h.tipo}","${h.descripcion}","${h.proyecto || ''}",${h.monto || ''}\r\n`;
       });
     }
@@ -165,24 +240,33 @@ export default function Reports() {
       </div>
 
       {/* Global Filter Bar */}
-      <div className="constructa-card" style={{ padding: '14px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Filtrar información por proyecto:</span>
-          <select
-            className="constructa-input"
-            value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
-            style={{ width: 'auto', minWidth: '200px', maxWidth: '100%' }}
-          >
-            <option value="ALL">Consolidado General (Todos los Proyectos)</option>
-            {data.projects.map(p => (
-              <option key={p.id} value={p.id}>{p.nombre}</option>
-            ))}
-          </select>
+      <div className="constructa-card" style={{ padding: '14px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', flex: 1 }}>
+          <div style={{ minWidth: '220px', flex: 1, maxWidth: '380px' }}>
+            <SearchInput
+              placeholder="Buscar en el reporte activo..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Filtrar por obra:</span>
+            <select
+              className="constructa-input"
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              style={{ width: 'auto', minWidth: '200px', maxWidth: '100%' }}
+            >
+              <option value="ALL">Consolidado General (Todas las Obras)</option>
+              {data.projects.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-          Datos sincronizados con la memoria corporativa interna
+          Datos consolidados y actualizados en tiempo real
         </div>
       </div>
 
@@ -235,61 +319,68 @@ export default function Reports() {
               </span>
             </div>
 
-            <div className="constructa-table-container">
-              <table className="constructa-table">
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Proyecto</th>
-                    <th>Estado</th>
-                    <th>Avance Físico</th>
-                    <th style={{ textAlign: 'right' }}>Presupuesto ($)</th>
-                    <th style={{ textAlign: 'right' }}>Gastado ($)</th>
-                    <th style={{ textAlign: 'right' }}>Disponible ($)</th>
-                    <th style={{ textAlign: 'right' }}>% Consumo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProjects.map(p => {
-                    const spent = data.expenses.filter(e => e.proyectoId === p.id).reduce((acc, curr) => acc + Number(curr.monto), 0);
-                    const available = p.presupuesto - spent;
-                    const percent = p.presupuesto > 0 ? Math.round((spent / p.presupuesto) * 100) : 0;
+            {filteredProjects.length === 0 ? (
+              <EmptyState
+                title="No encontramos resultados para tu búsqueda"
+                message="Intenta con otros términos o limpia los filtros para ver el reporte ejecutivo."
+              />
+            ) : (
+              <div className="constructa-table-container">
+                <table className="constructa-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Proyecto</th>
+                      <th>Estado</th>
+                      <th>Avance Físico</th>
+                      <th style={{ textAlign: 'right' }}>Presupuesto ($)</th>
+                      <th style={{ textAlign: 'right' }}>Gastado ($)</th>
+                      <th style={{ textAlign: 'right' }}>Disponible ($)</th>
+                      <th style={{ textAlign: 'right' }}>% Consumo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProjects.map(p => {
+                      const spent = data.expenses.filter(e => e.proyectoId === p.id).reduce((acc, curr) => acc + Number(curr.monto), 0);
+                      const available = p.presupuesto - spent;
+                      const percent = p.presupuesto > 0 ? Math.round((spent / p.presupuesto) * 100) : 0;
 
-                    return (
-                      <tr key={p.id}>
-                        <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{p.codigo}</td>
-                        <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{p.nombre}</td>
-                        <td>
-                          <Badge variant={p.estado === 'Finalizado' ? 'success' : p.estado === 'En construcción' ? 'primary' : 'warning'}>
-                            {p.estado}
-                          </Badge>
-                        </td>
-                        <td style={{ width: '150px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <ProgressBar value={p.avance} showLabel={false} height={6} />
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{p.avance}%</span>
-                          </div>
-                        </td>
-                        <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                          ${Number(p.presupuesto).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ textAlign: 'right', color: 'var(--color-rose)', fontWeight: 600 }}>
-                          ${spent.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ textAlign: 'right', color: available < 0 ? 'var(--color-rose)' : 'var(--color-emerald)', fontWeight: 600 }}>
-                          ${available.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span style={{ color: percent > 90 ? 'var(--color-rose)' : percent > 75 ? 'var(--color-amber)' : 'var(--color-text-secondary)', fontWeight: 600 }}>
-                            {percent}%
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                      return (
+                        <tr key={p.id}>
+                          <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{p.codigo}</td>
+                          <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{p.nombre}</td>
+                          <td>
+                            <Badge variant={p.estado === 'Finalizado' ? 'success' : p.estado === 'En construcción' ? 'primary' : 'warning'}>
+                              {p.estado}
+                            </Badge>
+                          </td>
+                          <td style={{ width: '150px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <ProgressBar value={p.avance} showLabel={false} height={6} />
+                              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{p.avance}%</span>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                            ${Number(p.presupuesto).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td style={{ textAlign: 'right', color: 'var(--color-rose)', fontWeight: 600 }}>
+                            ${spent.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td style={{ textAlign: 'right', color: available < 0 ? 'var(--color-rose)' : 'var(--color-emerald)', fontWeight: 600 }}>
+                            ${available.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <span style={{ color: percent > 90 ? 'var(--color-rose)' : percent > 75 ? 'var(--color-amber)' : 'var(--color-text-secondary)', fontWeight: 600 }}>
+                              {percent}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -297,45 +388,52 @@ export default function Reports() {
       {/* TAB 2: PROYECTOS */}
       {activeTab === 'projects' && (
         <div className="constructa-card" style={{ overflow: 'hidden' }}>
-          <div className="constructa-table-container">
-            <table className="constructa-table">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Nombre del Proyecto</th>
-                  <th>Cliente</th>
-                  <th>Responsable</th>
-                  <th>Período</th>
-                  <th>Avance</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProjects.map(p => (
-                  <tr key={p.id}>
-                    <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{p.codigo}</td>
-                    <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{p.nombre}</td>
-                    <td>{p.cliente}</td>
-                    <td>{p.responsable}</td>
-                    <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-                      {p.fechaInicio} al {p.fechaFin}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ProgressBar value={p.avance} showLabel={false} height={6} />
-                        <span style={{ fontWeight: 600, fontSize: '0.8rem' }}>{p.avance}%</span>
-                      </div>
-                    </td>
-                    <td>
-                      <Badge variant={p.estado === 'Finalizado' ? 'success' : p.estado === 'En construcción' ? 'primary' : 'warning'}>
-                        {p.estado}
-                      </Badge>
-                    </td>
+          {filteredProjects.length === 0 ? (
+            <EmptyState
+              title="No encontramos resultados para tu búsqueda"
+              message="Intenta con otros términos o verifica el filtro de obra seleccionado."
+            />
+          ) : (
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nombre del Proyecto</th>
+                    <th>Cliente</th>
+                    <th>Responsable</th>
+                    <th>Período</th>
+                    <th>Avance</th>
+                    <th>Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredProjects.map(p => (
+                    <tr key={p.id}>
+                      <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{p.codigo}</td>
+                      <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{p.nombre}</td>
+                      <td>{p.cliente}</td>
+                      <td>{p.responsable}</td>
+                      <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
+                        {p.fechaInicio} al {p.fechaFin}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <ProgressBar value={p.avance} showLabel={false} height={6} />
+                          <span style={{ fontWeight: 600, fontSize: '0.8rem' }}>{p.avance}%</span>
+                        </div>
+                      </td>
+                      <td>
+                        <Badge variant={p.estado === 'Finalizado' ? 'success' : p.estado === 'En construcción' ? 'primary' : 'warning'}>
+                          {p.estado}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -358,39 +456,46 @@ export default function Reports() {
           </div>
 
           <div className="constructa-card" style={{ overflow: 'hidden' }}>
-            <div className="constructa-table-container">
-              <table className="constructa-table">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Concepto</th>
-                    <th>Proyecto</th>
-                    <th>Categoría</th>
-                    <th>Proveedor</th>
-                    <th>Comprobante</th>
-                    <th style={{ textAlign: 'right' }}>Monto ($)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredExpenses.map(e => {
-                    const prj = data.projects.find(p => p.id === e.proyectoId);
-                    return (
-                      <tr key={e.id}>
-                        <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>{e.fecha}</td>
-                        <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{e.concepto || e.descripcion || 'Gasto operativo'}</td>
-                        <td>{prj ? prj.nombre : 'Proyecto general'}</td>
-                        <td>{e.categoria}</td>
-                        <td style={{ fontSize: '0.85rem' }}>{e.proveedor || '—'}</td>
-                        <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{e.comprobante || '—'}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-rose)' }}>
-                          ${Number(e.monto).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            {filteredExpenses.length === 0 ? (
+              <EmptyState
+                title="No encontramos resultados para tu búsqueda"
+                message="No existen gastos que coincidan con los criterios aplicados."
+              />
+            ) : (
+              <div className="constructa-table-container">
+                <table className="constructa-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Concepto</th>
+                      <th>Proyecto</th>
+                      <th>Categoría</th>
+                      <th>Proveedor</th>
+                      <th>Comprobante</th>
+                      <th style={{ textAlign: 'right' }}>Monto ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredExpenses.map(e => {
+                      const prj = data.projects.find(p => p.id === e.proyectoId);
+                      return (
+                        <tr key={e.id}>
+                          <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>{e.fecha}</td>
+                          <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{e.concepto || e.descripcion || 'Gasto operativo'}</td>
+                          <td>{prj ? prj.nombre : 'Proyecto general'}</td>
+                          <td>{e.categoria}</td>
+                          <td style={{ fontSize: '0.85rem' }}>{e.proveedor || '—'}</td>
+                          <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{e.comprobante || '—'}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-rose)' }}>
+                            ${Number(e.monto).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -398,133 +503,154 @@ export default function Reports() {
       {/* TAB 4: MATERIALES */}
       {activeTab === 'materials' && (
         <div className="constructa-card" style={{ overflow: 'hidden' }}>
-          <div className="constructa-table-container">
-            <table className="constructa-table">
-              <thead>
-                <tr>
-                  <th>Material</th>
-                  <th>Categoría</th>
-                  <th>Unidad</th>
-                  <th>Stock Actual</th>
-                  <th>Stock Mínimo</th>
-                  <th style={{ textAlign: 'right' }}>Precio Unitario ($)</th>
-                  <th style={{ textAlign: 'right' }}>Valor Total en Almacén ($)</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.materials.map(m => {
-                  const isLow = m.stock <= m.stockMinimo;
-                  const totalVal = m.stock * m.precioUnitario;
-                  return (
-                    <tr key={m.id}>
-                      <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{m.nombre}</td>
-                      <td>{m.categoria}</td>
-                      <td>{m.unidad}</td>
-                      <td style={{ fontWeight: 700, color: isLow ? 'var(--color-rose)' : 'var(--color-text-primary)' }}>
-                        {m.stock}
-                      </td>
-                      <td style={{ color: 'var(--color-text-muted)' }}>{m.stockMinimo}</td>
-                      <td style={{ textAlign: 'right' }}>${Number(m.precioUnitario).toFixed(2)}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-gold)' }}>
-                        ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td>
-                        <Badge variant={isLow ? 'danger' : 'success'}>
-                          {isLow ? 'Stock Bajo' : 'Normal'}
-                        </Badge>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          {filteredMaterials.length === 0 ? (
+            <EmptyState
+              title="No encontramos resultados para tu búsqueda"
+              message="No hay materiales o insumos que coincidan con la búsqueda actual."
+            />
+          ) : (
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Categoría</th>
+                    <th>Unidad</th>
+                    <th>Stock Actual</th>
+                    <th>Stock Mínimo</th>
+                    <th style={{ textAlign: 'right' }}>Precio Unitario ($)</th>
+                    <th style={{ textAlign: 'right' }}>Valor Total en Almacén ($)</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMaterials.map(m => {
+                    const isLow = m.stock <= m.stockMinimo;
+                    const totalVal = m.stock * m.precioUnitario;
+                    return (
+                      <tr key={m.id}>
+                        <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{m.nombre}</td>
+                        <td>{m.categoria}</td>
+                        <td>{m.unidad}</td>
+                        <td style={{ fontWeight: 700, color: isLow ? 'var(--color-rose)' : 'var(--color-text-primary)' }}>
+                          {m.stock}
+                        </td>
+                        <td style={{ color: 'var(--color-text-muted)' }}>{m.stockMinimo}</td>
+                        <td style={{ textAlign: 'right' }}>${Number(m.precioUnitario).toFixed(2)}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-gold)' }}>
+                          ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td>
+                          <Badge variant={isLow ? 'danger' : 'success'}>
+                            {isLow ? 'Stock Bajo' : 'Normal'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
       {/* TAB 5: EMPLEADOS */}
       {activeTab === 'employees' && (
         <div className="constructa-card" style={{ overflow: 'hidden' }}>
-          <div className="constructa-table-container">
-            <table className="constructa-table">
-              <thead>
-                <tr>
-                  <th>Nombre y Apellidos</th>
-                  <th>Especialidad / Puesto</th>
-                  <th>DNI</th>
-                  <th>Proyecto Asignado</th>
-                  <th>Días Laborales</th>
-                  <th>Horario</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEmployees.map(emp => {
-                  const prj = data.projects.find(p => p.id === emp.proyectoId);
-                  return (
-                    <tr key={emp.id}>
-                      <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{emp.nombre}</td>
-                      <td style={{ color: 'var(--color-gold)' }}>{emp.puesto}</td>
-                      <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{emp.dni}</td>
-                      <td>{prj ? prj.nombre : 'Sin asignar'}</td>
-                      <td>{emp.diasLaborales}</td>
-                      <td style={{ fontSize: '0.85rem' }}>{emp.horario}</td>
-                      <td>
-                        <Badge variant={emp.estado === 'Activo' ? 'success' : emp.estado === 'Descanso' ? 'warning' : 'neutral'}>
-                          {emp.estado}
-                        </Badge>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          {filteredEmployees.length === 0 ? (
+            <EmptyState
+              title="No encontramos resultados para tu búsqueda"
+              message="No hay personal asignado que coincida con los criterios de búsqueda."
+            />
+          ) : (
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Nombre y Apellidos</th>
+                    <th>Especialidad / Puesto</th>
+                    <th>DNI</th>
+                    <th>Proyecto Asignado</th>
+                    <th>Días Laborales</th>
+                    <th>Horario</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEmployees.map(emp => {
+                    const prj = data.projects.find(p => p.id === emp.proyectoId);
+                    return (
+                      <tr key={emp.id}>
+                        <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{emp.nombre}</td>
+                        <td style={{ color: 'var(--color-gold)' }}>{emp.puesto}</td>
+                        <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{emp.dni}</td>
+                        <td>{prj ? prj.nombre : 'Sin asignar'}</td>
+                        <td>{emp.diasLaborales}</td>
+                        <td style={{ fontSize: '0.85rem' }}>{emp.horario}</td>
+                        <td>
+                          <Badge variant={emp.estado === 'Activo' ? 'success' : emp.estado === 'Descanso' ? 'warning' : 'neutral'}>
+                            {emp.estado}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
       {/* TAB 6: HISTORIAL AUDITORIA */}
       {activeTab === 'history' && (
         <div className="constructa-card" style={{ overflow: 'hidden' }}>
-          <div className="constructa-table-container">
-            <table className="constructa-table">
-              <thead>
-                <tr>
-                  <th>Fecha y Hora</th>
-                  <th>Tipo de Operación</th>
-                  <th>Descripción del Movimiento</th>
-                  <th>Proyecto Relacionado</th>
-                  <th style={{ textAlign: 'right' }}>Monto Afectado ($)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.history.map(h => (
-                  <tr key={h.id}>
-                    <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>{h.fecha}</td>
-                    <td>
-                      <span style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid var(--color-border)',
-                        padding: '3px 8px',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.78rem',
-                        color: 'var(--color-gold)',
-                        fontWeight: 600
-                      }}>
-                        {h.tipo}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--color-text-primary)' }}>{h.descripcion}</td>
-                    <td>{h.proyecto || 'General'}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 600, color: h.monto ? 'var(--color-gold)' : 'var(--color-text-muted)' }}>
-                      {h.monto ? `$${Number(h.monto).toLocaleString('en-US')}` : '—'}
-                    </td>
+          {filteredHistory.length === 0 ? (
+            <EmptyState
+              title="No encontramos resultados para tu búsqueda"
+              message="No hay eventos en la bitácora que coincidan con tu búsqueda."
+            />
+          ) : (
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Tipo de Operación</th>
+                    <th>Descripción del Movimiento</th>
+                    <th>Proyecto Relacionado</th>
+                    <th style={{ textAlign: 'right' }}>Monto Afectado ($)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredHistory.map(h => (
+                    <tr key={h.id}>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>{h.fecha}</td>
+                      <td>
+                        <span style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid var(--color-border)',
+                          padding: '3px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '0.78rem',
+                          color: 'var(--color-gold)',
+                          fontWeight: 600
+                        }}>
+                          {h.tipo}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--color-text-primary)' }}>{h.descripcion}</td>
+                      <td>{h.proyecto || 'General'}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: h.monto ? 'var(--color-gold)' : 'var(--color-text-muted)' }}>
+                        {h.monto ? `$${Number(h.monto).toLocaleString('en-US')}` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

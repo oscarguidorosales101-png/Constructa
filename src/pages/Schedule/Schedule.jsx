@@ -6,6 +6,7 @@ import ProgressBar from '../../components/common/ProgressBar';
 import SearchInput from '../../components/common/SearchInput';
 import EmptyState from '../../components/common/EmptyState';
 import ScheduleModal from '../../components/schedule/ScheduleModal';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   Calendar, 
   Plus, 
@@ -17,8 +18,8 @@ import {
   User, 
   Edit, 
   Trash2, 
-  BarChart3,
-  CalendarRange
+  BarChart3, 
+  CalendarRange 
 } from 'lucide-react';
 
 export default function Schedule() {
@@ -31,16 +32,26 @@ export default function Schedule() {
 
   const filteredTasks = useMemo(() => {
     return data.schedule.filter(task => {
-      const matchesSearch = 
-        task.actividad.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (task.responsable && task.responsable.toLowerCase().includes(searchTerm.toLowerCase()));
+      const project = data.projects.find(p => p.id === task.proyectoId);
+      const projectName = project ? project.nombre : '';
+      const projectCode = project ? project.codigo : '';
+
+      const matchesSearch = matchSearch(searchTerm, [
+        task.actividad,
+        task.responsable,
+        task.estado,
+        task.fechaInicio,
+        task.fechaFin,
+        projectName,
+        projectCode,
+      ]);
       
       const matchesProject = selectedProject === 'ALL' || task.proyectoId === selectedProject;
       const matchesStatus = selectedStatus === 'ALL' || task.estado === selectedStatus;
 
       return matchesSearch && matchesProject && matchesStatus;
     }).sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
-  }, [data.schedule, searchTerm, selectedProject, selectedStatus]);
+  }, [data.schedule, data.projects, searchTerm, selectedProject, selectedStatus]);
 
   const handleOpenCreate = () => {
     setEditingTask(null);
@@ -147,9 +158,9 @@ export default function Schedule() {
       <div className="constructa-card" style={{ padding: '16px 20px', marginBottom: '24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', alignItems: 'center' }}>
           <SearchInput
-            placeholder="Buscar por actividad o responsable..."
+            placeholder="Buscar por actividad, responsable, estado, obra..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
 
           <select
@@ -180,9 +191,10 @@ export default function Schedule() {
       {/* Schedule Items Timeline List */}
       {filteredTasks.length === 0 ? (
         <EmptyState
-          title="Sin actividades en cronograma"
-          description="No se encontraron fases ni actividades que coincidan con los criterios seleccionados."
-          actionText="Limpiar filtros"
+          isSearch={Boolean(searchTerm || selectedProject !== 'ALL' || selectedStatus !== 'ALL')}
+          title="No encontramos resultados para tu búsqueda"
+          message="No se encontraron fases ni actividades que coincidan con los criterios seleccionados."
+          actionText="Limpiar búsqueda y filtros"
           onAction={() => {
             setSearchTerm('');
             setSelectedProject('ALL');

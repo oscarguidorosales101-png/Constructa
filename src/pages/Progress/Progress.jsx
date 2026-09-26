@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useConstructa } from '../../context/ConstructaContext';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -6,6 +6,7 @@ import ProgressBar from '../../components/common/ProgressBar';
 import SearchInput from '../../components/common/SearchInput';
 import EmptyState from '../../components/common/EmptyState';
 import Modal from '../../components/common/Modal';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   Activity, 
   TrendingUp, 
@@ -28,16 +29,23 @@ export default function Progress() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [newProgressValue, setNewProgressValue] = useState(0);
 
-  const filteredProjects = data.projects.filter(prj => {
-    const matchesSearch = 
-      prj.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prj.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prj.cliente.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = selectedStatus === 'ALL' || prj.estado === selectedStatus;
+  const filteredProjects = useMemo(() => {
+    return data.projects.filter(prj => {
+      const matchesSearch = matchSearch(searchTerm, [
+        prj.nombre,
+        prj.codigo,
+        prj.id,
+        prj.cliente,
+        prj.responsable,
+        prj.estado,
+        prj.ubicacion,
+      ]);
+      
+      const matchesStatus = selectedStatus === 'ALL' || prj.estado === selectedStatus;
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    });
+  }, [data.projects, searchTerm, selectedStatus]);
 
   const handleOpenEdit = (project) => {
     setSelectedProject(project);
@@ -113,9 +121,9 @@ export default function Progress() {
       <div className="constructa-card" style={{ padding: '16px 20px', marginBottom: '24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', alignItems: 'center' }}>
           <SearchInput
-            placeholder="Buscar por proyecto o código..."
+            placeholder="Buscar por obra, código, cliente o responsable..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
 
           <select
@@ -135,9 +143,10 @@ export default function Progress() {
       {/* Projects Progress Cards */}
       {filteredProjects.length === 0 ? (
         <EmptyState
-          title="Sin proyectos coincidentes"
-          description="No se encontraron proyectos para evaluar el avance con los filtros aplicados."
-          actionText="Limpiar filtros"
+          isSearch={Boolean(searchTerm || selectedStatus !== 'ALL')}
+          title="No encontramos resultados para tu búsqueda"
+          message="No se encontraron proyectos para evaluar el avance con los filtros aplicados."
+          actionText="Limpiar búsqueda y filtros"
           onAction={() => {
             setSearchTerm('');
             setSelectedStatus('ALL');

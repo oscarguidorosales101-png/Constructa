@@ -5,6 +5,7 @@ import Badge from '../../components/common/Badge';
 import SearchInput from '../../components/common/SearchInput';
 import EmptyState from '../../components/common/EmptyState';
 import ExpenseModal from '../../components/expenses/ExpenseModal';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   Receipt, 
   Plus, 
@@ -14,9 +15,9 @@ import {
   Edit, 
   Trash2, 
   DollarSign, 
-  FileText,
-  Tag,
-  ArrowUpRight
+  FileText, 
+  Tag, 
+  ArrowUpRight 
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -53,25 +54,31 @@ export default function Expenses() {
     }
   }, [navigationIntent, clearNavigationIntent]);
 
-  // Filtered expenses list
+  // Filtered expenses list con búsqueda multi-campo tolerante a acentos
   const filteredExpenses = useMemo(() => {
     return data.expenses.filter(exp => {
-      const desc = (exp.concepto || exp.descripcion || '').toLowerCase();
-      const prov = (exp.proveedor || '').toLowerCase();
-      const comp = (exp.comprobante || '').toLowerCase();
-      const query = searchTerm.toLowerCase();
+      const project = data.projects.find(p => p.id === exp.proyectoId);
+      const projectName = project ? project.nombre : '';
+      const projectCode = project ? project.codigo : '';
 
-      const matchesSearch = 
-        desc.includes(query) ||
-        prov.includes(query) ||
-        comp.includes(query);
+      const matchesSearch = matchSearch(searchTerm, [
+        exp.concepto,
+        exp.descripcion,
+        exp.categoria,
+        exp.proveedor,
+        exp.comprobante,
+        exp.fecha,
+        exp.monto,
+        projectName,
+        projectCode
+      ]);
       
       const matchesProject = selectedProject === 'ALL' || exp.proyectoId === selectedProject;
       const matchesCategory = selectedCategory === 'ALL' || exp.categoria === selectedCategory;
 
       return matchesSearch && matchesProject && matchesCategory;
     }).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  }, [data.expenses, searchTerm, selectedProject, selectedCategory]);
+  }, [data.expenses, data.projects, searchTerm, selectedProject, selectedCategory]);
 
   const handleOpenCreate = () => {
     setEditingExpense(null);
@@ -166,9 +173,9 @@ export default function Expenses() {
       <div className="constructa-card" style={{ padding: '16px 20px', marginBottom: '24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', alignItems: 'center' }}>
           <SearchInput
-            placeholder="Buscar por concepto, proveedor o folio..."
+            placeholder="Buscar por concepto, proveedor, comprobante, obra..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
 
           <select
@@ -198,9 +205,10 @@ export default function Expenses() {
       {/* Expenses Table */}
       {filteredExpenses.length === 0 ? (
         <EmptyState
-          title="Sin gastos encontrados"
-          description="No se encontraron erogaciones que coincidan con los criterios de búsqueda aplicados."
-          actionText="Limpiar filtros"
+          isSearch={Boolean(searchTerm || selectedProject !== 'ALL' || selectedCategory !== 'ALL')}
+          title="No encontramos resultados para tu búsqueda"
+          message="No se encontraron registros de gastos que coincidan con los filtros o términos de búsqueda aplicados."
+          actionText="Limpiar búsqueda y filtros"
           onAction={() => {
             setSearchTerm('');
             setSelectedProject('ALL');

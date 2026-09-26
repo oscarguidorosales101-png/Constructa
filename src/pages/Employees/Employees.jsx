@@ -5,6 +5,7 @@ import Badge from '../../components/common/Badge';
 import SearchInput from '../../components/common/SearchInput';
 import EmptyState from '../../components/common/EmptyState';
 import EmployeeModal from '../../components/employees/EmployeeModal';
+import { matchSearch } from '../../utils/searchUtils';
 import { 
   Users, 
   UserPlus, 
@@ -57,20 +58,27 @@ export default function Employees() {
     return Array.from(roles).sort();
   }, [data.employees]);
 
-  // Filtered employees
+  // Filtered employees con búsqueda multi-campo tolerante a acentos
   const filteredEmployees = useMemo(() => {
-    const query = searchTerm.toLowerCase();
     return data.employees.filter(emp => {
-      const name = (emp.nombre || '').toLowerCase();
-      const role = (emp.puesto || '').toLowerCase();
-      const dni = (emp.dni || '').toLowerCase();
-      const email = (emp.email || '').toLowerCase();
+      const project = data.projects.find(p => p.id === emp.proyectoId);
+      const projectName = project ? project.nombre : '';
+      const projectCode = project ? project.codigo : '';
 
-      const matchesSearch = 
-        name.includes(query) ||
-        role.includes(query) ||
-        dni.includes(query) ||
-        email.includes(query);
+      const matchesSearch = matchSearch(searchTerm, [
+        emp.nombre,
+        emp.puesto,
+        emp.especialidad || emp.puesto,
+        emp.dni,
+        emp.id,
+        emp.email,
+        emp.telefono,
+        emp.estado,
+        emp.horario,
+        emp.diasLaborales,
+        projectName,
+        projectCode
+      ]);
       
       const matchesProject = selectedProject === 'ALL' || emp.proyectoId === selectedProject;
       const matchesRole = selectedRole === 'ALL' || emp.puesto === selectedRole;
@@ -78,7 +86,7 @@ export default function Employees() {
 
       return matchesSearch && matchesProject && matchesRole && matchesStatus;
     });
-  }, [data.employees, searchTerm, selectedProject, selectedRole, selectedStatus]);
+  }, [data.employees, data.projects, searchTerm, selectedProject, selectedRole, selectedStatus]);
 
   const handleOpenCreate = () => {
     setEditingEmployee(null);
@@ -212,9 +220,9 @@ export default function Employees() {
         <div className="desktop-filter-bar">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', alignItems: 'center' }}>
             <SearchInput
-              placeholder="Buscar por nombre, puesto o DNI..."
+              placeholder="Buscar por nombre, puesto, DNI, obra..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={setSearchTerm}
             />
 
             <select
@@ -259,7 +267,7 @@ export default function Employees() {
             <SearchInput
               placeholder="Buscar personal..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={setSearchTerm}
             />
           </div>
           <button
@@ -376,9 +384,10 @@ export default function Employees() {
       {/* Main Content Area */}
       {filteredEmployees.length === 0 ? (
         <EmptyState
-          title="Sin resultados"
-          description="No encontramos personal que coincida con los criterios de búsqueda o filtros seleccionados."
-          actionText="Limpiar filtros"
+          isSearch={Boolean(searchTerm || selectedProject !== 'ALL' || selectedRole !== 'ALL' || selectedStatus !== 'ALL')}
+          title="No encontramos resultados para tu búsqueda"
+          message="No se encontraron colaboradores que coincidan con los criterios de búsqueda o filtros seleccionados."
+          actionText="Limpiar búsqueda y filtros"
           onAction={() => {
             setSearchTerm('');
             setSelectedProject('ALL');

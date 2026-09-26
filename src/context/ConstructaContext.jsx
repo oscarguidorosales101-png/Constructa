@@ -1,20 +1,20 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import constructaService from '../services/constructaService.js';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import dataService from '../services/dataService.js';
 
 const ConstructaContext = createContext(null);
 
 export const ConstructaProvider = ({ children }) => {
-  // Estado de sesión
-  const [session, setSession] = useState(() => constructaService.getSession());
+  // 1. Estado de Sesión y Autenticación
+  const [session, setSession] = useState(() => dataService.getSession());
   const [currentUser, setCurrentUser] = useState(() => {
-    const s = constructaService.getSession();
+    const s = dataService.getSession();
     return s ? s.usuario : null;
   });
 
-  // Estado de navegación activa
+  // 2. Estado de Navegación Activa
   const [activeView, setActiveView] = useState(() => {
     const hash = window.location.hash.replace('#', '').toLowerCase();
-    const s = constructaService.getSession();
+    const s = dataService.getSession();
     if (!s) return hash === '401' || hash === '403' || hash === '404' ? hash : 'login';
     return hash || 'dashboard';
   });
@@ -25,48 +25,38 @@ export const ConstructaProvider = ({ children }) => {
   const navigateTo = useCallback((view, intent = null) => {
     setNavigationIntent(intent);
     setActiveView(view);
+    if (window.location.hash.replace('#', '') !== view) {
+      window.location.hash = view;
+    }
   }, []);
 
   const clearNavigationIntent = useCallback(() => {
     setNavigationIntent(null);
   }, []);
 
-  // Estado de datos principales
-  const [projects, setProjects] = useState(() => constructaService.getProjects());
-  const [employees, setEmployees] = useState(() => constructaService.getEmployees());
-  const [materials, setMaterials] = useState(() => constructaService.getMaterials());
-  const [suppliers, setSuppliers] = useState(() => constructaService.getSuppliers());
-  const [expenses, setExpenses] = useState(() => constructaService.getExpenses());
-  const [schedule, setSchedule] = useState(() => constructaService.getSchedule());
-  const [movements, setMovements] = useState(() => constructaService.getInventoryMovements());
-  const [history, setHistory] = useState(() => constructaService.getHistory());
+  // 3. Colecciones de Datos Principales (con persistencia reactiva en localStorage)
+  const [projects, setProjects] = useState(() => dataService.getProjects());
+  const [employees, setEmployees] = useState(() => dataService.getEmployees());
+  const [materials, setMaterials] = useState(() => dataService.getMaterials());
+  const [suppliers, setSuppliers] = useState(() => dataService.getSuppliers());
+  const [expenses, setExpenses] = useState(() => dataService.getExpenses());
+  const [schedule, setSchedule] = useState(() => dataService.getSchedule());
+  const [movements, setMovements] = useState(() => dataService.getInventoryMovements());
+  const [history, setHistory] = useState(() => dataService.getHistory());
 
-  // Métricas dinámicas calculadas
-  const [metrics, setMetrics] = useState(() => constructaService.calculateMetrics());
+  // 4. Métricas Interconectadas Dinámicas
+  const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
 
-  // Sistema de Alertas / Notificaciones tipo Toast
-  const [toasts, setToasts] = useState([]);
-
-  // Modal de confirmación centralizado
-  const [confirmModal, setConfirmModal] = useState({
-    isOpen: false,
-    title: '',
-    message: '',
-    confirmText: 'Confirmar',
-    cancelText: 'Cancelar',
-    onConfirm: null,
-    confirmVariant: 'primary',
-    isDestructive: false,
-  });
-
-  // Recalcular métricas automáticamente cuando cambian los datos
+  // Recalcular métricas automáticamente ante cualquier cambio de estado
   const refreshMetrics = useCallback(() => {
-    setMetrics(constructaService.calculateMetrics());
-    setHistory(constructaService.getHistory());
-    setMovements(constructaService.getInventoryMovements());
+    setMetrics(dataService.calculateMetrics());
+    setHistory(dataService.getHistory());
+    setMovements(dataService.getInventoryMovements());
   }, []);
 
-  // Función para agregar alertas
+  // 5. Sistema de Notificaciones Flotantes (Toasts)
+  const [toasts, setToasts] = useState([]);
+
   const showAlert = useCallback((mensaje, tipo = 'exito') => {
     const id = Date.now().toString() + Math.random().toString().slice(2, 6);
     const newToast = { id, mensaje, message: mensaje, tipo, type: tipo };
@@ -81,7 +71,18 @@ export const ConstructaProvider = ({ children }) => {
     setToasts((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  // Función para solicitar confirmación
+  // 6. Modal de Confirmación Centralizado
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirmar',
+    cancelText: 'Cancelar',
+    onConfirm: null,
+    confirmVariant: 'primary',
+    isDestructive: false,
+  });
+
   const requestConfirm = useCallback(({ 
     title, 
     message, 
@@ -108,11 +109,13 @@ export const ConstructaProvider = ({ children }) => {
     setConfirmModal((prev) => ({ ...prev, isOpen: false, onConfirm: null }));
   }, []);
 
-  // MÉTODOS DE AUTENTICACIÓN
+  // ----------------------------------------------------
+  // MÉTODOS DE AUTENTICACIÓN Y SESIÓN
+  // ----------------------------------------------------
   const login = (identifier, password) => {
-    const res = constructaService.login(identifier, password);
+    const res = dataService.login(identifier, password);
     if (res.ok) {
-      setSession(constructaService.getSession());
+      setSession(dataService.getSession());
       setCurrentUser(res.usuario);
       setActiveView('dashboard');
       showAlert(`Bienvenido al sistema, ${res.usuario.nombre}`, 'exito');
@@ -124,7 +127,7 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const logout = () => {
-    constructaService.logout();
+    dataService.logout();
     setSession(null);
     setCurrentUser(null);
     setActiveView('login');
@@ -132,9 +135,13 @@ export const ConstructaProvider = ({ children }) => {
     showAlert('Sesión cerrada correctamente.', 'info');
   };
 
-  // MÉTODOS DE PROYECTOS
+  // ----------------------------------------------------
+  // OPERACIONES CRUD CON PERSISTENCIA REAL
+  // ----------------------------------------------------
+  
+  // PROYECTOS
   const saveProject = (projectData) => {
-    const updated = constructaService.saveProject(projectData);
+    const updated = dataService.saveProject(projectData);
     setProjects(updated);
     refreshMetrics();
     showAlert(
@@ -145,7 +152,7 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const deleteProject = (id) => {
-    const updated = constructaService.deleteProject(id);
+    const updated = dataService.deleteProject(id);
     setProjects(updated);
     refreshMetrics();
     showAlert('Proyecto eliminado correctamente.', 'info');
@@ -153,16 +160,16 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const updateProjectProgress = (id, progress) => {
-    const updated = constructaService.updateProjectProgress(id, progress);
+    const updated = dataService.updateProjectProgress(id, progress);
     setProjects(updated);
     refreshMetrics();
     showAlert('Avance del proyecto actualizado correctamente.', 'exito');
     return true;
   };
 
-  // MÉTODOS DE EMPLEADOS
+  // EMPLEADOS (62 Colaboradores)
   const saveEmployee = (employeeData) => {
-    const updated = constructaService.saveEmployee(employeeData);
+    const updated = dataService.saveEmployee(employeeData);
     setEmployees(updated);
     refreshMetrics();
     showAlert(
@@ -173,16 +180,16 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const deleteEmployee = (id) => {
-    const updated = constructaService.deleteEmployee(id);
+    const updated = dataService.deleteEmployee(id);
     setEmployees(updated);
     refreshMetrics();
     showAlert('Registro de personal retirado.', 'info');
     return true;
   };
 
-  // MÉTODOS DE MATERIALES
+  // MATERIALES (22 Insumos con Renders 3D)
   const saveMaterial = (materialData) => {
-    const updated = constructaService.saveMaterial(materialData);
+    const updated = dataService.saveMaterial(materialData);
     setMaterials(updated);
     refreshMetrics();
     showAlert(
@@ -193,7 +200,7 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const deleteMaterial = (id) => {
-    const updated = constructaService.deleteMaterial(id);
+    const updated = dataService.deleteMaterial(id);
     setMaterials(updated);
     refreshMetrics();
     showAlert('Material retirado del catálogo.', 'info');
@@ -201,7 +208,7 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const registerStockMovement = (movementData) => {
-    const res = constructaService.registerStockMovement(movementData);
+    const res = dataService.registerStockMovement(movementData);
     if (res.ok) {
       setMaterials(res.materials);
       setMovements(res.movements);
@@ -209,14 +216,14 @@ export const ConstructaProvider = ({ children }) => {
       showAlert('Movimiento de almacén registrado correctamente.', 'exito');
       return true;
     } else {
-      showAlert(res.error, 'error');
+      showAlert(res.mensaje || res.error, 'error');
       return false;
     }
   };
 
-  // MÉTODOS DE PROVEEDORES
+  // PROVEEDORES
   const saveSupplier = (supplierData) => {
-    const updated = constructaService.saveSupplier(supplierData);
+    const updated = dataService.saveSupplier(supplierData);
     setSuppliers(updated);
     refreshMetrics();
     showAlert(
@@ -227,16 +234,16 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const deleteSupplier = (id) => {
-    const updated = constructaService.deleteSupplier(id);
+    const updated = dataService.deleteSupplier(id);
     setSuppliers(updated);
     refreshMetrics();
     showAlert('Proveedor eliminado del registro.', 'info');
     return true;
   };
 
-  // MÉTODOS DE GASTOS
+  // GASTOS (Impacta presupuestos, saldos y KPIs)
   const saveExpense = (expenseData) => {
-    const updated = constructaService.saveExpense(expenseData);
+    const updated = dataService.saveExpense(expenseData);
     setExpenses(updated);
     refreshMetrics();
     showAlert(
@@ -247,16 +254,16 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const deleteExpense = (id) => {
-    const updated = constructaService.deleteExpense(id);
+    const updated = dataService.deleteExpense(id);
     setExpenses(updated);
     refreshMetrics();
     showAlert('Gasto eliminado del historial.', 'info');
     return true;
   };
 
-  // MÉTODOS DE CRONOGRAMA
+  // CRONOGRAMA
   const saveActivity = (activityData) => {
-    const updated = constructaService.saveActivity(activityData);
+    const updated = dataService.saveActivity(activityData);
     setSchedule(updated);
     refreshMetrics();
     showAlert(
@@ -267,30 +274,30 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   const deleteActivity = (id) => {
-    const updated = constructaService.deleteActivity(id);
+    const updated = dataService.deleteActivity(id);
     setSchedule(updated);
     refreshMetrics();
     showAlert('Actividad retirada del cronograma.', 'info');
     return true;
   };
 
-  // Restablecer datos de fábrica / demo
+  // Restablecer datos a la semilla inicial de db.json
   const resetDemoData = () => {
-    constructaService.resetAllData();
-    setProjects(constructaService.getProjects());
-    setEmployees(constructaService.getEmployees());
-    setMaterials(constructaService.getMaterials());
-    setSuppliers(constructaService.getSuppliers());
-    setExpenses(constructaService.getExpenses());
-    setSchedule(constructaService.getSchedule());
-    setMovements(constructaService.getInventoryMovements());
-    setHistory(constructaService.getHistory());
+    dataService.resetAllData();
+    setProjects(dataService.getProjects());
+    setEmployees(dataService.getEmployees());
+    setMaterials(dataService.getMaterials());
+    setSuppliers(dataService.getSuppliers());
+    setExpenses(dataService.getExpenses());
+    setSchedule(dataService.getSchedule());
+    setMovements(dataService.getInventoryMovements());
+    setHistory(dataService.getHistory());
     refreshMetrics();
     showAlert('Los datos del sistema han sido restaurados a sus valores predeterminados.', 'info');
   };
 
-  // Unified data object
-  const data = {
+  // Objeto de datos unificado y reactivo memoizado
+  const data = useMemo(() => ({
     projects,
     employees,
     materials,
@@ -300,7 +307,7 @@ export const ConstructaProvider = ({ children }) => {
     movements,
     inventoryMovements: movements,
     history
-  };
+  }), [projects, employees, materials, suppliers, expenses, schedule, movements, history]);
 
   return (
     <ConstructaContext.Provider
@@ -354,9 +361,10 @@ export const ConstructaProvider = ({ children }) => {
         requestConfirm,
         closeConfirm,
         resetDemoData,
-        formatCurrency: constructaService.formatCurrency,
-        formatNumber: constructaService.formatNumber,
-        formatDate: constructaService.formatDate,
+        resetAllData: resetDemoData,
+        formatCurrency: dataService.formatCurrency,
+        formatNumber: dataService.formatNumber,
+        formatDate: dataService.formatDate,
       }}
     >
       {children}

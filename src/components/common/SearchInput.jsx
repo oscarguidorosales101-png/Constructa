@@ -7,18 +7,30 @@ export const SearchInput = ({
   placeholder = 'Buscar...',
   className = '',
 }) => {
+  const handleInputChange = (e) => {
+    if (onChange) {
+      onChange(e.target.value);
+    }
+  };
+
+  const handleClear = () => {
+    if (onChange) {
+      onChange('');
+    }
+  };
+
   return (
-    <div className={`search-box ${className}`.trim()}>
+    <div className={`search-box ${className}`.trim()} style={{ position: 'relative' }}>
       <Search size={16} />
       <input
         type="text"
         className="form-input"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={value || ''}
+        onChange={handleInputChange}
         placeholder={placeholder}
         aria-label={placeholder}
       />
-      {value && (
+      {Boolean(value) && (
         <button
           type="button"
           className="btn-icon"
@@ -28,9 +40,17 @@ export const SearchInput = ({
             top: '50%',
             transform: 'translateY(-50%)',
             padding: '0.2rem',
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--color-text-muted)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-          onClick={() => onChange('')}
+          onClick={handleClear}
           aria-label="Limpiar búsqueda"
+          title="Limpiar búsqueda"
         >
           <X size={14} />
         </button>

@@ -272,6 +272,14 @@ export const Dashboard = ({ onNavigate }) => {
         >
           Ver Horarios de Personal
         </Button>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          icon={AlertTriangle} 
+          onClick={() => navigate('materiales', { filterLowStock: true })}
+        >
+          Revisar Inventario
+        </Button>
       </div>
 
       {/* GRÁFICOS DINÁMICOS CONECTADOS */}
