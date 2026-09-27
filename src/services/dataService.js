@@ -2,7 +2,7 @@ import storageService from './storageService.js';
 import db from '../data/db.json';
 
 const KEYS = {
-  INITIALIZED: 'constructa_db_init_v2',
+  INITIALIZED: 'constructa_db_init_v3',
   PROJECTS: 'proyectos',
   EMPLOYEES: 'empleados',
   MATERIALS: 'materiales',
@@ -11,6 +11,8 @@ const KEYS = {
   SCHEDULE: 'cronograma',
   MOVEMENTS: 'movimientos_inventario',
   HISTORY: 'historial_movimientos',
+  APPLICANTS: 'postulantes',
+  INTERVIEWS: 'entrevistas',
   AUTH: 'sesion_usuario',
 };
 
@@ -49,6 +51,8 @@ export const dataService = {
       storageService.set(KEYS.SCHEDULE, db.schedule || []);
       storageService.set(KEYS.MOVEMENTS, db.inventoryMovements || []);
       storageService.set(KEYS.HISTORY, db.history || []);
+      storageService.set(KEYS.APPLICANTS, db.applicants || []);
+      storageService.set(KEYS.INTERVIEWS, db.interviews || []);
       storageService.set(KEYS.INITIALIZED, true);
     } else {
       // Si por alguna razón alguna colección estuviera ausente o vacía en el almacenamiento local, se recupera de db.json
@@ -60,6 +64,8 @@ export const dataService = {
       if (!storageService.get(KEYS.SCHEDULE)) storageService.set(KEYS.SCHEDULE, db.schedule || []);
       if (!storageService.get(KEYS.MOVEMENTS)) storageService.set(KEYS.MOVEMENTS, db.inventoryMovements || []);
       if (!storageService.get(KEYS.HISTORY)) storageService.set(KEYS.HISTORY, db.history || []);
+      if (!storageService.get(KEYS.APPLICANTS)) storageService.set(KEYS.APPLICANTS, db.applicants || []);
+      if (!storageService.get(KEYS.INTERVIEWS)) storageService.set(KEYS.INTERVIEWS, db.interviews || []);
     }
   },
 
@@ -73,6 +79,8 @@ export const dataService = {
     storageService.set(KEYS.SCHEDULE, db.schedule || []);
     storageService.set(KEYS.MOVEMENTS, db.inventoryMovements || []);
     storageService.set(KEYS.HISTORY, db.history || []);
+    storageService.set(KEYS.APPLICANTS, db.applicants || []);
+    storageService.set(KEYS.INTERVIEWS, db.interviews || []);
     storageService.set(KEYS.INITIALIZED, true);
   },
 
@@ -676,6 +684,517 @@ export const dataService = {
   },
 
   // ----------------------------------------------------
+  // GESTIÓN DE POSTULANTES Y EXPEDIENTES LABORALES
+  // ----------------------------------------------------
+  getApplicants() {
+    return storageService.get(KEYS.APPLICANTS, []);
+  },
+
+  getApplicantById(id) {
+    return this.getApplicants().find((a) => a.id === id);
+  },
+
+  saveApplicant(applicantData) {
+    const list = this.getApplicants();
+    const today = new Date().toISOString().split('T')[0];
+    let updated;
+
+    if (!applicantData.id) {
+      // Nuevo postulante
+      const newId = generateNextId(list, 'POS');
+      const newApplicant = {
+        ...applicantData,
+        id: newId,
+        fechaPostulacion: applicantData.fechaPostulacion || today,
+        estado: applicantData.estado || 'Recibida',
+        formacion: applicantData.formacion || [],
+        habilidades: applicantData.habilidades || [],
+        experiencias: applicantData.experiencias || [],
+        referencias: applicantData.referencias || [],
+        historial: [
+          {
+            fecha: today,
+            evento: 'Postulación registrada en el sistema de selección de CONSTRUCTA',
+          },
+        ],
+        empleadoId: null,
+      };
+      updated = [newApplicant, ...list];
+      this.addHistoryEntry(
+        'Postulante Registrado',
+        `Candidatura registrada: ${newApplicant.nombre} para ${newApplicant.puestoSolicitado || 'plaza operativa'}`
+      );
+    } else {
+      // Modificar postulante existente
+      updated = list.map((a) => {
+        if (a.id === applicantData.id) {
+          const historial = [...(a.historial || [])];
+          if (applicantData.estado && applicantData.estado !== a.estado) {
+            historial.push({
+              fecha: today,
+              evento: `Estado actualizado a "${applicantData.estado}"`,
+            });
+          }
+          return {
+            ...a,
+            ...applicantData,
+            historial,
+          };
+        }
+        return a;
+      });
+      this.addHistoryEntry(
+        'Expediente Actualizado',
+        `Actualización de datos del postulante: ${applicantData.nombre || applicantData.id}`
+      );
+    }
+
+    storageService.set(KEYS.APPLICANTS, updated);
+    return updated;
+  },
+
+  deleteApplicant(id) {
+    const list = this.getApplicants();
+    const target = list.find((a) => a.id === id);
+    const updated = list.filter((a) => a.id !== id);
+    storageService.set(KEYS.APPLICANTS, updated);
+
+    // Cancelar entrevistas asociadas a este postulante si existen
+    const interviews = this.getInterviews().map((i) =>
+      i.postulanteId === id && i.estado === 'Programada'
+        ? { ...i, estado: 'Cancelada', observaciones: 'Cancelada por retiro del postulante' }
+        : i
+    );
+    storageService.set(KEYS.INTERVIEWS, interviews);
+
+    if (target) {
+      this.addHistoryEntry('Postulante Retirado', `Eliminación de candidatura: ${target.nombre}`);
+    }
+    return updated;
+  },
+
+  // Convertir postulante seleccionado en empleado formal de CONSTRUCTA
+  convertApplicantToEmployee(applicantId, employeeData) {
+    const applicant = this.getApplicantById(applicantId);
+    if (!applicant) {
+      throw new Error('No se encontró el expediente del postulante');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // 1. Dar de alta en la nómina de empleados
+    const newEmployeeData = {
+      nombre: employeeData.nombre || applicant.nombre,
+      puesto: employeeData.puesto || applicant.puestoSolicitado,
+      especialidad: employeeData.especialidad || applicant.area || applicant.puestoSolicitado,
+      dni: employeeData.dni || applicant.dni,
+      email: employeeData.email || applicant.email,
+      telefono: employeeData.telefono || applicant.telefono,
+      proyectoId: employeeData.proyectoId || applicant.proyectoAsignadoTentativo || 'PRJ-001',
+      horario: employeeData.horario || '07:00 - 16:00',
+      diasLaborales: employeeData.diasLaborales || 'Lunes a Viernes',
+      estado: employeeData.estado || 'Activo',
+      salario: employeeData.salario || employeeData.sueldo || null,
+      observaciones: `Contratado mediante proceso de selección CONSTRUCTA (Expediente ${applicant.id}).`,
+    };
+
+    const updatedEmployees = this.saveEmployee(newEmployeeData);
+    const createdEmployee = updatedEmployees.find((e) => e.dni === newEmployeeData.dni) || updatedEmployees[0];
+
+    // 2. Actualizar estado y vincular en el expediente del postulante sin borrar su historial
+    const updatedApplicants = this.getApplicants().map((a) => {
+      if (a.id === applicantId) {
+        return {
+          ...a,
+          estado: 'Seleccionado',
+          empleadoId: createdEmployee?.id || 'EMP-NUEVO',
+          historial: [
+            ...(a.historial || []),
+            {
+              fecha: today,
+              evento: `Candidato formalmente contratado y dado de alta como empleado (ID Nómina: ${createdEmployee?.id || 'Activo'}). Asignado a obra.`,
+            },
+          ],
+        };
+      }
+      return a;
+    });
+
+    storageService.set(KEYS.APPLICANTS, updatedApplicants);
+
+    this.addHistoryEntry(
+      'Empleado Contratado',
+      `Contratación exitosa de postulante: ${applicant.nombre} para ${newEmployeeData.puesto}`,
+      newEmployeeData.proyectoId
+    );
+
+    return {
+      applicant: updatedApplicants.find((a) => a.id === applicantId),
+      employee: createdEmployee,
+      employees: updatedEmployees,
+      applicants: updatedApplicants,
+    };
+  },
+
+  // ----------------------------------------------------
+  // GESTIÓN DE ENTREVISTAS Y PREVENCIÓN DE CONFLICTOS
+  // ----------------------------------------------------
+  timeToMinutes(timeStr) {
+    if (!timeStr) return 0;
+    const parts = timeStr.split(':').map(Number);
+    return (parts[0] || 0) * 60 + (parts[1] || 0);
+  },
+
+  calculateEndTime(startTime, durationMinutes = 45) {
+    if (!startTime) return '';
+    const [h, m] = startTime.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return startTime;
+    const totalMinutes = h * 60 + m + Number(durationMinutes || 0);
+    const endH = Math.floor(totalMinutes / 60) % 24;
+    const endM = totalMinutes % 60;
+    return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+  },
+
+  checkInterviewConflict({ fecha, horaInicio, duracionMinutos = 45, entrevistador, postulanteId }, excludeId = null) {
+    if (!fecha || !horaInicio) return { conflict: false };
+
+    const horaFin = this.calculateEndTime(horaInicio, duracionMinutos);
+    const startMin = this.timeToMinutes(horaInicio);
+    const endMin = this.timeToMinutes(horaFin);
+
+    const interviews = this.getInterviews();
+    const sameDay = interviews.filter(
+      (i) => i.fecha === fecha && i.id !== excludeId && i.estado !== 'Cancelada'
+    );
+
+    for (const existing of sameDay) {
+      const existStart = this.timeToMinutes(existing.horaInicio);
+      const existEnd = this.timeToMinutes(existing.horaFin);
+
+      // Verificación de solapamiento de intervalos
+      const overlaps = startMin < existEnd && endMin > existStart;
+
+      if (overlaps) {
+        if (postulanteId && existing.postulanteId === postulanteId) {
+          return {
+            conflict: true,
+            type: 'candidate',
+            message: `El postulante ya tiene una entrevista programada en ese horario (${existing.horaInicio} a ${existing.horaFin}). Selecciona otro horario.`,
+            existing,
+          };
+        }
+
+        if (
+          entrevistador &&
+          existing.entrevistador &&
+          existing.entrevistador.trim().toLowerCase() === entrevistador.trim().toLowerCase()
+        ) {
+          return {
+            conflict: true,
+            type: 'interviewer',
+            message: `El entrevistador seleccionado (${entrevistador}) ya tiene una entrevista programada de ${existing.horaInicio} a ${existing.horaFin}. Selecciona otro horario o cambia de entrevistador.`,
+            existing,
+          };
+        }
+      }
+    }
+
+    return { conflict: false };
+  },
+
+  getInterviews() {
+    return storageService.get(KEYS.INTERVIEWS, []);
+  },
+
+  getInterviewById(id) {
+    return this.getInterviews().find((i) => i.id === id);
+  },
+
+  saveInterview(interviewData) {
+    const list = this.getInterviews();
+    const horaFin = this.calculateEndTime(interviewData.horaInicio, interviewData.duracionMinutos || 45);
+    const today = new Date().toISOString().split('T')[0];
+
+    // Verificar conflictos de agenda
+    const conflictCheck = this.checkInterviewConflict(
+      {
+        fecha: interviewData.fecha,
+        horaInicio: interviewData.horaInicio,
+        duracionMinutos: interviewData.duracionMinutos || 45,
+        entrevistador: interviewData.entrevistador,
+        postulanteId: interviewData.postulanteId,
+      },
+      interviewData.id || null
+    );
+
+    if (conflictCheck.conflict) {
+      throw new Error(conflictCheck.message);
+    }
+
+    let updated;
+
+    if (!interviewData.id) {
+      // Nueva entrevista
+      const newId = generateNextId(list, 'INT');
+      const newInterview = {
+        ...interviewData,
+        id: newId,
+        horaFin,
+        duracionMinutos: Number(interviewData.duracionMinutos) || 45,
+        estado: interviewData.estado || 'Programada',
+        resultado: null,
+        evaluacion: null,
+        comentarios: null,
+        historial: [
+          {
+            fecha: `${today} ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`,
+            evento: `Entrevista programada para el ${interviewData.fecha} de ${interviewData.horaInicio} a ${horaFin} con ${interviewData.entrevistador}`,
+          },
+        ],
+      };
+
+      updated = [newInterview, ...list];
+
+      // Actualizar estado del postulante a "Entrevista programada"
+      if (interviewData.postulanteId) {
+        const applicants = this.getApplicants().map((a) => {
+          if (a.id === interviewData.postulanteId) {
+            return {
+              ...a,
+              estado: 'Entrevista programada',
+              historial: [
+                ...(a.historial || []),
+                {
+                  fecha: today,
+                  evento: `Entrevista técnica programada para el ${interviewData.fecha} (${interviewData.horaInicio} a ${horaFin}) con ${interviewData.entrevistador}`,
+                },
+              ],
+            };
+          }
+          return a;
+        });
+        storageService.set(KEYS.APPLICANTS, applicants);
+      }
+
+      this.addHistoryEntry(
+        'Entrevista Programada',
+        `Entrevista agendada: ${interviewData.postulanteNombre || 'Candidato'} con ${interviewData.entrevistador} el ${interviewData.fecha}`
+      );
+    } else {
+      // Actualizar entrevista existente
+      updated = list.map((i) =>
+        i.id === interviewData.id
+          ? {
+              ...i,
+              ...interviewData,
+              horaFin,
+              duracionMinutos: Number(interviewData.duracionMinutos) || i.duracionMinutos,
+            }
+          : i
+      );
+      this.addHistoryEntry(
+        'Entrevista Actualizada',
+        `Modificación en entrevista: ${interviewData.postulanteNombre || interviewData.id}`
+      );
+    }
+
+    storageService.set(KEYS.INTERVIEWS, updated);
+    return updated;
+  },
+
+  rescheduleInterview(id, rescheduleData) {
+    const list = this.getInterviews();
+    const existing = list.find((i) => i.id === id);
+    if (!existing) throw new Error('Entrevista no encontrada');
+
+    const horaFin = this.calculateEndTime(
+      rescheduleData.horaInicio || existing.horaInicio,
+      rescheduleData.duracionMinutos || existing.duracionMinutos || 45
+    );
+
+    // Validación estricta de conflictos antes de guardar la reprogramación
+    const conflictCheck = this.checkInterviewConflict(
+      {
+        fecha: rescheduleData.fecha || existing.fecha,
+        horaInicio: rescheduleData.horaInicio || existing.horaInicio,
+        duracionMinutos: rescheduleData.duracionMinutos || existing.duracionMinutos || 45,
+        entrevistador: rescheduleData.entrevistador || existing.entrevistador,
+        postulanteId: existing.postulanteId,
+      },
+      id
+    );
+
+    if (conflictCheck.conflict) {
+      throw new Error(conflictCheck.message);
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const timestamp = `${today} ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+
+    const updated = list.map((i) => {
+      if (i.id === id) {
+        return {
+          ...i,
+          ...rescheduleData,
+          horaFin,
+          estado: 'Reprogramada',
+          historial: [
+            ...(i.historial || []),
+            {
+              fecha: timestamp,
+              evento: `Entrevista reprogramada para el ${rescheduleData.fecha} de ${rescheduleData.horaInicio} a ${horaFin}. Motivo/Observación: ${rescheduleData.observaciones || 'Ajuste de agenda'}`,
+            },
+          ],
+        };
+      }
+      return i;
+    });
+
+    storageService.set(KEYS.INTERVIEWS, updated);
+
+    // Actualizar historial del postulante
+    if (existing.postulanteId) {
+      const applicants = this.getApplicants().map((a) => {
+        if (a.id === existing.postulanteId) {
+          return {
+            ...a,
+            estado: 'Entrevista programada',
+            historial: [
+              ...(a.historial || []),
+              {
+                fecha: today,
+                evento: `Entrevista reprogramada para el ${rescheduleData.fecha} (${rescheduleData.horaInicio} — ${horaFin})`,
+              },
+            ],
+          };
+        }
+        return a;
+      });
+      storageService.set(KEYS.APPLICANTS, applicants);
+    }
+
+    this.addHistoryEntry(
+      'Entrevista Reprogramada',
+      `Reprogramación de entrevista para ${existing.postulanteNombre} al ${rescheduleData.fecha} (${rescheduleData.horaInicio})`
+    );
+
+    return updated;
+  },
+
+  cancelInterview(id, motivo = 'Cancelada por el administrador') {
+    const list = this.getInterviews();
+    const existing = list.find((i) => i.id === id);
+    if (!existing) throw new Error('Entrevista no encontrada');
+
+    const today = new Date().toISOString().split('T')[0];
+    const timestamp = `${today} ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+
+    const updated = list.map((i) => {
+      if (i.id === id) {
+        return {
+          ...i,
+          estado: 'Cancelada',
+          observaciones: `${i.observaciones ? i.observaciones + ' | ' : ''}Cancelación: ${motivo}`,
+          historial: [
+            ...(i.historial || []),
+            {
+              fecha: timestamp,
+              evento: `Entrevista cancelada. Motivo: ${motivo}`,
+            },
+          ],
+        };
+      }
+      return i;
+    });
+
+    storageService.set(KEYS.INTERVIEWS, updated);
+
+    // Actualizar expediente del postulante
+    if (existing.postulanteId) {
+      const applicants = this.getApplicants().map((a) => {
+        if (a.id === existing.postulanteId) {
+          return {
+            ...a,
+            estado: a.estado === 'Entrevista programada' ? 'En revisión' : a.estado,
+            historial: [
+              ...(a.historial || []),
+              {
+                fecha: today,
+                evento: `Entrevista del ${existing.fecha} cancelada. Horario liberado en agenda.`,
+              },
+            ],
+          };
+        }
+        return a;
+      });
+      storageService.set(KEYS.APPLICANTS, applicants);
+    }
+
+    this.addHistoryEntry('Entrevista Cancelada', `Cancelación de entrevista: ${existing.postulanteNombre} del ${existing.fecha}`);
+    return updated;
+  },
+
+  recordInterviewResult(id, { resultado, evaluacion, comentarios, nuevoEstadoPostulante }) {
+    const list = this.getInterviews();
+    const existing = list.find((i) => i.id === id);
+    if (!existing) throw new Error('Entrevista no encontrada');
+
+    const today = new Date().toISOString().split('T')[0];
+    const timestamp = `${today} ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+
+    const updated = list.map((i) => {
+      if (i.id === id) {
+        return {
+          ...i,
+          estado: 'Realizada',
+          resultado,
+          evaluacion,
+          comentarios,
+          historial: [
+            ...(i.historial || []),
+            {
+              fecha: timestamp,
+              evento: `Entrevista realizada. Dictamen: ${resultado}. Evaluación registrada.`,
+            },
+          ],
+        };
+      }
+      return i;
+    });
+
+    storageService.set(KEYS.INTERVIEWS, updated);
+
+    // Actualizar estado del postulante según la evaluación
+    if (existing.postulanteId) {
+      const targetState = nuevoEstadoPostulante || (resultado === 'Favorable' ? 'Seleccionado' : resultado === 'Desfavorable' ? 'No seleccionado' : 'Entrevistado');
+      const applicants = this.getApplicants().map((a) => {
+        if (a.id === existing.postulanteId) {
+          return {
+            ...a,
+            estado: targetState,
+            historial: [
+              ...(a.historial || []),
+              {
+                fecha: today,
+                evento: `Resultado de entrevista registrado (${resultado}). Estado del candidato: ${targetState}.`,
+              },
+            ],
+          };
+        }
+        return a;
+      });
+      storageService.set(KEYS.APPLICANTS, applicants);
+    }
+
+    this.addHistoryEntry(
+      'Evaluación Registrada',
+      `Dictamen de entrevista para ${existing.postulanteNombre}: ${resultado}`
+    );
+
+    return updated;
+  },
+
+  // ----------------------------------------------------
   // CÁLCULO DE MÉTRICAS INTERCONECTADAS EN TIEMPO REAL
   // ----------------------------------------------------
   calculateMetrics() {
@@ -683,6 +1202,23 @@ export const dataService = {
     const employees = this.getEmployees();
     const materials = this.getMaterials();
     const expenses = this.getExpenses();
+    const applicants = this.getApplicants();
+    const interviews = this.getInterviews();
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Métricas de Selección y Reclutamiento
+    const totalApplicants = applicants.length;
+    const activeApplicants = applicants.filter(
+      (a) => !['Seleccionado', 'No seleccionado', 'Retirado'].includes(a.estado)
+    ).length;
+    const selectedApplicants = applicants.filter((a) => a.estado === 'Seleccionado').length;
+    const upcomingInterviews = interviews.filter(
+      (i) => (i.estado === 'Programada' || i.estado === 'Reprogramada') && i.fecha >= todayStr
+    ).length;
+    const todayInterviews = interviews.filter(
+      (i) => i.fecha === todayStr && i.estado !== 'Cancelada'
+    ).length;
 
     // Presupuestos y Gastos
     const totalBudget = projects.reduce((acc, p) => acc + (Number(p.presupuesto) || 0), 0);
@@ -786,6 +1322,11 @@ export const dataService = {
       lowStockMaterials,
       expensesByCategory,
       expensesByProject: Object.values(expensesByProject),
+      totalApplicants,
+      activeApplicants,
+      selectedApplicants,
+      upcomingInterviews,
+      todayInterviews,
     };
   },
 

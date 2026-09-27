@@ -21,7 +21,8 @@ import {
   History,
   Briefcase,
   Layers,
-  ArrowUpDown
+  ArrowUpDown,
+  UserCheck
 } from 'lucide-react';
 
 export default function Reports() {
@@ -117,6 +118,24 @@ export default function Reports() {
     return list;
   }, [data.history, searchTerm]);
 
+  const filteredApplicants = useMemo(() => {
+    let list = data.applicants || [];
+    if (searchTerm) {
+      list = list.filter(a => matchSearch(searchTerm, [
+        a.nombre,
+        a.dni,
+        a.puestoSolicitado,
+        a.area,
+        a.ultimoPuesto,
+        a.ultimaEmpresa,
+        a.estado,
+        a.disponibilidad,
+        (a.habilidades || []).join(' ')
+      ]));
+    }
+    return list;
+  }, [data.applicants, searchTerm]);
+
   // Expenses grouped by category
   const expensesByCategory = useMemo(() => {
     const map = {};
@@ -157,6 +176,11 @@ export default function Reports() {
       filteredEmployees.forEach(emp => {
         const prj = data.projects.find(p => p.id === emp.proyectoId);
         csvContent += `"${emp.nombre}","${emp.puesto}","${emp.dni}","${prj ? prj.nombre : ''}","${emp.horario}","${emp.diasLaborales}","${emp.estado}","${emp.telefono}","${emp.email}"\r\n`;
+      });
+    } else if (activeTab === 'recruitment') {
+      csvContent += "ID,Nombre,DNI,Puesto,Area,Experiencia,Ultima_Empresa,Disponibilidad,Estado,Empleado_Vinculado\r\n";
+      filteredApplicants.forEach(a => {
+        csvContent += `"${a.id}","${a.nombre}","${a.dni}","${a.puestoSolicitado}","${a.area}",${a.experienciaAnios},"${a.ultimaEmpresa || ''}","${a.disponibilidad}","${a.estado}","${a.empleadoId || 'No vinculado'}"\r\n`;
       });
     } else {
       csvContent += "Fecha,Tipo,Descripcion,Proyecto,Monto\r\n";
@@ -213,6 +237,7 @@ export default function Reports() {
           { id: 'expenses', label: 'Costos y Gastos', icon: <DollarSign size={15} /> },
           { id: 'materials', label: 'Inventario de Insumos', icon: <Package size={15} /> },
           { id: 'employees', label: 'Plantilla y Cuadrillas', icon: <Users size={15} /> },
+          { id: 'recruitment', label: 'Selección y Postulantes', icon: <UserCheck size={15} /> },
           { id: 'history', label: 'Bitácora de Auditoría', icon: <History size={15} /> },
         ].map(tab => (
           <button
@@ -651,6 +676,114 @@ export default function Reports() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* TAB 7: SELECCIÓN Y POSTULANTES */}
+      {activeTab === 'recruitment' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Recruitment Metrics Bar */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+            <div className="constructa-card" style={{ padding: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Total Postulantes</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '4px' }}>
+                {metrics.totalApplicants || 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Candidaturas registradas</div>
+            </div>
+
+            <div className="constructa-card" style={{ padding: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>En Evaluación Activa</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-amber)', marginTop: '4px' }}>
+                {metrics.activeApplicants || 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-amber)' }}>Filtro de perfil y técnica</div>
+            </div>
+
+            <div className="constructa-card" style={{ padding: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Entrevistas en Agenda</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-sky)', marginTop: '4px' }}>
+                {metrics.upcomingInterviews || 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-sky)' }}>Citas programadas</div>
+            </div>
+
+            <div className="constructa-card" style={{ padding: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Seleccionados para Obra</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>
+                {metrics.selectedApplicants || 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-emerald)' }}>Aprobados para nómina</div>
+            </div>
+          </div>
+
+          <div className="constructa-card" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                Matriz Consolidada de Selección y Expedientes Laborales
+              </h3>
+              <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                {filteredApplicants.length} expedientes analizados
+              </span>
+            </div>
+
+            {filteredApplicants.length === 0 ? (
+              <EmptyState
+                title="No encontramos resultados para tu búsqueda"
+                message="No hay postulantes que coincidan con la búsqueda actual."
+              />
+            ) : (
+              <div className="constructa-table-container">
+                <table className="constructa-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Candidato</th>
+                      <th>DNI</th>
+                      <th>Puesto Aspirado</th>
+                      <th>Área</th>
+                      <th>Experiencia</th>
+                      <th>Disponibilidad</th>
+                      <th>Estado</th>
+                      <th>Alta en Nómina</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredApplicants.map(a => (
+                      <tr key={a.id}>
+                        <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{a.id}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{a.nombre}</td>
+                        <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{a.dni}</td>
+                        <td style={{ color: 'var(--color-text-primary)' }}>{a.puestoSolicitado}</td>
+                        <td>{a.area}</td>
+                        <td>{a.experienciaAnios} años ({a.ultimaEmpresa || '—'})</td>
+                        <td style={{ color: 'var(--color-emerald)', fontSize: '0.82rem' }}>{a.disponibilidad}</td>
+                        <td>
+                          <Badge variant={
+                            a.estado === 'Seleccionado' ? 'success' :
+                            a.estado === 'Entrevista programada' ? 'info' :
+                            a.estado === 'Preseleccionado' || a.estado === 'En revisión' ? 'warning' :
+                            a.estado === 'No seleccionado' ? 'danger' : 'neutral'
+                          }>
+                            {a.estado}
+                          </Badge>
+                        </td>
+                        <td>
+                          {a.empleadoId ? (
+                            <span style={{ color: 'var(--color-emerald)', fontWeight: 600, fontSize: '0.82rem' }}>
+                              Activo ({a.empleadoId})
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>Pendiente</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

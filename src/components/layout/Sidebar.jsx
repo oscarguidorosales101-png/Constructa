@@ -3,6 +3,8 @@ import {
   LayoutDashboard,
   HardHat,
   Users,
+  UserCheck,
+  CalendarClock,
   Package,
   Truck,
   DollarSign,
@@ -46,6 +48,18 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
       label: 'Empleados',
       icon: Users,
       badge: metrics?.totalEmployees ? `${metrics.totalEmployees}` : null,
+    },
+    {
+      id: 'postulantes',
+      label: 'Postulantes',
+      icon: UserCheck,
+      badge: metrics?.activeApplicants ? `${metrics.activeApplicants}` : null,
+    },
+    {
+      id: 'entrevistas',
+      label: 'Entrevistas',
+      icon: CalendarClock,
+      badge: metrics?.upcomingInterviews ? `${metrics.upcomingInterviews}` : null,
     },
     {
       id: 'materiales',

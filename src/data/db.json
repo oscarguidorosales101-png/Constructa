@@ -1760,5 +1760,628 @@
       "proyectoRelacionado": "Torre Altavista Residencial",
       "monto": null
     }
+  ],
+  "applicants": [
+    {
+      "id": "POS-001",
+      "nombre": "Carlos Alberto Rodríguez Morales",
+      "dni": "DNI-74892011",
+      "email": "carlos.rodriguez@email.com",
+      "telefono": "+52 55 4912 3840",
+      "ubicacion": "Ciudad de México / Benito Juárez",
+      "fechaNacimiento": "1991-05-14",
+      "fechaPostulacion": "2026-03-10",
+      "puestoSolicitado": "Electricista Industrial",
+      "area": "Instalaciones Eléctricas y Especiales",
+      "experienciaAnios": 6,
+      "ultimoPuesto": "Técnico Electricista de Media Tensión",
+      "ultimaEmpresa": "Instalaciones & Fuerza Eléctrica S.A.",
+      "disponibilidad": "Inmediata",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "Entrevista programada",
+      "proyectoAsignadoTentativo": "PRJ-002",
+      "perfilProfesional": "Técnico especialista en instalaciones eléctricas de media y baja tensión para obras verticales y naves industriales, con amplia experiencia en tableros generales, canalizaciones subterráneas y normativas NOM-001-SEDE.",
+      "formacion": [
+        {
+          "titulo": "Técnico Superior en Electricidad y Automatización",
+          "institucion": "Instituto Politécnico Nacional",
+          "anio": "2015",
+          "tipo": "Carrera Técnica"
+        },
+        {
+          "titulo": "Certificación DC-3 Trabajos en Alturas y Riesgo Eléctrico",
+          "institucion": "STPS México",
+          "anio": "2024",
+          "tipo": "Certificación"
+        }
+      ],
+      "habilidades": [
+        "Lectura de diagramas unifilares",
+        "Empalme de cableado de alta capacidad",
+        "Instalación de centros de carga",
+        "Uso de multímetro y megger",
+        "Normativa NOM-001-SEDE"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-001",
+          "empresa": "Instalaciones & Fuerza Eléctrica S.A.",
+          "puesto": "Técnico Electricista de Media Tensión",
+          "fechaInicio": "2022-02",
+          "fechaFin": "2025-11",
+          "duracion": "3 años y 9 meses",
+          "responsabilidades": "Coordinación de tendido de tubería conduit pesada y charolas para 14 niveles corporativos. Conexión de tableros de transferencia y plantas generadoras.",
+          "logros": "Cero incidentes de arco eléctrico en 18 meses de obra continua."
+        },
+        {
+          "id": "EXP-002",
+          "empresa": "Constructora Residencial Prisma",
+          "puesto": "Electricista Instalador",
+          "fechaInicio": "2019-01",
+          "fechaFin": "2022-01",
+          "duracion": "3 años",
+          "responsabilidades": "Cableado de acometidas, tableros secundarios e iluminación de 60 departamentos residenciales.",
+          "logros": "Entrega de fases con 15 días de anticipación al cronograma."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Ing. Miguel Ángel Soto",
+          "empresa": "Instalaciones & Fuerza Eléctrica",
+          "telefono": "+52 55 1290 8472",
+          "relacion": "Superintendente de Instalaciones"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-10", "evento": "Postulación recibida vía portal de empleo" },
+        { "fecha": "2026-03-12", "evento": "Expediente revisado y calificado como Apto" },
+        { "fecha": "2026-03-14", "evento": "Candidato preseleccionado por perfil técnico" },
+        { "fecha": "2026-03-16", "evento": "Entrevista técnica programada con Ing. Carlos Mendoza" }
+      ],
+      "empleadoId": null
+    },
+    {
+      "id": "POS-002",
+      "nombre": "María Elena López Navarrete",
+      "dni": "DNI-83920144",
+      "email": "maria.lopez@email.com",
+      "telefono": "+52 55 8321 0945",
+      "ubicacion": "Naucalpan, Estado de México",
+      "fechaNacimiento": "1993-08-22",
+      "fechaPostulacion": "2026-03-12",
+      "puestoSolicitado": "Administradora de Obra",
+      "area": "Administración y Control Financiero",
+      "experienciaAnios": 5,
+      "ultimoPuesto": "Coordinadora de Compras y Control Presupuestario",
+      "ultimaEmpresa": "Constructora del Bajío",
+      "disponibilidad": "15 días",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "Preseleccionado",
+      "proyectoAsignadoTentativo": "PRJ-001",
+      "perfilProfesional": "Licenciada en Administración con experiencia directa en control administrativo en sitio de obra, estimaciones para contratistas, compras de insumos y conciliación de gastos de obra.",
+      "formacion": [
+        {
+          "titulo": "Licenciatura en Administración de Empresas",
+          "institucion": "Universidad Nacional Autónoma de México",
+          "anio": "2017",
+          "tipo": "Licenciatura"
+        },
+        {
+          "titulo": "Diplomado en Gestión de Costos y Presupuestos en Construcción",
+          "institucion": "Cámara Mexicana de la Industria de la Construcción (CMIC)",
+          "anio": "2021",
+          "tipo": "Diplomado"
+        }
+      ],
+      "habilidades": [
+        "Conciliación bancaria y presupuestos",
+        "Control de almacén y entradas de material",
+        "Gestión de nómina de obra",
+        "Software Neodata y Opus",
+        "Manejo avanzado de Excel"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-003",
+          "empresa": "Constructora del Bajío",
+          "puesto": "Coordinadora de Compras y Control Presupuestario",
+          "fechaInicio": "2021-04",
+          "fechaFin": "2025-12",
+          "duracion": "4 años y 8 meses",
+          "responsabilidades": "Supervisión de compras para tres proyectos simultáneos, validación de facturas con proveedores y control del flujo de caja semanal de obra.",
+          "logros": "Reducción del 7% en costos de adquisición por negociación de volumen con acereras y cementeras."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Lic. Roberto Garza",
+          "empresa": "Constructora del Bajío",
+          "telefono": "+52 55 9940 1238",
+          "relacion": "Director Administrativo"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-12", "evento": "Postulación recibida para puesto de Administradora" },
+        { "fecha": "2026-03-15", "evento": "Currículum evaluado positivamente por Dirección" },
+        { "fecha": "2026-03-18", "evento": "Candidata preseleccionada para entrevista" }
+      ],
+      "empleadoId": null
+    },
+    {
+      "id": "POS-003",
+      "nombre": "José Ramón Vargas Castillo",
+      "dni": "DNI-45892109",
+      "email": "jose.vargas@email.com",
+      "telefono": "+52 55 3820 1948",
+      "ubicacion": "Tlalnepantla, Estado de México",
+      "fechaNacimiento": "1982-11-03",
+      "fechaPostulacion": "2026-03-08",
+      "puestoSolicitado": "Maestro de Obra",
+      "area": "Edificación y Estructuras",
+      "experienciaAnios": 12,
+      "ultimoPuesto": "Maestro General de Obra",
+      "ultimaEmpresa": "Edificaciones y Estructuras Metálicas",
+      "disponibilidad": "Inmediata",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "Seleccionado",
+      "proyectoAsignadoTentativo": "PRJ-001",
+      "perfilProfesional": "Maestro de obra con más de una década de experiencia liderando cuadrillas de albañilería, fierrería y carpintería de obra negra. Excelente interpretación de planos estructurales y control de calidad en colados de concreto.",
+      "formacion": [
+        {
+          "titulo": "Certificación de Competencias Laborales en Supervisión de Obra",
+          "institucion": "CONOCER / STPS",
+          "anio": "2018",
+          "tipo": "Certificación Oficial"
+        }
+      ],
+      "habilidades": [
+        "Interpretación integral de planos estructurales",
+        "Coordinación de colados masivos de concreto",
+        "Manejo de personal y rendimiento de cuadrillas",
+        "Control de merma de materiales",
+        "Seguridad en obra y uso de EPP"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-004",
+          "empresa": "Edificaciones y Estructuras Metálicas",
+          "puesto": "Maestro General de Obra",
+          "fechaInicio": "2018-05",
+          "fechaFin": "2026-01",
+          "duracion": "7 años y 8 meses",
+          "responsabilidades": "Dirección de más de 45 operarios en obra civil para edificación de 16 niveles. Seguimiento de bitácora y entrega a residentes de obra.",
+          "logros": "Finalización de tres torres habitacionales dentro de los márgenes de tolerancia estructural."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Ing. Gustavo Adolfo Peña",
+          "empresa": "Edificaciones y Estructuras Metálicas",
+          "telefono": "+52 55 6712 9043",
+          "relacion": "Superintendente de Obra"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-08", "evento": "Postulación recibida por recomendación técnica" },
+        { "fecha": "2026-03-11", "evento": "Preselección aprobada por experiencia comprobada" },
+        { "fecha": "2026-03-14", "evento": "Entrevista realizada con resultado sobresaliente" },
+        { "fecha": "2026-03-24", "evento": "Candidato seleccionado oficialmente para contratación" }
+      ],
+      "empleadoId": null
+    },
+    {
+      "id": "POS-004",
+      "nombre": "Andrés Felipe Gómez Pardo",
+      "dni": "DNI-91823401",
+      "email": "andres.gomez@email.com",
+      "telefono": "+52 55 7712 3901",
+      "ubicacion": "Cuautitlán Izcalli, Estado de México",
+      "fechaNacimiento": "1995-03-30",
+      "fechaPostulacion": "2026-03-14",
+      "puestoSolicitado": "Topógrafo de Precisión",
+      "area": "Trazo y Nivelación",
+      "experienciaAnios": 4,
+      "ultimoPuesto": "Especialista Topógrafo de Campo",
+      "ultimaEmpresa": "Geometría & Vías Terrestres",
+      "disponibilidad": "Inmediata",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "Entrevistado",
+      "proyectoAsignadoTentativo": "PRJ-003",
+      "perfilProfesional": "Ingeniero Topógrafo especializado en trazo de ejes, nivelaciones de alta precisión, control de asentamientos y levantamientos con estación total y GPS diferencial.",
+      "formacion": [
+        {
+          "titulo": "Ingeniería Topográfica y Geodésica",
+          "institucion": "Universidad Autónoma del Estado de México",
+          "anio": "2020",
+          "tipo": "Ingeniería"
+        }
+      ],
+      "habilidades": [
+        "Estación total Leica y Topcon",
+        "GPS Diferencial RTK",
+        "AutoCAD Civil 3D",
+        "Nivelación geométrica de precisión",
+        "Cálculo de volúmenes de corte y relleno"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-005",
+          "empresa": "Geometría & Vías Terrestres",
+          "puesto": "Topógrafo de Campo y Gabinete",
+          "fechaInicio": "2022-01",
+          "fechaFin": "2026-02",
+          "duracion": "4 años y 1 mes",
+          "responsabilidades": "Trazo de terracerías y ejes de cimentación para pasos a desnivel y vialidades de alta velocidad.",
+          "logros": "Generación de modelos digitales de terreno con error milimétrico certificado."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Ing. Horacio Beltrán",
+          "empresa": "Geometría & Vías Terrestres",
+          "telefono": "+52 55 4402 1198",
+          "relacion": "Jefe de Topografía"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-14", "evento": "Postulación recibida para proyecto de infraestructura" },
+        { "fecha": "2026-03-17", "evento": "Expediente preseleccionado por especialidad técnica" },
+        { "fecha": "2026-03-25", "evento": "Entrevista técnica realizada con Arq. Sofía Valenzuela" }
+      ],
+      "empleadoId": null
+    },
+    {
+      "id": "POS-005",
+      "nombre": "Brenda Cecilia Ortiz Morales",
+      "dni": "DNI-62910483",
+      "email": "brenda.ortiz@email.com",
+      "telefono": "+52 55 9012 3456",
+      "ubicacion": "Álvaro Obregón, Ciudad de México",
+      "fechaNacimiento": "1989-07-19",
+      "fechaPostulacion": "2026-03-18",
+      "puestoSolicitado": "Supervisora de Seguridad e Higiene",
+      "area": "Seguridad, Salud y Medio Ambiente (SSOMA)",
+      "experienciaAnios": 7,
+      "ultimoPuesto": "Coordinadora de Seguridad en Obra Civil",
+      "ultimaEmpresa": "Seguridad Industrial & Protección Civil",
+      "disponibilidad": "15 días",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "En revisión",
+      "proyectoAsignadoTentativo": "PRJ-004",
+      "perfilProfesional": "Especialista en prevención de riesgos laborales en construcción vertical y horizontal. Implementación de planes de contingencia, pláticas diarias de 5 minutos, permisos de trabajo de alto riesgo y cumplimiento de normativas NOM-STPS.",
+      "formacion": [
+        {
+          "titulo": "Licenciatura en Ingeniería Ambiental y Seguridad",
+          "institucion": "Universidad Autónoma Metropolitana",
+          "anio": "2013",
+          "tipo": "Licenciatura"
+        },
+        {
+          "titulo": "Certificación OSHA 30 Horas en Construcción",
+          "institucion": "OSHA Training Institute",
+          "anio": "2022",
+          "tipo": "Certificación Internacional"
+        }
+      ],
+      "habilidades": [
+        "Protocolos de trabajo seguro en alturas",
+        "Inspección de andamios y líneas de vida",
+        "Investigación y análisis de incidentes",
+        "Auditorías de EPP y botiquines",
+        "Gestión ante Protección Civil"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-006",
+          "empresa": "Seguridad Industrial & Protección Civil",
+          "puesto": "Coordinadora de Seguridad en Obra Civil",
+          "fechaInicio": "2019-03",
+          "fechaFin": "2025-10",
+          "duracion": "6 años y 7 meses",
+          "responsabilidades": "Supervisión de seguridad para más de 120 trabajadores en simultáneo, tramitación de permisos de fuego y alturas.",
+          "logros": "Récord de 500 días sin accidentes con tiempo perdido (LTI)."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Dr. Fernando Leal",
+          "empresa": "Seguridad Industrial & Protección Civil",
+          "telefono": "+52 55 3390 1284",
+          "relacion": "Director General"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-18", "evento": "Postulación recibida vía bolsa de trabajo" },
+        { "fecha": "2026-03-21", "evento": "Expediente en revisión por departamento de personal" }
+      ],
+      "empleadoId": null
+    },
+    {
+      "id": "POS-006",
+      "nombre": "Roberto Daniel Silva Luna",
+      "dni": "DNI-51928374",
+      "email": "roberto.silva@email.com",
+      "telefono": "+52 55 6123 9845",
+      "ubicacion": "Ecatepec, Estado de México",
+      "fechaNacimiento": "1985-09-12",
+      "fechaPostulacion": "2026-03-15",
+      "puestoSolicitado": "Operador de Grúa Torre",
+      "area": "Maquinaria Pesada y Maniobras",
+      "experienciaAnios": 9,
+      "ultimoPuesto": "Operador Certificado de Grúa Torre y Pluma",
+      "ultimaEmpresa": "Transportes y Maniobras del Centro",
+      "disponibilidad": "Inmediata",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "Entrevista programada",
+      "proyectoAsignadoTentativo": "PRJ-001",
+      "perfilProfesional": "Operador certificado de grúas torre automontables y telescópicas para edificación vertical hasta 25 niveles. Amplio dominio de tablas de carga, maniobras con rigger/banderero y mantenimiento preventivo.",
+      "formacion": [
+        {
+          "titulo": "Certificación de Operador de Grúa Torre",
+          "institucion": "Centro Nacional de Capacitación de Maquinaria",
+          "anio": "2016",
+          "tipo": "Certificación Técnica"
+        }
+      ],
+      "habilidades": [
+        "Operación en cabina de grúa torre hasta 80m",
+        "Cálculo de momentos de carga e inclinación",
+        "Comunicación precisa por radio con rigger",
+        "Inspección de cables de acero y poleas",
+        "Conocimiento de protocolos ante ráfagas de viento"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-007",
+          "empresa": "Transportes y Maniobras del Centro",
+          "puesto": "Operador Certificado de Grúa Torre",
+          "fechaInicio": "2017-06",
+          "fechaFin": "2025-12",
+          "duracion": "8 años y 6 meses",
+          "responsabilidades": "Izaje diario de canastillas de concreto, varilla armada, prefabricados y formaleta para torres residenciales.",
+          "logros": "Excelente récord de maniobras limpias y cero colisiones o sobrepesos."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Ing. Saúl Montero",
+          "empresa": "Transportes y Maniobras del Centro",
+          "telefono": "+52 55 8891 0023",
+          "relacion": "Jefe de Equipos y Maquinaria"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-15", "evento": "Postulación recibida para vacante de Operador de Grúa" },
+        { "fecha": "2026-03-17", "evento": "Documentación y licencias federales validadas" },
+        { "fecha": "2026-03-19", "evento": "Entrevista programada para el 27/03 con Ing. Carlos Mendoza" }
+      ],
+      "empleadoId": null
+    },
+    {
+      "id": "POS-007",
+      "nombre": "Fernando Javier Méndez Téllez",
+      "dni": "DNI-38910283",
+      "email": "fernando.mendez@email.com",
+      "telefono": "+52 55 2381 9044",
+      "ubicacion": "Iztapalapa, Ciudad de México",
+      "fechaNacimiento": "1990-12-05",
+      "fechaPostulacion": "2026-03-22",
+      "puestoSolicitado": "Fierrero Especialista",
+      "area": "Estructuras y Armado de Acero",
+      "experienciaAnios": 8,
+      "ultimoPuesto": "Cabo de Fierrería",
+      "ultimaEmpresa": "Cimentaciones y Prefabricados de México",
+      "disponibilidad": "Inmediata",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "Recibida",
+      "proyectoAsignadoTentativo": "PRJ-002",
+      "perfilProfesional": "Especialista en habilitado, corte, doblado y armado de acero de refuerzo para zapatas, losas de cimentación, columnas y trabes de gran envergadura.",
+      "formacion": [
+        {
+          "titulo": "Certificado de Oficio en Armado de Acero Estructural",
+          "institucion": "Escuela Técnica de Construcción",
+          "anio": "2014",
+          "tipo": "Formación Técnica"
+        }
+      ],
+      "habilidades": [
+        "Interpretación de despieces de varilla",
+        "Manejo de dobladora y cizalla eléctrica",
+        "Armado de canastas de pilotes y contratrabes",
+        "Amarre de alambre recocido rápido y firme",
+        "Control de traslapes según cálculo estructural"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-008",
+          "empresa": "Cimentaciones y Prefabricados de México",
+          "puesto": "Cabo de Fierrería",
+          "fechaInicio": "2018-02",
+          "fechaFin": "2026-02",
+          "duracion": "8 años",
+          "responsabilidades": "Coordinación de 12 armadores en habilitado de acero para cimentaciones profundas y muros Milán.",
+          "logros": "Cumplimiento al 100% de la densidad de estribos en inspecciones de DRO."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Arq. Emilio Quintana",
+          "empresa": "Cimentaciones y Prefabricados",
+          "telefono": "+52 55 5512 8490",
+          "relacion": "Residente de Estructura"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-22", "evento": "Postulación recibida en oficina central de obra" }
+      ],
+      "empleadoId": null
+    },
+    {
+      "id": "POS-008",
+      "nombre": "Laura Patricia Cordero Ruiz",
+      "dni": "DNI-99210384",
+      "email": "laura.cordero@email.com",
+      "telefono": "+52 55 7890 1234",
+      "ubicacion": "Coyoacán, Ciudad de México",
+      "fechaNacimiento": "1997-04-18",
+      "fechaPostulacion": "2026-03-05",
+      "puestoSolicitado": "Arquitecta Proyectista Junior",
+      "area": "Diseño y Coordinación BIM",
+      "experienciaAnios": 3,
+      "ultimoPuesto": "Modeladora BIM Arquitectura",
+      "ultimaEmpresa": "Taller Arquitectura & Diseño Urbano",
+      "disponibilidad": "Inmediata",
+      "tipoJornada": "Tiempo Completo",
+      "estado": "No seleccionado",
+      "proyectoAsignadoTentativo": "PRJ-002",
+      "perfilProfesional": "Arquitecta con enfoque en desarrollo de planos ejecutivos, levantamientos arquitectónicos y modelado básico en Autodesk Revit.",
+      "formacion": [
+        {
+          "titulo": "Licenciatura en Arquitectura",
+          "institucion": "Universidad Iberoamericana",
+          "anio": "2021",
+          "tipo": "Licenciatura"
+        }
+      ],
+      "habilidades": [
+        "Autodesk Revit Architecture",
+        "AutoCAD 2D y 3D",
+        "Elaboración de planos de detalle",
+        "Renders en Enscape",
+        "Compatibilización de planos"
+      ],
+      "experiencias": [
+        {
+          "id": "EXP-009",
+          "empresa": "Taller Arquitectura & Diseño Urbano",
+          "puesto": "Modeladora BIM Arquitectura",
+          "fechaInicio": "2022-03",
+          "fechaFin": "2025-08",
+          "duracion": "3 años y 5 meses",
+          "responsabilidades": "Desarrollo de familias paramétricas en Revit y actualización de planos de acabados.",
+          "logros": "Participación en el proyecto de remodelación de plazas comerciales."
+        }
+      ],
+      "referencias": [
+        {
+          "nombre": "Arq. Pablo Echeverría",
+          "empresa": "Taller Arquitectura",
+          "telefono": "+52 55 1209 7856",
+          "relacion": "Director de Taller"
+        }
+      ],
+      "historial": [
+        { "fecha": "2026-03-05", "evento": "Postulación recibida vía LinkedIn" },
+        { "fecha": "2026-03-10", "evento": "Preselección para entrevista técnica" },
+        { "fecha": "2026-03-20", "evento": "Entrevista realizada con Arq. Sofía Valenzuela" },
+        { "fecha": "2026-03-21", "evento": "Candidata no seleccionada por requerir perfil con Revit MEP avanzado" }
+      ],
+      "empleadoId": null
+    }
+  ],
+  "interviews": [
+    {
+      "id": "INT-001",
+      "postulanteId": "POS-001",
+      "postulanteNombre": "Carlos Alberto Rodríguez Morales",
+      "puesto": "Electricista Industrial",
+      "fecha": "2026-03-27",
+      "horaInicio": "10:00",
+      "duracionMinutos": 45,
+      "horaFin": "10:45",
+      "entrevistador": "Ing. Carlos Mendoza Rivas",
+      "tipo": "Técnica / Presencial en Obra",
+      "estado": "Programada",
+      "observaciones": "Llevar comprobantes de certificación DC-3 y evaluar conocimientos en canalizaciones de media tensión.",
+      "resultado": null,
+      "evaluacion": null,
+      "comentarios": null,
+      "historial": [
+        { "fecha": "2026-03-16 11:30", "evento": "Entrevista programada para el 27/03/2026 de 10:00 a 10:45" }
+      ]
+    },
+    {
+      "id": "INT-002",
+      "postulanteId": "POS-006",
+      "postulanteNombre": "Roberto Daniel Silva Luna",
+      "puesto": "Operador de Grúa Torre",
+      "fecha": "2026-03-27",
+      "horaInicio": "11:30",
+      "duracionMinutos": 45,
+      "horaFin": "12:15",
+      "entrevistador": "Ing. Carlos Mendoza Rivas",
+      "tipo": "Prueba Práctica y de Maniobras",
+      "estado": "Programada",
+      "observaciones": "Evaluación de maniobras de izaje y revisión de bitácora de mantenimiento de grúa torre.",
+      "resultado": null,
+      "evaluacion": null,
+      "comentarios": null,
+      "historial": [
+        { "fecha": "2026-03-19 14:00", "evento": "Entrevista técnica programada para el 27/03/2026 de 11:30 a 12:15" }
+      ]
+    },
+    {
+      "id": "INT-003",
+      "postulanteId": "POS-004",
+      "postulanteNombre": "Andrés Felipe Gómez Pardo",
+      "puesto": "Topógrafo de Precision",
+      "fecha": "2026-03-25",
+      "horaInicio": "09:00",
+      "duracionMinutos": 60,
+      "horaFin": "10:00",
+      "entrevistador": "Arq. Sofía Valenzuela Morales",
+      "tipo": "Técnica / Evaluación de Gabinete",
+      "estado": "Realizada",
+      "observaciones": "Entrevista técnica y prueba práctica de curvas de nivel en AutoCAD Civil 3D.",
+      "resultado": "Favorable",
+      "evaluacion": "Excelente dominio de estación total y software CivilCAD. Candidato con perfil sólido para el proyecto Puente Bicentenario.",
+      "comentarios": "Aprobado para fase final de contratación.",
+      "historial": [
+        { "fecha": "2026-03-18 10:00", "evento": "Entrevista programada para el 25/03/2026 de 09:00 a 10:00" },
+        { "fecha": "2026-03-25 10:10", "evento": "Entrevista concluida con resultado Favorable" }
+      ]
+    },
+    {
+      "id": "INT-004",
+      "postulanteId": "POS-003",
+      "postulanteNombre": "José Ramón Vargas Castillo",
+      "puesto": "Maestro de Obra",
+      "fecha": "2026-03-24",
+      "horaInicio": "15:00",
+      "duracionMinutos": 45,
+      "horaFin": "15:45",
+      "entrevistador": "Ing. Fernando Mendoza",
+      "tipo": "Entrevista de Dirección / Jefatura",
+      "estado": "Realizada",
+      "observaciones": "Revisión de experiencia en obras verticales y validación de referencias con superintendentes.",
+      "resultado": "Favorable",
+      "evaluacion": "Liderazgo comprobado en más de 5 proyectos verticales. Recomendado para contratación inmediata en Torre Altavista.",
+      "comentarios": "Candidato seleccionado para plaza de Maestro de Obra.",
+      "historial": [
+        { "fecha": "2026-03-12 16:30", "evento": "Entrevista programada para el 24/03/2026 de 15:00 a 15:45" },
+        { "fecha": "2026-03-24 16:00", "evento": "Entrevista realizada. Candidato evaluado y aprobado" }
+      ]
+    },
+    {
+      "id": "INT-005",
+      "postulanteId": "POS-008",
+      "postulanteNombre": "Laura Patricia Cordero Ruiz",
+      "puesto": "Arquitecta Proyectista Junior",
+      "fecha": "2026-03-20",
+      "horaInicio": "16:00",
+      "duracionMinutos": 45,
+      "horaFin": "16:45",
+      "entrevistador": "Arq. Sofía Valenzuela Morales",
+      "tipo": "Revisión de Portafolio y Técnica",
+      "estado": "Realizada",
+      "observaciones": "Evaluación de conocimientos en modelado de instalaciones hidrosanitarias y eléctricas.",
+      "resultado": "Desfavorable",
+      "evaluacion": "El perfil no cuenta con la experiencia requerida en Revit MEP y normativas locales para edificios corporativos.",
+      "comentarios": "Se conserva en cartera de candidatos para futuros proyectos residenciales menores.",
+      "historial": [
+        { "fecha": "2026-03-10 11:00", "evento": "Entrevista programada para el 20/03/2026 de 16:00 a 16:45" },
+        { "fecha": "2026-03-20 17:00", "evento": "Entrevista realizada con dictamen Desfavorable" }
+      ]
+    }
   ]
 }

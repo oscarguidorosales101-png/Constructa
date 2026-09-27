@@ -43,6 +43,8 @@ export const ConstructaProvider = ({ children }) => {
   const [schedule, setSchedule] = useState(() => dataService.getSchedule());
   const [movements, setMovements] = useState(() => dataService.getInventoryMovements());
   const [history, setHistory] = useState(() => dataService.getHistory());
+  const [applicants, setApplicants] = useState(() => dataService.getApplicants());
+  const [interviews, setInterviews] = useState(() => dataService.getInterviews());
 
   // 4. Métricas Interconectadas Dinámicas
   const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
@@ -52,6 +54,9 @@ export const ConstructaProvider = ({ children }) => {
     setMetrics(dataService.calculateMetrics());
     setHistory(dataService.getHistory());
     setMovements(dataService.getInventoryMovements());
+    setApplicants(dataService.getApplicants());
+    setInterviews(dataService.getInterviews());
+    setEmployees(dataService.getEmployees());
   }, []);
 
   // 5. Sistema de Notificaciones Flotantes (Toasts)
@@ -281,6 +286,102 @@ export const ConstructaProvider = ({ children }) => {
     return true;
   };
 
+  // ----------------------------------------------------
+  // GESTIÓN DE POSTULANTES Y SELECCIÓN
+  // ----------------------------------------------------
+  const saveApplicant = (applicantData) => {
+    const updated = dataService.saveApplicant(applicantData);
+    setApplicants(updated);
+    refreshMetrics();
+    showAlert(
+      applicantData.id ? 'Expediente del postulante actualizado.' : 'Candidatura registrada exitosamente en selección.',
+      'exito'
+    );
+    return true;
+  };
+
+  const deleteApplicant = (id) => {
+    const updated = dataService.deleteApplicant(id);
+    setApplicants(updated);
+    setInterviews(dataService.getInterviews());
+    refreshMetrics();
+    showAlert('Candidatura retirada del sistema.', 'info');
+    return true;
+  };
+
+  const convertApplicantToEmployee = (applicantId, employeeData) => {
+    try {
+      const result = dataService.convertApplicantToEmployee(applicantId, employeeData);
+      setApplicants(result.applicants);
+      setEmployees(result.employees);
+      refreshMetrics();
+      showAlert(
+        `¡Postulante contratado! ${result.employee.nombre} ha sido incorporado a la nómina de personal.`,
+        'exito'
+      );
+      return { success: true, employee: result.employee };
+    } catch (err) {
+      showAlert(err.message || 'Error al convertir postulante en empleado', 'error');
+      return { success: false, error: err.message };
+    }
+  };
+
+  // ----------------------------------------------------
+  // GESTIÓN DE ENTREVISTAS Y CONFLICTOS DE AGENDA
+  // ----------------------------------------------------
+  const checkInterviewConflict = (interviewData, excludeId = null) => {
+    return dataService.checkInterviewConflict(interviewData, excludeId);
+  };
+
+  const saveInterview = (interviewData) => {
+    try {
+      const updated = dataService.saveInterview(interviewData);
+      setInterviews(updated);
+      setApplicants(dataService.getApplicants());
+      refreshMetrics();
+      showAlert(
+        interviewData.id ? 'Entrevista actualizada exitosamente.' : 'Entrevista agendada exitosamente sin conflictos.',
+        'exito'
+      );
+      return { success: true };
+    } catch (err) {
+      showAlert(err.message || 'Conflicto al agendar entrevista', 'error');
+      return { success: false, error: err.message };
+    }
+  };
+
+  const rescheduleInterview = (id, rescheduleData) => {
+    try {
+      const updated = dataService.rescheduleInterview(id, rescheduleData);
+      setInterviews(updated);
+      setApplicants(dataService.getApplicants());
+      refreshMetrics();
+      showAlert('Entrevista reprogramada satisfactoriamente en agenda.', 'exito');
+      return { success: true };
+    } catch (err) {
+      showAlert(err.message || 'Conflicto al reprogramar entrevista', 'error');
+      return { success: false, error: err.message };
+    }
+  };
+
+  const cancelInterview = (id, motivo) => {
+    const updated = dataService.cancelInterview(id, motivo);
+    setInterviews(updated);
+    setApplicants(dataService.getApplicants());
+    refreshMetrics();
+    showAlert('Entrevista cancelada y horario liberado en agenda.', 'advertencia');
+    return true;
+  };
+
+  const recordInterviewResult = (id, resultData) => {
+    const updated = dataService.recordInterviewResult(id, resultData);
+    setInterviews(updated);
+    setApplicants(dataService.getApplicants());
+    refreshMetrics();
+    showAlert('Resultado y evaluación de entrevista registrados.', 'exito');
+    return true;
+  };
+
   // Restablecer datos a la semilla inicial de db.json
   const resetDemoData = () => {
     dataService.resetAllData();
@@ -292,6 +393,8 @@ export const ConstructaProvider = ({ children }) => {
     setSchedule(dataService.getSchedule());
     setMovements(dataService.getInventoryMovements());
     setHistory(dataService.getHistory());
+    setApplicants(dataService.getApplicants());
+    setInterviews(dataService.getInterviews());
     refreshMetrics();
     showAlert('Los datos del sistema han sido restaurados a sus valores predeterminados.', 'info');
   };
@@ -306,8 +409,10 @@ export const ConstructaProvider = ({ children }) => {
     schedule,
     movements,
     inventoryMovements: movements,
-    history
-  }), [projects, employees, materials, suppliers, expenses, schedule, movements, history]);
+    history,
+    applicants,
+    interviews,
+  }), [projects, employees, materials, suppliers, expenses, schedule, movements, history, applicants, interviews]);
 
   return (
     <ConstructaContext.Provider
@@ -345,6 +450,17 @@ export const ConstructaProvider = ({ children }) => {
         saveScheduleTask: saveActivity,
         deleteActivity,
         deleteScheduleTask: deleteActivity,
+        applicants,
+        saveApplicant,
+        deleteApplicant,
+        convertApplicantToEmployee,
+        interviews,
+        saveInterview,
+        rescheduleInterview,
+        cancelInterview,
+        recordInterviewResult,
+        checkInterviewConflict,
+        calculateEndTime: dataService.calculateEndTime,
         movements,
         inventoryMovements: movements,
         history,

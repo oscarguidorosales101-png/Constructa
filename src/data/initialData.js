@@ -8,5 +8,7 @@ export const initialSchedule = db.schedule;
 export const initialEmployees = db.employees;
 export const initialInventoryMovements = db.inventoryMovements;
 export const initialHistory = db.history;
+export const initialApplicants = db.applicants;
+export const initialInterviews = db.interviews;
 
 export default db;

@@ -13,6 +13,8 @@ import {
   PlusCircle,
   Receipt,
   Truck,
+  UserCheck,
+  CalendarClock,
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import DashboardCharts from '../../components/dashboard/DashboardCharts.jsx';
@@ -280,6 +282,73 @@ export const Dashboard = ({ onNavigate }) => {
         >
           Revisar Inventario
         </Button>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          icon={UserCheck} 
+          onClick={() => navigate('postulantes')}
+        >
+          Gestionar Postulantes
+        </Button>
+      </div>
+
+      {/* BANNER INFORMATIVO DE PROCESO DE SELECCIÓN Y ENTREVISTAS */}
+      <div 
+        className="constructa-card"
+        style={{
+          padding: '14px 20px',
+          marginBottom: '2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          borderLeft: '4px solid var(--color-sky)',
+          background: 'rgba(56, 189, 248, 0.03)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <UserCheck size={18} style={{ color: 'var(--color-sky)' }} />
+            <span style={{ fontSize: '0.9rem', color: 'var(--color-text-primary)', fontWeight: 600 }}>
+              Selección de Personal:
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px', fontSize: '0.85rem' }}>
+            <div>
+              <span style={{ color: 'var(--color-text-muted)' }}>Candidaturas en evaluación: </span>
+              <strong style={{ color: 'var(--color-gold)' }}>{metrics?.activeApplicants || 0}</strong>
+            </div>
+            <div>
+              <span style={{ color: 'var(--color-text-muted)' }}>Entrevistas programadas: </span>
+              <strong style={{ color: 'var(--color-sky)' }}>{metrics?.upcomingInterviews || 0}</strong>
+            </div>
+            <div>
+              <span style={{ color: 'var(--color-text-muted)' }}>Seleccionados para obra: </span>
+              <strong style={{ color: 'var(--color-emerald)' }}>{metrics?.selectedApplicants || 0}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={CalendarClock}
+            onClick={() => navigate('entrevistas')}
+          >
+            Agenda de Entrevistas
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={ArrowRight}
+            onClick={() => navigate('postulantes')}
+          >
+            Ver Candidatos
+          </Button>
+        </div>
       </div>
 
       {/* GRÁFICOS DINÁMICOS CONECTADOS */}

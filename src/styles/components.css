@@ -470,36 +470,40 @@ select option:hover {
   background: linear-gradient(90deg, #ef4444, #b91c1c);
 }
 
-/* 8. MODAL RESPONSIVE */
-.modal-overlay {
+/* 8. MODAL RESPONSIVE EN PRIMER PLANO */
+.modal-overlay,
+.constructa-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+  z-index: 9999;
+  padding: 1.25rem;
   animation: fadeIn 0.15s ease-out;
 }
 
-.modal-content {
-  background: #141c2a;
+.modal-content,
+.constructa-modal {
+  background: #111724;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 580px;
+  max-width: 620px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
   overflow: hidden;
   animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.modal-content.modal-lg {
-  max-width: 800px;
+.modal-content.modal-lg,
+.constructa-modal.modal-lg {
+  max-width: 850px;
 }
 
 .modal-header {
@@ -537,10 +541,12 @@ select option:hover {
 }
 
 @media (max-width: 640px) {
-  .modal-overlay {
+  .modal-overlay,
+  .constructa-modal-overlay {
     padding: 0.5rem;
   }
-  .modal-content {
+  .modal-content,
+  .constructa-modal {
     max-height: 94vh;
   }
   .modal-body {

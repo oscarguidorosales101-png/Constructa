@@ -1,6 +1,8 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
 import Projects from '../pages/Projects/Projects';
 import Employees from '../pages/Employees/Employees';
+import Applicants from '../pages/Applicants/Applicants';
+import Interviews from '../pages/Interviews/Interviews';
 import Materials from '../pages/Materials/Materials';
 import Suppliers from '../pages/Suppliers/Suppliers';
 import Budgets from '../pages/Budgets/Budgets';
@@ -18,6 +20,8 @@ export const PRIVATE_MODULES = [
   'dashboard',
   'proyectos',
   'empleados',
+  'postulantes',
+  'entrevistas',
   'materiales',
   'proveedores',
   'presupuestos',
@@ -54,6 +58,20 @@ export const routeConfig = {
     path: 'empleados',
     label: 'Personal y Cuadrillas',
     component: Employees,
+    isPrivate: true,
+    requiredRole: null,
+  },
+  postulantes: {
+    path: 'postulantes',
+    label: 'Postulantes y Selección',
+    component: Applicants,
+    isPrivate: true,
+    requiredRole: null,
+  },
+  entrevistas: {
+    path: 'entrevistas',
+    label: 'Agenda de Entrevistas',
+    component: Interviews,
     isPrivate: true,
     requiredRole: null,
   },
