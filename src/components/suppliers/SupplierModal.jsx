@@ -22,7 +22,12 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
     email: '',
     direccion: '',
     rfc: '',
-    estado: 'Activo'
+    estado: 'Activo',
+    condicionesPago: 'Crédito 30 días',
+    tiempoEntregaEstimado: '48 a 72 horas hábiles',
+    metodoContactoHabitual: 'Llamada telefónica',
+    horarioAtencion: 'Lunes a Viernes 08:00 - 18:00',
+    observaciones: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -37,7 +42,12 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
         email: supplier.email || '',
         direccion: supplier.direccion || '',
         rfc: supplier.rfc || supplier.cif || '',
-        estado: supplier.estado || 'Activo'
+        estado: supplier.estado || 'Activo',
+        condicionesPago: supplier.condicionesPago || 'Crédito 30 días',
+        tiempoEntregaEstimado: supplier.tiempoEntregaEstimado || '48 a 72 horas hábiles',
+        metodoContactoHabitual: supplier.metodoContactoHabitual || 'Llamada telefónica',
+        horarioAtencion: supplier.horarioAtencion || 'Lunes a Viernes 08:00 - 18:00',
+        observaciones: supplier.observaciones || '',
       });
     } else {
       setFormData({
@@ -48,7 +58,12 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
         email: '',
         direccion: '',
         rfc: '',
-        estado: 'Activo'
+        estado: 'Activo',
+        condicionesPago: 'Crédito 30 días',
+        tiempoEntregaEstimado: '48 a 72 horas hábiles',
+        metodoContactoHabitual: 'Llamada telefónica',
+        horarioAtencion: 'Lunes a Viernes 08:00 - 18:00',
+        observaciones: '',
       });
     }
     setErrors({});
@@ -164,6 +179,62 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
           </div>
 
           <div className="constructa-form-group">
+            <label className="constructa-label">Condiciones de Pago</label>
+            <select
+              name="condicionesPago"
+              className="constructa-input"
+              value={formData.condicionesPago}
+              onChange={handleChange}
+            >
+              <option value="Contado">Contado / Inmediato</option>
+              <option value="Crédito 15 días">Crédito 15 días</option>
+              <option value="Crédito 30 días">Crédito 30 días</option>
+              <option value="Crédito 60 días">Crédito 60 días</option>
+              <option value="50% anticipo, 50% entrega">50% anticipo, 50% entrega</option>
+            </select>
+          </div>
+
+          <div className="constructa-form-group">
+            <label className="constructa-label">Tiempo Estimado de Entrega</label>
+            <input
+              type="text"
+              name="tiempoEntregaEstimado"
+              className="constructa-input"
+              value={formData.tiempoEntregaEstimado}
+              onChange={handleChange}
+              placeholder="Ej. 24 a 48 horas hábiles"
+            />
+          </div>
+
+          <div className="constructa-form-group">
+            <label className="constructa-label">Método Habitual de Contacto</label>
+            <select
+              name="metodoContactoHabitual"
+              className="constructa-input"
+              value={formData.metodoContactoHabitual}
+              onChange={handleChange}
+            >
+              <option value="Llamada telefónica">Llamada telefónica</option>
+              <option value="Correo electrónico">Correo electrónico</option>
+              <option value="Mensaje WhatsApp">Mensaje WhatsApp</option>
+              <option value="Contacto presencial">Contacto presencial</option>
+              <option value="Otro">Otro medio</option>
+            </select>
+          </div>
+
+          <div className="constructa-form-group">
+            <label className="constructa-label">Horario de Atención</label>
+            <input
+              type="text"
+              name="horarioAtencion"
+              className="constructa-input"
+              value={formData.horarioAtencion}
+              onChange={handleChange}
+              placeholder="Ej. Lunes a Viernes 08:00 - 18:00"
+            />
+          </div>
+
+          <div className="constructa-form-group">
             <label className="constructa-label">Identificación Fiscal / CIF / RFC</label>
             <input
               type="text"
@@ -198,6 +269,18 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
               value={formData.direccion}
               onChange={handleChange}
               placeholder="Parque Industrial, Nave o Dirección Comercial"
+            />
+          </div>
+
+          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+            <label className="constructa-label">Observaciones y Convenios Especiales</label>
+            <textarea
+              name="observaciones"
+              className="constructa-input"
+              rows={2}
+              value={formData.observaciones}
+              onChange={handleChange}
+              placeholder="Detalles sobre acuerdos de precios, volúmenes de entrega o notas comerciales..."
             />
           </div>
         </div>

@@ -20,7 +20,8 @@ import {
   Building2, 
   DollarSign, 
   History, 
-  Layers 
+  Layers,
+  ShoppingCart
 } from 'lucide-react';
 
 export default function Materials() {
@@ -30,6 +31,7 @@ export default function Materials() {
     deleteMaterial, 
     registerStockMovement, 
     requestConfirm,
+    navigateTo,
     navigationIntent,
     clearNavigationIntent 
   } = useConstructa();
@@ -208,13 +210,23 @@ export default function Materials() {
               </div>
             </div>
           </div>
-          <Button
-            size="sm"
-            variant="danger"
-            onClick={() => setSelectedStatus(selectedStatus === 'low' ? 'ALL' : 'low')}
-          >
-            {selectedStatus === 'low' ? 'Ver Todos' : 'Filtrar Críticos'}
-          </Button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <Button
+              size="sm"
+              variant="gold"
+              icon={<ShoppingCart size={15} />}
+              onClick={() => navigateTo('proveedores', { openRequestModal: true, material: lowStockMaterials[0] })}
+            >
+              Solicitar Reposición
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => setSelectedStatus(selectedStatus === 'low' ? 'ALL' : 'low')}
+            >
+              {selectedStatus === 'low' ? 'Ver Todos' : 'Filtrar Críticos'}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -414,6 +426,18 @@ export default function Materials() {
                       </div>
 
                       {/* Action Buttons */}
+                      {isLow && (
+                        <Button
+                          size="sm"
+                          variant="gold"
+                          icon={<ShoppingCart size={14} />}
+                          onClick={() => navigateTo('proveedores', { openRequestModal: true, material: m })}
+                          style={{ marginBottom: '8px', width: '100%' }}
+                        >
+                          Solicitar Reposición
+                        </Button>
+                      )}
+
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <Button
                           size="sm"

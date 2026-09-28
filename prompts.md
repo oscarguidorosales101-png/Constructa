@@ -11,6 +11,7 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
 3. [Prompt 3: Fase de Pulido Visual, Responsive y Experiencia de Usuario](#3-prompt-3--fase-de-pulido-visual-responsive-y-experiencia-de-usuario)
 4. [Prompt 4: Consolidación y Documentación Histórica en `prompts.md`](#4-prompt-4--consolidación-y-documentación-histórica)
 5. [Prompt 5: Ampliación Profesional del Sistema Existente (Roles, Migración de Entrevistas, Agenda y Disponibilidad)](#5-prompt-5--ampliación-profesional-del-sistema-existente)
+6. [Prompt 6: Ampliación Controlada — Proveedores, Compras, Pagos y Navegación](#6-prompt-6--ampliación-controlada--proveedores-compras-pagos-y-navegación)
 
 ---
 
@@ -222,5 +223,167 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
 
 ---
 
+## 6. Prompt 6 — Ampliación Controlada: Proveedores, Compras, Pagos y Navegación
+
+* **Fecha de emisión:** Fase de Cadena de Suministro y Finanzas de Abastecimiento.
+* **Premisas críticas e inquebrantables:**
+  * **NO** modificar ni crear nuevos roles de usuario (se mantienen estrictamente Administrador, Gerente de Construcción y RRHH / Reclutamiento).
+  * **NO** modificar la estructura de roles ya definida anteriormente.
+  * **NO** alterar la migración de Entrevistas ya establecida.
+  * **NO** crear cuentas para proveedores ni simular conexiones bancarias o transacciones con dinero real (flujo administrativo simulado internamente).
+  * **NO** eliminar ni duplicar empleados (62), materiales (22) ni proyectos (6).
+  * **Extender** el módulo de Proveedores para convertirlo de un simple directorio a un **Centro Integral de Abastecimiento y Seguimiento de Proveedores**.
+
+---
+
+### 6.1. Proveedores como Módulo Funcional y Perfil Comercial 360°
+* **Evolución del módulo:** Pasa de ser una tarjeta estática de directorio a un centro de inteligencia de compras con 5 sub-vistas operativas:
+  1. **Directorio:** Catálogo de proveedores homologados con filtros por especialidad y estado comercial.
+  2. **Solicitudes:** Requerimientos de insumos originados desde obra o por alertas automáticas de inventario.
+  3. **Órdenes de Compra:** Gestión de pedidos con cálculo de subtotal, IVA 16% y total.
+  4. **Recepción:** Verificación física en obra con comparación entre lo pedido y lo recibido.
+  5. **Facturas:** Cotejo tripartito (3-Way Match), validación fiscal y programación de pagos.
+* **Atributos comerciales obligatorios por proveedor:**
+  * Nombre de empresa / razón social y persona de contacto directo.
+  * Teléfono, correo electrónico y dirección física.
+  * Insumos y materiales que suministra.
+  * **Condiciones de pago** (Contado, Crédito 15 días, Crédito 30 días, Crédito 45 días, Crédito 60 días).
+  * **Tiempo estimado de entrega** (ej. 24 a 48 hrs, 3 a 5 días hábiles).
+  * **Método habitual de contacto** (Llamada, Correo electrónico, WhatsApp / Mensaje, Presencial).
+  * **Horario de atención** y observaciones comerciales.
+  * Historial 360° interconectado: pedidos emitidos, entregas recibidas, incidencias y facturas/pagos asociados.
+  * Resumen financiero en tiempo real: Pedidos activos, entregados, facturación pendiente, pagos programados, pagados y saldo pendiente.
+
+---
+
+### 6.2. Contacto con Proveedores y Bitácora de Comunicaciones
+* **Registro administrativo sin dependencias externas:** Al no contar con backend de mensajería real, el sistema provee herramientas para:
+  * Preparar contacto con copiado rápido al portapapeles de teléfonos, correos y números de orden.
+  * Registrar formalmente la interacción realizada:
+    * Fecha y hora exacta.
+    * Medio utilizado (Llamada telefónica, Correo electrónico, Mensaje / WhatsApp, Visita presencial u Otro).
+    * Persona de contacto interlocutora.
+    * Motivo de la comunicación (Cotización, Confirmación de orden, Seguimiento de entrega, Reclamo por faltante, Coordinación de pago).
+    * Resultado obtenido (Disponibilidad confirmada, Entrega reprogramada, Precio ratificado, Modificación solicitada, Sin respuesta).
+    * Observaciones detalladas.
+
+---
+
+### 6.3. Solicitud de Materiales y Conexión con Alertas de Stock
+* **Flujo de solicitud:** Generación de requerimientos de abastecimiento vinculados a un proyecto o a reposición de almacén central.
+* **Estados de la solicitud:** `Pendiente`, `En revisión`, `Aprobada`, `Rechazada`, `Convertida en pedido`.
+* **Conexión con Alerta de Stock (Requisito #5):**
+  * Cuando un material alcanza o cae por debajo de su stock mínimo de seguridad, la alerta visual en el catálogo de materiales y en el dashboard ofrece la acción directa: **"Solicitar Reposición"**.
+  * Al activarla, el sistema navega automáticamente a la pestaña de solicitudes de proveedores, abre el modal de solicitud y precarga:
+    * El material crítico seleccionado.
+    * La cantidad sugerida calculada automáticamente (`(stockMinimo * 2) - stockActual`).
+    * La unidad de medida oficial.
+    * El proveedor homologado sugerido.
+    * El origen marcado como *"Alerta de Stock"*.
+  * No crea lógicas independientes de inventario; utiliza la base existente de almacén.
+
+---
+
+### 6.4. Órdenes de Compra y Seguimiento Logístico
+* **Generación de la Orden:** Una solicitud aprobada se puede convertir directamente en orden de compra, o crearse de forma independiente con múltiples líneas de insumos, cantidades, precios unitarios de referencia, subtotal, IVA (16%) y total.
+* **Estados de la Orden de Compra:**
+  1. `Borrador`
+  2. `Pendiente de aprobación`
+  3. `Aprobada`
+  4. `Enviada al proveedor`
+  5. `Confirmada`
+  6. `Preparando pedido`
+  7. `En camino`
+  8. `Entregada`
+  9. `Recibida parcialmente`
+  10. `Cancelada`
+* **Línea de Tiempo y Trazabilidad:** Modal especializado de seguimiento que visualiza la progresión clara del pedido:
+  > Solicitud → Aprobación → Orden enviada → Confirmada → Preparando → En camino → Recibida
+* **Confirmación explícita del proveedor:** Registro de confirmación de disponibilidad, cantidad, precio, fecha de entrega y control de modificaciones o falta de respuesta.
+* **Fechas de Entrega y Alertas de Retraso:** Registro de fecha solicitada, prometida y real. Si la fecha prometida excede la solicitada, se activa una alerta visual destacada indicando posible impacto en el cronograma constructivo.
+
+---
+
+### 6.5. Recepción Física de Materiales, Incidencias y Actualización de Inventario
+* **Verificación estricta en obra:** Modal de recepción que compara la **Cantidad Pedida** contra la **Cantidad Realmente Recibida** por cada ítem.
+* **Detección automática de entrega parcial:** Si alguna cantidad recibida es inferior a la solicitada, la orden pasa a estado `Recibida parcialmente` con aviso de advertencia.
+* **Registro de Incidencias:** Posibilidad de registrar formalmente incidencias categorizadas:
+  * `Faltante de material`
+  * `Exceso no solicitado`
+  * `Material incorrecto o fuera de especificación`
+  * `Material dañado o defectuoso`
+  * `Entrega con retraso`
+  * `Otro inconveniente`
+* **Regla Crítica de Inventario (Requisito #13):**
+  * El inventario físico se incrementa **únicamente por las unidades efectivamente recibidas**.
+  * Si se pidieron 100 sacos y llegaron 98, el almacén aumenta exactamente en 98 unidades.
+  * La actualización se canaliza a través del Kardex institucional (`registerStockMovement`), registrando la entrada formal vinculada a la orden de compra y proveedor sin duplicar lógica.
+
+---
+
+### 6.6. Facturas de Proveedores y Validación "3-Way Match" (Cotejo Tripartito)
+* **Registro de Factura:** Folio fiscal, proveedor, orden de compra relacionada, fecha de emisión, fecha de vencimiento, subtotal, impuestos, total, método de pago y observaciones.
+* **Control 3-Way Match (Requisito #17):**
+  * Cotejo automatizado entre:
+    1. **Orden de Compra:** ¿Qué se autorizó y a qué precio?
+    2. **Recepción en Almacén:** ¿Qué mercancía física ingresó realmente?
+    3. **Factura Comercial:** ¿Qué concepto y monto está cobrando el proveedor?
+  * Si se detectan discrepancias (ej. el proveedor factura 100 unidades pero solo se recibieron 98, o el precio unitario cobrado no coincide con la orden acordada), el sistema despliega un banner de advertencia crítico:
+    > *"Diferencia detectada: Revisa la orden, la recepción y la factura antes de continuar."*
+  * **Bloqueo preventivo:** El sistema no permite programar ni autorizar el pago de la factura mientras existan discrepancias pendientes de resolución.
+
+---
+
+### 6.7. Flujo Administrativo Automatizado de Pagos
+* **Proceso paso a paso:**
+  > Factura recibida → Revisión → Validación 3-Way Match → Aprobación → Programada para pago → Pagada
+* **Cálculo automático de fecha de pago (Requisito #19):** Según las condiciones comerciales del proveedor (Contado: mismo día; 15, 30, 45 o 60 días), el sistema calcula automáticamente la fecha prevista de pago a partir de la emisión de la factura, permitiendo ajustes explícitos si la dirección lo autoriza.
+* **Sección de Pagos Programados:** Clasificación clara de facturas y obligaciones en: `Próximos a vencer`, `Vencidos`, `Pagados` y `En espera`.
+* **Procesamiento de Pago Administrativo:** Al alcanzar la fecha programada y validarse la orden, se ejecuta el cambio de estado a `Pagada` con registro de fecha real y método de pago (Transferencia SPEI, Cheque corporativo, etc.). Cero transferencias bancarias reales.
+
+---
+
+### 6.8. Navegación Estandarizada mediante Botón "← Regresar"
+* **Componente centralizado:** Implementación de [`src/components/common/BackButton.jsx`](file:///c:/Users/Foward/Desktop/ProyectoFinal-fronted/Constructa/src/components/common/BackButton.jsx) con estética oscura, borde sutil y tipografía gold de CONSTRUCTA.
+* **Ubicación estratégica:** Colocado en la parte superior izquierda de vistas de detalle, sub-vistas operativas y modales de proceso:
+  * Detalle 360° de Proveedores (`SupplierDetailView.jsx`) para regresar al directorio general.
+  * Seguimiento logístico de órdenes (`OrderTrackingModal.jsx`).
+  * Recepción de mercancía (`OrderReceptionModal.jsx`).
+  * Registro y validación de facturas (`SupplierInvoiceModal.jsx`).
+  * Solicitudes de material (`MaterialRequestModal.jsx`).
+  * Formulario de emisión de órdenes de compra (`PurchaseOrderModal.jsx`).
+* **Principio de no duplicidad (Requisito #31 y #32):** Se omite en pantallas principales donde no existe contexto previo relevante, y se diferencia formalmente de la acción "Cancelar" (abandonar formulario vs regresar en navegación).
+
+---
+
+### 6.9. Conexión con Dashboard, Presupuestos, Gastos y Reportes
+* **Dashboard Corporativo y Operativo (Requisito #27):**
+  * Incorporación de panel analítico de abastecimiento con 8 indicadores en tiempo real:
+    1. *Pedidos Pendientes*
+    2. *Pedidos en Camino*
+    3. *Entregas Próximas (5 días)*
+    4. *Recepciones Pendientes en Obra*
+    5. *Facturas por Revisar*
+    6. *Pagos Programados (con monto acumulado)*
+    7. *Pagos Vencidos (con alerta roja)*
+    8. *Materiales con Reposición Pendiente*
+  * Acceso rápido en alertas de stock crítico para solicitar reposición directa.
+* **Reportes y Estadísticas (Requisito #28):**
+  * Nueva pestaña oficial: **"Compras y Abastecimiento"** en [`src/pages/Reports/Reports.jsx`](file:///c:/Users/Foward/Desktop/ProyectoFinal-fronted/Constructa/src/pages/Reports/Reports.jsx).
+  * 4 tarjetas KPI globales de cadena de suministro.
+  * Matriz consolidada de compras por proyecto.
+  * Matriz de rendimiento, cumplimiento de entregas y saldos por proveedor.
+  * Bitácora de órdenes de compra y recepción física (cantidades pedidas vs recibidas e incidencias).
+  * Registro de facturas y estado del cotejo 3-Way Match.
+  * Soporte completo para exportación en archivo CSV descargable.
+* **Separación de Compromisos Financieros:** Diferenciación contable estricta entre:
+  * *Presupuesto de Obra* (techo asignado al proyecto).
+  * *Compromiso de Compra* (órdenes de compra emitidas).
+  * *Gasto Registrado* (factura recepcionada e imputada).
+  * *Pago Realizado* (desembolso financiero procesado).
+
+---
+
 > **CONSTRUCTA — Sistema de Gestión para Empresa Constructora**  
 > Documento generado como memoria técnica del proyecto.
+

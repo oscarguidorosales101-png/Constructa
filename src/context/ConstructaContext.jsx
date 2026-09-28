@@ -46,6 +46,10 @@ export const ConstructaProvider = ({ children }) => {
   const [applicants, setApplicants] = useState(() => dataService.getApplicants());
   const [interviews, setInterviews] = useState(() => dataService.getInterviews());
   const [agendaActivities, setAgendaActivities] = useState(() => dataService.getAgendaActivities());
+  const [materialRequests, setMaterialRequests] = useState(() => dataService.getMaterialRequests());
+  const [purchaseOrders, setPurchaseOrders] = useState(() => dataService.getPurchaseOrders());
+  const [supplierInvoices, setSupplierInvoices] = useState(() => dataService.getSupplierInvoices());
+  const [supplierCommunications, setSupplierCommunications] = useState(() => dataService.getSupplierCommunications());
 
   // 4. Métricas Interconectadas Dinámicas
   const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
@@ -59,6 +63,10 @@ export const ConstructaProvider = ({ children }) => {
     setInterviews(dataService.getInterviews());
     setAgendaActivities(dataService.getAgendaActivities());
     setEmployees(dataService.getEmployees());
+    setMaterialRequests(dataService.getMaterialRequests());
+    setPurchaseOrders(dataService.getPurchaseOrders());
+    setSupplierInvoices(dataService.getSupplierInvoices());
+    setSupplierCommunications(dataService.getSupplierCommunications());
   }, []);
 
   // 5. Sistema de Notificaciones Flotantes (Toasts)
@@ -248,6 +256,182 @@ export const ConstructaProvider = ({ children }) => {
     return true;
   };
 
+  // ----------------------------------------------------
+  // GESTIÓN DE ABASTECIMIENTO, COMPRAS Y PAGOS
+  // ----------------------------------------------------
+
+  // SOLICITUDES DE MATERIALES
+  const saveMaterialRequest = (requestData) => {
+    const updated = dataService.saveMaterialRequest(requestData);
+    setMaterialRequests(updated);
+    refreshMetrics();
+    showAlert(
+      requestData.id ? 'Solicitud de material actualizada.' : 'Solicitud de material enviada a aprobación.',
+      'exito'
+    );
+    return true;
+  };
+
+  const deleteMaterialRequest = (id) => {
+    const updated = dataService.deleteMaterialRequest(id);
+    setMaterialRequests(updated);
+    refreshMetrics();
+    showAlert('Solicitud de material cancelada.', 'info');
+    return true;
+  };
+
+  const updateMaterialRequestStatus = (id, nuevoEstado, ordenCompraId = null) => {
+    const updated = dataService.updateMaterialRequestStatus(id, nuevoEstado, ordenCompraId);
+    setMaterialRequests(updated);
+    refreshMetrics();
+    showAlert(`Solicitud de material marcada como "${nuevoEstado}".`, 'exito');
+    return true;
+  };
+
+  // ÓRDENES DE COMPRA
+  const savePurchaseOrder = (orderData) => {
+    const updated = dataService.savePurchaseOrder(orderData);
+    setPurchaseOrders(updated);
+    setMaterialRequests(dataService.getMaterialRequests());
+    refreshMetrics();
+    showAlert(
+      orderData.id ? 'Orden de compra actualizada con éxito.' : 'Orden de compra emitida y registrada.',
+      'exito'
+    );
+    return true;
+  };
+
+  const deletePurchaseOrder = (id) => {
+    const updated = dataService.deletePurchaseOrder(id);
+    setPurchaseOrders(updated);
+    refreshMetrics();
+    showAlert('Orden de compra retirada del sistema.', 'info');
+    return true;
+  };
+
+  const updatePurchaseOrderStatus = (id, nuevoEstado, comentario = '', usuario) => {
+    const user = usuario || currentUser?.nombre || 'Administración';
+    const updated = dataService.updatePurchaseOrderStatus(id, nuevoEstado, comentario, user);
+    setPurchaseOrders(updated);
+    refreshMetrics();
+    showAlert(`Orden de compra actualizada a "${nuevoEstado}".`, 'exito');
+    return true;
+  };
+
+  const confirmPurchaseOrder = (id, confirmData) => {
+    const user = currentUser?.nombre || 'Administración';
+    const updated = dataService.confirmPurchaseOrder(id, confirmData, user);
+    setPurchaseOrders(updated);
+    refreshMetrics();
+    showAlert('Respuesta y confirmación del proveedor registradas en la orden.', 'exito');
+    return true;
+  };
+
+  const updatePurchaseOrderDeliveryDate = (id, nuevaFecha, motivo = '') => {
+    const user = currentUser?.nombre || 'Logística';
+    const updated = dataService.updatePurchaseOrderDeliveryDate(id, nuevaFecha, motivo, user);
+    setPurchaseOrders(updated);
+    refreshMetrics();
+    showAlert(`Fecha prometida de entrega actualizada al ${nuevaFecha}.`, 'exito');
+    return true;
+  };
+
+  // RECEPCIÓN DE MATERIALES E INVENTARIO
+  const registerOrderReception = (receptionData) => {
+    const res = dataService.registerOrderReception(receptionData);
+    if (res.ok) {
+      setPurchaseOrders(res.orders);
+      setMaterials(res.materials);
+      setMovements(res.movements);
+      refreshMetrics();
+      if (res.isPartial) {
+        showAlert('Recepción parcial registrada. El inventario fue actualizado con la cantidad recibida.', 'advertencia');
+      } else {
+        showAlert('Recepción completa de materiales registrada. Inventario y Kardex actualizados.', 'exito');
+      }
+      return { ok: true, isPartial: res.isPartial, order: res.order };
+    } else {
+      showAlert(res.mensaje || 'Error al registrar recepción de materiales', 'error');
+      return { ok: false, error: res.mensaje };
+    }
+  };
+
+  // FACTURAS DE PROVEEDORES Y VALIDACIÓN DE TRES ELEMENTOS
+  const saveSupplierInvoice = (invoiceData) => {
+    const updated = dataService.saveSupplierInvoice(invoiceData);
+    setSupplierInvoices(updated);
+    setPurchaseOrders(dataService.getPurchaseOrders());
+    refreshMetrics();
+    showAlert(
+      invoiceData.id ? 'Factura de proveedor modificada.' : 'Factura de proveedor registrada en el sistema.',
+      'exito'
+    );
+    return true;
+  };
+
+  const deleteSupplierInvoice = (id) => {
+    const updated = dataService.deleteSupplierInvoice(id);
+    setSupplierInvoices(updated);
+    refreshMetrics();
+    showAlert('Factura retirada del registro contable.', 'info');
+    return true;
+  };
+
+  const validateThreeWayMatch = (invoiceId) => {
+    return dataService.validateThreeWayMatch(invoiceId);
+  };
+
+  const scheduleInvoicePayment = (paymentData) => {
+    const user = currentUser?.nombre || 'Administración';
+    const res = dataService.scheduleInvoicePayment({
+      ...paymentData,
+      programadoPor: user,
+    });
+    if (res.ok) {
+      setSupplierInvoices(res.invoices);
+      refreshMetrics();
+      showAlert('Factura autorizada y programada para pago administrativo.', 'exito');
+      return { ok: true };
+    } else {
+      showAlert(res.mensaje || 'Discrepancia detectada en validación de 3 elementos', 'error');
+      return { ok: false, blocked: res.blocked, discrepancies: res.discrepancies, mensaje: res.mensaje };
+    }
+  };
+
+  const processInvoicePayment = (paymentData) => {
+    const user = currentUser?.nombre || 'Dirección de Finanzas';
+    const res = dataService.processInvoicePayment({
+      ...paymentData,
+      procesadoPor: user,
+    });
+    if (res.ok) {
+      setSupplierInvoices(res.invoices);
+      refreshMetrics();
+      showAlert(`¡Pago procesado administrativamente! Folio generado: ${res.comprobante}`, 'exito');
+      return { ok: true, comprobante: res.comprobante };
+    } else {
+      showAlert(res.mensaje || 'Error al procesar el pago', 'error');
+      return { ok: false };
+    }
+  };
+
+  // COMUNICACIONES CON PROVEEDORES
+  const saveSupplierCommunication = (commData) => {
+    const user = currentUser?.nombre || 'Personal CONSTRUCTA';
+    const updated = dataService.saveSupplierCommunication({
+      ...commData,
+      registradoPor: commData.registradoPor || user,
+    });
+    setSupplierCommunications(updated);
+    refreshMetrics();
+    showAlert('Bitácora de contacto con el proveedor registrada.', 'exito');
+    return true;
+  };
+
+  const getSupplierFinancialSummary = (supplierId) => {
+    return dataService.getSupplierFinancialSummary(supplierId);
+  };
+
   // GASTOS (Impacta presupuestos, saldos y KPIs)
   const saveExpense = (expenseData) => {
     const updated = dataService.saveExpense(expenseData);
@@ -411,7 +595,7 @@ export const ConstructaProvider = ({ children }) => {
     return true;
   };
 
-  // Restablecer datos a la semilla inicial de db.json
+  // Restablecer datos a la semilla inicial de db.json y compras
   const resetDemoData = () => {
     dataService.resetAllData();
     setProjects(dataService.getProjects());
@@ -425,6 +609,10 @@ export const ConstructaProvider = ({ children }) => {
     setApplicants(dataService.getApplicants());
     setInterviews(dataService.getInterviews());
     setAgendaActivities(dataService.getAgendaActivities());
+    setMaterialRequests(dataService.getMaterialRequests());
+    setPurchaseOrders(dataService.getPurchaseOrders());
+    setSupplierInvoices(dataService.getSupplierInvoices());
+    setSupplierCommunications(dataService.getSupplierCommunications());
     refreshMetrics();
     showAlert('Los datos del sistema han sido restaurados a sus valores predeterminados.', 'info');
   };
@@ -443,7 +631,27 @@ export const ConstructaProvider = ({ children }) => {
     applicants,
     interviews,
     agendaActivities,
-  }), [projects, employees, materials, suppliers, expenses, schedule, movements, history, applicants, interviews, agendaActivities]);
+    materialRequests,
+    purchaseOrders,
+    supplierInvoices,
+    supplierCommunications,
+  }), [
+    projects,
+    employees,
+    materials,
+    suppliers,
+    expenses,
+    schedule,
+    movements,
+    history,
+    applicants,
+    interviews,
+    agendaActivities,
+    materialRequests,
+    purchaseOrders,
+    supplierInvoices,
+    supplierCommunications,
+  ]);
 
   return (
     <ConstructaContext.Provider
@@ -473,6 +681,27 @@ export const ConstructaProvider = ({ children }) => {
         suppliers,
         saveSupplier,
         deleteSupplier,
+        materialRequests,
+        saveMaterialRequest,
+        deleteMaterialRequest,
+        updateMaterialRequestStatus,
+        purchaseOrders,
+        savePurchaseOrder,
+        deletePurchaseOrder,
+        updatePurchaseOrderStatus,
+        confirmPurchaseOrder,
+        updatePurchaseOrderDeliveryDate,
+        registerOrderReception,
+        supplierInvoices,
+        saveSupplierInvoice,
+        deleteSupplierInvoice,
+        validateThreeWayMatch,
+        scheduleInvoicePayment,
+        processInvoicePayment,
+        supplierCommunications,
+        saveSupplierCommunication,
+        getSupplierFinancialSummary,
+        calculateScheduledPaymentDate: dataService.calculateScheduledPaymentDate,
         expenses,
         saveExpense,
         deleteExpense,

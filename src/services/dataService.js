@@ -15,6 +15,10 @@ const KEYS = {
   INTERVIEWS: 'entrevistas',
   AGENDA: 'agenda_actividades',
   AUTH: 'sesion_usuario',
+  MATERIAL_REQUESTS: 'solicitudes_materiales',
+  PURCHASE_ORDERS: 'ordenes_compra',
+  SUPPLIER_INVOICES: 'facturas_proveedores',
+  SUPPLIER_COMMUNICATIONS: 'comunicaciones_proveedores',
 };
 
 // Usuarios del sistema con acceso autorizado por rol
@@ -146,6 +150,481 @@ const generateNextId = (list, prefix) => {
   return `${prefix}-${String(max + 1).padStart(3, '0')}`;
 };
 
+// ----------------------------------------------------
+// DATOS PREDETERMINADOS DE ABASTECIMIENTO Y COMPRAS
+// ----------------------------------------------------
+export const DEFAULT_MATERIAL_REQUESTS = [
+  {
+    id: 'REQ-001',
+    numero: 'SM-2026-001',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    materialId: 'MAT-001',
+    materialNombre: 'Varilla de Acero Corrugado 1/2 pulgada',
+    cantidad: 50,
+    unidad: 'Toneladas',
+    fechaNecesaria: '2026-10-05',
+    prioridad: 'Alta',
+    observaciones: 'Suministro crítico para armado de trabes y losa estructural nivel 14.',
+    proveedorSugeridoId: 'PRV-001',
+    proveedorSugeridoNombre: 'Aceros del Valle S.A.',
+    origen: 'Proyecto',
+    estado: 'Convertida en pedido',
+    ordenCompraId: 'OC-0025',
+    fechaCreacion: '2026-09-20',
+    solicitante: 'Ing. Carlos Mendoza Rivas',
+  },
+  {
+    id: 'REQ-002',
+    numero: 'SM-2026-002',
+    proyectoId: 'PRJ-002',
+    proyectoNombre: 'Centro Comercial Paseo del Lago',
+    materialId: 'MAT-002',
+    materialNombre: 'Cemento Gris Portland Tipo I - Saco 50kg',
+    cantidad: 150,
+    unidad: 'Sacos',
+    fechaNecesaria: '2026-10-08',
+    prioridad: 'Alta',
+    observaciones: 'Reposición urgente de stock por alerta de existencias mínimas en almacén central.',
+    proveedorSugeridoId: 'PRV-002',
+    proveedorSugeridoNombre: 'Cementos y Agregados del Norte',
+    origen: 'Alerta de Stock',
+    estado: 'Aprobada',
+    ordenCompraId: null,
+    fechaCreacion: '2026-09-24',
+    solicitante: 'Ing. Carlos Mendoza Rivas',
+  },
+  {
+    id: 'REQ-003',
+    numero: 'SM-2026-003',
+    proyectoId: 'PRJ-006',
+    proyectoNombre: 'Ampliación Hospital General',
+    materialId: 'MAT-007',
+    materialNombre: 'Tubo de PVC Hidráulico 2 pulgadas',
+    cantidad: 60,
+    unidad: 'Tramos (6m)',
+    fechaNecesaria: '2026-10-12',
+    prioridad: 'Media',
+    observaciones: 'Instalación de red de recirculación hidráulica en planta baja.',
+    proveedorSugeridoId: 'PRV-004',
+    proveedorSugeridoNombre: 'Hidráulica & Conexiones Industriales',
+    origen: 'Proyecto',
+    estado: 'En revisión',
+    ordenCompraId: null,
+    fechaCreacion: '2026-09-26',
+    solicitante: 'Ing. Carlos Mendoza Rivas',
+  },
+  {
+    id: 'REQ-004',
+    numero: 'SM-2026-004',
+    proyectoId: 'PRJ-003',
+    proyectoNombre: 'Puente Vehicular Metropolitano',
+    materialId: 'MAT-005',
+    materialNombre: 'Viga de Acero Estructural IPR',
+    cantidad: 12,
+    unidad: 'Piezas',
+    fechaNecesaria: '2026-10-15',
+    prioridad: 'Urgente',
+    observaciones: 'Perfiles de acero certificados para refuerzo de apoyos sísmicos.',
+    proveedorSugeridoId: 'PRV-001',
+    proveedorSugeridoNombre: 'Aceros del Valle S.A.',
+    origen: 'Proyecto',
+    estado: 'Pendiente',
+    ordenCompraId: null,
+    fechaCreacion: '2026-09-27',
+    solicitante: 'Ing. Carlos Mendoza Rivas',
+  },
+];
+
+export const DEFAULT_PURCHASE_ORDERS = [
+  {
+    id: 'OC-0025',
+    numeroOrden: 'OC-0025',
+    solicitudId: 'REQ-001',
+    proveedorId: 'PRV-001',
+    proveedorNombre: 'Aceros del Valle S.A.',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    materiales: [
+      {
+        materialId: 'MAT-001',
+        materialNombre: 'Varilla de Acero Corrugado 1/2 pulgada',
+        cantidad: 50,
+        precioUnitario: 980,
+        unidad: 'Toneladas',
+        subtotal: 49000,
+      },
+    ],
+    subtotal: 49000,
+    impuestos: 7840,
+    total: 56840,
+    fechaCreacion: '2026-09-22',
+    fechaSolicitada: '2026-10-02',
+    fechaPrometida: '2026-10-03',
+    fechaRealEntrega: null,
+    historialFechas: [
+      {
+        fechaAnterior: '2026-10-02',
+        fechaNueva: '2026-10-03',
+        motivo: 'Ajuste logístico de flete pesado por el proveedor',
+        fechaCambio: '2026-09-25',
+      },
+    ],
+    condicionesPago: 'Crédito 30 días',
+    observaciones: 'Entrega a pie de obra en patio de maniobras de Torre Altavista.',
+    estado: 'En camino',
+    confirmacionProveedor: {
+      confirmado: true,
+      fechaConfirmacion: '2026-09-23',
+      confirmDisponibilidad: true,
+      confirmCantidad: true,
+      confirmPrecio: true,
+      confirmFecha: true,
+      solicitoModificacion: false,
+      detalleModificacion: '',
+      noRespondio: false,
+      observaciones: 'Lic. Guillermo Navarro confirmó disponibilidad en acería y despacho en plataforma.',
+    },
+    recepcion: null,
+    facturaId: 'FAC-9011',
+    historialEstados: [
+      { estado: 'Borrador', fecha: '2026-09-22', hora: '10:15', usuario: 'Ing. Fernando Mendoza', comentario: 'Creación de orden desde solicitud aprobada REQ-001.' },
+      { estado: 'Aprobada', fecha: '2026-09-22', hora: '11:30', usuario: 'Ing. Fernando Mendoza', comentario: 'Autorización presupuestal corporativa.' },
+      { estado: 'Enviada al proveedor', fecha: '2026-09-22', hora: '14:00', usuario: 'Ing. Carlos Mendoza', comentario: 'Enviada con especificaciones técnicas a Guillermo Navarro.' },
+      { estado: 'Confirmada', fecha: '2026-09-23', hora: '09:20', usuario: 'Ing. Carlos Mendoza', comentario: 'Confirmada disponibilidad y precio por el proveedor.' },
+      { estado: 'Preparando pedido', fecha: '2026-09-24', hora: '08:00', usuario: 'Lic. Guillermo Navarro', comentario: 'Carga de material en patio metalmecánico.' },
+      { estado: 'En camino', fecha: '2026-09-27', hora: '16:45', usuario: 'Ing. Carlos Mendoza', comentario: 'Transporte en ruta hacia la obra.' },
+    ],
+  },
+  {
+    id: 'OC-0024',
+    numeroOrden: 'OC-0024',
+    solicitudId: null,
+    proveedorId: 'PRV-002',
+    proveedorNombre: 'Cementos y Agregados del Norte',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    materiales: [
+      {
+        materialId: 'MAT-002',
+        materialNombre: 'Cemento Gris Portland Tipo I - Saco 50kg',
+        cantidad: 200,
+        precioUnitario: 220,
+        unidad: 'Sacos',
+        subtotal: 44000,
+      },
+    ],
+    subtotal: 44000,
+    impuestos: 7040,
+    total: 51040,
+    fechaCreacion: '2026-09-10',
+    fechaSolicitada: '2026-09-18',
+    fechaPrometida: '2026-09-18',
+    fechaRealEntrega: '2026-09-19',
+    historialFechas: [],
+    condicionesPago: 'Crédito 15 días',
+    observaciones: 'Entrega directa en silo y bodega de secos.',
+    estado: 'Recibida parcialmente',
+    confirmacionProveedor: {
+      confirmado: true,
+      fechaConfirmacion: '2026-09-11',
+      confirmDisponibilidad: true,
+      confirmCantidad: true,
+      confirmPrecio: true,
+      confirmFecha: true,
+      solicitoModificacion: false,
+      detalleModificacion: '',
+      noRespondio: false,
+      observaciones: 'Ing. Patricia Luna confirmó embarque puntual.',
+    },
+    recepcion: {
+      fechaRecepcion: '2026-09-19',
+      responsable: 'Don Roberto Sánchez (Bodega Central)',
+      itemsRecibidos: [
+        { materialId: 'MAT-002', cantidadPedida: 200, cantidadRecibida: 195, unidad: 'Sacos' },
+      ],
+      estadoRecepcion: 'Parcial',
+      incidencias: [
+        { tipo: 'faltante', descripcion: 'Faltante de 5 sacos por rasgadura accidental en maniobras de descarga.', cantidadAfectada: 5 },
+      ],
+    },
+    facturaId: 'FAC-8820',
+    historialEstados: [
+      { estado: 'Aprobada', fecha: '2026-09-10', hora: '11:00', usuario: 'Ing. Fernando Mendoza', comentario: 'Aprobada para colado losa nivel 12.' },
+      { estado: 'Enviada al proveedor', fecha: '2026-09-10', hora: '12:15', usuario: 'Ing. Carlos Mendoza', comentario: 'Notificación de pedido enviada.' },
+      { estado: 'Confirmada', fecha: '2026-09-11', hora: '09:00', usuario: 'Ing. Carlos Mendoza', comentario: 'Confirmado por Ing. Patricia Luna.' },
+      { estado: 'Entregada', fecha: '2026-09-19', hora: '11:30', usuario: 'Don Roberto Sánchez', comentario: 'Recepción en obra con 195 sacos útiles y 5 sacos dañados.' },
+      { estado: 'Recibida parcialmente', fecha: '2026-09-19', hora: '12:00', usuario: 'Don Roberto Sánchez', comentario: 'Recepción parcial registrada. Se ingresaron exactamente 195 sacos al inventario.' },
+    ],
+  },
+  {
+    id: 'OC-0026',
+    numeroOrden: 'OC-0026',
+    solicitudId: null,
+    proveedorId: 'PRV-003',
+    proveedorNombre: 'Maderas & Encofrados del Sur',
+    proyectoId: 'PRJ-004',
+    proyectoNombre: 'Urbanización Residencial Las Cumbres',
+    materiales: [
+      {
+        materialId: 'MAT-004',
+        materialNombre: 'Madera de Pino para Encofrado 2x4 pulg',
+        cantidad: 80,
+        precioUnitario: 340,
+        unidad: 'Piezas',
+        subtotal: 27200,
+      },
+    ],
+    subtotal: 27200,
+    impuestos: 4352,
+    total: 31552,
+    fechaCreacion: '2026-09-24',
+    fechaSolicitada: '2026-10-06',
+    fechaPrometida: '2026-10-06',
+    fechaRealEntrega: null,
+    historialFechas: [],
+    condicionesPago: '50% anticipo, 50% entrega',
+    observaciones: 'Madera estufada de primera calidad para cimbra de guarniciones.',
+    estado: 'Preparando pedido',
+    confirmacionProveedor: {
+      confirmado: true,
+      fechaConfirmacion: '2026-09-25',
+      confirmDisponibilidad: true,
+      confirmCantidad: true,
+      confirmPrecio: true,
+      confirmFecha: true,
+      solicitoModificacion: false,
+      detalleModificacion: '',
+      noRespondio: false,
+      observaciones: 'Don Fernando Morales confirmó corte y cubicación en aserradero.',
+    },
+    recepcion: null,
+    facturaId: null,
+    historialEstados: [
+      { estado: 'Aprobada', fecha: '2026-09-24', hora: '15:20', usuario: 'Ing. Fernando Mendoza', comentario: 'Aprobación de orden de madera.' },
+      { estado: 'Enviada al proveedor', fecha: '2026-09-24', hora: '16:00', usuario: 'Ing. Carlos Mendoza', comentario: 'Envío de orden a aserradero.' },
+      { estado: 'Confirmada', fecha: '2026-09-25', hora: '10:00', usuario: 'Ing. Carlos Mendoza', comentario: 'Disponibilidad y cubicación confirmada.' },
+      { estado: 'Preparando pedido', fecha: '2026-09-26', hora: '08:30', usuario: 'Don Fernando Morales', comentario: 'Preparación de paquetes y flejado.' },
+    ],
+  },
+  {
+    id: 'OC-0027',
+    numeroOrden: 'OC-0027',
+    solicitudId: 'REQ-003',
+    proveedorId: 'PRV-004',
+    proveedorNombre: 'Hidráulica & Conexiones Industriales',
+    proyectoId: 'PRJ-006',
+    proyectoNombre: 'Ampliación Hospital General',
+    materiales: [
+      {
+        materialId: 'MAT-007',
+        materialNombre: 'Tubo de PVC Hidráulico 2 pulgadas',
+        cantidad: 40,
+        precioUnitario: 185,
+        unidad: 'Tramos (6m)',
+        subtotal: 7400,
+      },
+    ],
+    subtotal: 7400,
+    impuestos: 1184,
+    total: 8584,
+    fechaCreacion: '2026-09-27',
+    fechaSolicitada: '2026-10-10',
+    fechaPrometida: '2026-10-10',
+    fechaRealEntrega: null,
+    historialFechas: [],
+    condicionesPago: 'Crédito 30 días',
+    observaciones: 'Conexiones para redes de desagüe y sanitarias de hospital.',
+    estado: 'Enviada al proveedor',
+    confirmacionProveedor: {
+      confirmado: false,
+      fechaConfirmacion: null,
+      confirmDisponibilidad: false,
+      confirmCantidad: false,
+      confirmPrecio: false,
+      confirmFecha: false,
+      solicitoModificacion: false,
+      detalleModificacion: '',
+      noRespondio: false,
+      observaciones: 'Pendiente de confirmación por Ing. Mauricio Palacios.',
+    },
+    recepcion: null,
+    facturaId: null,
+    historialEstados: [
+      { estado: 'Borrador', fecha: '2026-09-27', hora: '11:00', usuario: 'Ing. Carlos Mendoza', comentario: 'Generada para hospital.' },
+      { estado: 'Aprobada', fecha: '2026-09-27', hora: '12:00', usuario: 'Ing. Fernando Mendoza', comentario: 'Validada presupuestalmente.' },
+      { estado: 'Enviada al proveedor', fecha: '2026-09-27', hora: '13:00', usuario: 'Ing. Carlos Mendoza', comentario: 'Esperando respuesta del proveedor.' },
+    ],
+  },
+];
+
+export const DEFAULT_SUPPLIER_INVOICES = [
+  {
+    id: 'FAC-9011',
+    numero: 'FAC-9011',
+    proveedorId: 'PRV-001',
+    proveedorNombre: 'Aceros del Valle S.A.',
+    ordenCompraId: 'OC-0025',
+    ordenNumero: 'OC-0025',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    fechaEmision: '2026-09-25',
+    fechaVencimiento: '2026-10-25',
+    fechaProgramadaPago: '2026-10-24',
+    fechaRealPago: null,
+    subtotal: 49000,
+    impuestos: 7840,
+    total: 56840,
+    metodoPago: 'Transferencia SPEI',
+    observaciones: 'Factura por suministro de varilla para Torre Altavista.',
+    estado: 'Programada para pago',
+    tresViasMatch: {
+      revisado: true,
+      ordenValida: true,
+      recepcionValida: true,
+      coincideProveedor: true,
+      coincideMaterial: true,
+      coincideCantidad: true,
+      coincidePrecio: true,
+      coincideTotal: true,
+      tieneDiscrepancia: false,
+      discrepancias: [],
+      resuelto: true,
+    },
+    pagoInfo: {
+      programadoPor: 'Ing. Fernando Mendoza',
+      fechaProgramacion: '2026-09-26',
+      procesadoPor: null,
+      comprobanteSimulado: null,
+    },
+  },
+  {
+    id: 'FAC-8820',
+    numero: 'FAC-8820',
+    proveedorId: 'PRV-002',
+    proveedorNombre: 'Cementos y Agregados del Norte',
+    ordenCompraId: 'OC-0024',
+    ordenNumero: 'OC-0024',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    fechaEmision: '2026-09-12',
+    fechaVencimiento: '2026-09-27',
+    fechaProgramadaPago: '2026-09-26',
+    fechaRealPago: '2026-09-26',
+    subtotal: 42900,
+    impuestos: 6864,
+    total: 49764,
+    metodoPago: 'Transferencia SPEI',
+    observaciones: 'Ajustada por nota de crédito por 5 sacos con daño en descarga.',
+    estado: 'Pagada',
+    tresViasMatch: {
+      revisado: true,
+      ordenValida: true,
+      recepcionValida: true,
+      coincideProveedor: true,
+      coincideMaterial: true,
+      coincideCantidad: true,
+      coincidePrecio: true,
+      coincideTotal: true,
+      tieneDiscrepancia: false,
+      discrepancias: [],
+      resuelto: true,
+    },
+    pagoInfo: {
+      programadoPor: 'Ing. Fernando Mendoza',
+      fechaProgramacion: '2026-09-20',
+      procesadoPor: 'Ing. Fernando Mendoza',
+      comprobanteSimulado: 'TRANSF-SPEI-781902-BBVA',
+    },
+  },
+  {
+    id: 'FAC-9140',
+    numero: 'FAC-9140',
+    proveedorId: 'PRV-004',
+    proveedorNombre: 'Hidráulica & Conexiones Industriales',
+    ordenCompraId: 'OC-0027',
+    ordenNumero: 'OC-0027',
+    proyectoId: 'PRJ-006',
+    proyectoNombre: 'Ampliación Hospital General',
+    fechaEmision: '2026-09-27',
+    fechaVencimiento: '2026-10-27',
+    fechaProgramadaPago: '2026-10-27',
+    fechaRealPago: null,
+    subtotal: 8800,
+    impuestos: 1408,
+    total: 10208,
+    metodoPago: 'Transferencia SPEI',
+    observaciones: 'Factura recibida de forma anticipada. Presenta discrepancia en precio vs orden de compra OC-0027 ($8,584 vs $10,208).',
+    estado: 'En revisión',
+    tresViasMatch: {
+      revisado: true,
+      ordenValida: true,
+      recepcionValida: false,
+      coincideProveedor: true,
+      coincideMaterial: true,
+      coincideCantidad: true,
+      coincidePrecio: false,
+      coincideTotal: false,
+      tieneDiscrepancia: true,
+      discrepancias: [
+        'Diferencia en precio unitario: Orden $185 vs Factura $220 por tramo',
+        'Monto total de factura ($10,208) excede orden de compra ($8,584) en $1,624',
+        'Pedido pendiente de recepción física en almacén de obra',
+      ],
+      resuelto: false,
+    },
+    pagoInfo: null,
+  },
+];
+
+export const DEFAULT_SUPPLIER_COMMUNICATIONS = [
+  {
+    id: 'COM-001',
+    proveedorId: 'PRV-001',
+    proveedorNombre: 'Aceros del Valle S.A.',
+    ordenCompraId: 'OC-0025',
+    ordenNumero: 'OC-0025',
+    fecha: '2026-09-23',
+    hora: '09:15',
+    medio: 'Llamada',
+    personaContactada: 'Lic. Guillermo Navarro',
+    motivo: 'Confirmación de disponibilidad y fecha de entrega OC-0025',
+    resultado: 'Disponibilidad confirmada',
+    observaciones: 'Confirmó despacho desde acería y arribo previsto para el 03/10/2026.',
+    registradoPor: 'Ing. Carlos Mendoza Rivas',
+  },
+  {
+    id: 'COM-002',
+    proveedorId: 'PRV-002',
+    proveedorNombre: 'Cementos y Agregados del Norte',
+    ordenCompraId: 'OC-0024',
+    ordenNumero: 'OC-0024',
+    fecha: '2026-09-19',
+    hora: '14:30',
+    medio: 'Correo electrónico',
+    personaContactada: 'Ing. Patricia Luna Vargas',
+    motivo: 'Notificación de 5 sacos con rotura en transporte',
+    resultado: 'Nota de crédito autorizada',
+    observaciones: 'Proveedor reconoció la merma del flete y emitió factura ajustada sin cobrar los 5 sacos.',
+    registradoPor: 'Don Roberto Sánchez',
+  },
+  {
+    id: 'COM-003',
+    proveedorId: 'PRV-004',
+    proveedorNombre: 'Hidráulica & Conexiones Industriales',
+    ordenCompraId: 'OC-0027',
+    ordenNumero: 'OC-0027',
+    fecha: '2026-09-27',
+    hora: '13:45',
+    medio: 'Mensaje',
+    personaContactada: 'Ing. Mauricio Palacios',
+    motivo: 'Consulta por diferencia de precio en factura FAC-9140',
+    resultado: 'En espera de refacturación',
+    observaciones: 'Se solicitó cancelar factura FAC-9140 y emitir nueva con el precio pactado de $185.',
+    registradoPor: 'Ing. Fernando Mendoza',
+  },
+];
+
 export const dataService = {
   // Inicialización de la capa de datos
   init() {
@@ -164,9 +643,13 @@ export const dataService = {
       storageService.set(KEYS.APPLICANTS, db.applicants || []);
       storageService.set(KEYS.INTERVIEWS, db.interviews || []);
       storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
+      storageService.set(KEYS.MATERIAL_REQUESTS, DEFAULT_MATERIAL_REQUESTS);
+      storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
+      storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
+      storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
       storageService.set(KEYS.INITIALIZED, true);
     } else {
-      // Si por alguna razón alguna colección estuviera ausente o vacía en el almacenamiento local, se recupera de db.json
+      // Si por alguna razón alguna colección estuviera ausente o vacía en el almacenamiento local, se recupera
       if (!storageService.get(KEYS.PROJECTS)) storageService.set(KEYS.PROJECTS, db.projects || []);
       if (!storageService.get(KEYS.EMPLOYEES)) storageService.set(KEYS.EMPLOYEES, db.employees || []);
       if (!storageService.get(KEYS.MATERIALS)) storageService.set(KEYS.MATERIALS, db.materials || []);
@@ -178,10 +661,14 @@ export const dataService = {
       if (!storageService.get(KEYS.APPLICANTS)) storageService.set(KEYS.APPLICANTS, db.applicants || []);
       if (!storageService.get(KEYS.INTERVIEWS)) storageService.set(KEYS.INTERVIEWS, db.interviews || []);
       if (!storageService.get(KEYS.AGENDA)) storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
+      if (!storageService.get(KEYS.MATERIAL_REQUESTS)) storageService.set(KEYS.MATERIAL_REQUESTS, DEFAULT_MATERIAL_REQUESTS);
+      if (!storageService.get(KEYS.PURCHASE_ORDERS)) storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
+      if (!storageService.get(KEYS.SUPPLIER_INVOICES)) storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
+      if (!storageService.get(KEYS.SUPPLIER_COMMUNICATIONS)) storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
     }
   },
 
-  // Restablecer datos a los valores iniciales de db.json
+  // Restablecer datos a los valores iniciales de db.json y compras
   resetAllData() {
     storageService.set(KEYS.PROJECTS, db.projects || []);
     storageService.set(KEYS.EMPLOYEES, db.employees || []);
@@ -194,6 +681,10 @@ export const dataService = {
     storageService.set(KEYS.APPLICANTS, db.applicants || []);
     storageService.set(KEYS.INTERVIEWS, db.interviews || []);
     storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
+    storageService.set(KEYS.MATERIAL_REQUESTS, DEFAULT_MATERIAL_REQUESTS);
+    storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
+    storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
+    storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
     storageService.set(KEYS.INITIALIZED, true);
   },
 
@@ -599,6 +1090,11 @@ export const dataService = {
         especialidad: cat,
         categoria: cat,
         rfc: s.rfc || s.cif || '',
+        condicionesPago: s.condicionesPago || 'Crédito 30 días',
+        tiempoEntregaEstimado: s.tiempoEntregaEstimado || '48 a 72 horas hábiles',
+        metodoContactoHabitual: s.metodoContactoHabitual || 'Llamada telefónica',
+        horarioAtencion: s.horarioAtencion || 'Lunes a Viernes 08:00 - 18:00, Sábados 08:00 - 13:00',
+        observaciones: s.observaciones || 'Proveedor homologado con estándares de calidad CONSTRUCTA.',
       };
     });
   },
@@ -624,6 +1120,11 @@ export const dataService = {
         nombreComercial: name,
         especialidad: cat,
         categoria: cat,
+        condicionesPago: supplier.condicionesPago || 'Crédito 30 días',
+        tiempoEntregaEstimado: supplier.tiempoEntregaEstimado || '48 a 72 horas hábiles',
+        metodoContactoHabitual: supplier.metodoContactoHabitual || 'Llamada telefónica',
+        horarioAtencion: supplier.horarioAtencion || 'Lunes a Viernes 08:00 - 18:00, Sábados 08:00 - 13:00',
+        observaciones: supplier.observaciones || '',
       };
       updated = [itemToSave, ...list];
       this.addHistoryEntry('Proveedor Registrado', `Alta de proveedor: ${name}`);
@@ -1470,6 +1971,885 @@ export const dataService = {
   },
 
   // ----------------------------------------------------
+  // GESTIÓN DE ABASTECIMIENTO, COMPRAS Y FACTURACIÓN
+  // ----------------------------------------------------
+
+  // 1. SOLICITUDES DE MATERIALES
+  getMaterialRequests() {
+    const list = storageService.get(KEYS.MATERIAL_REQUESTS, DEFAULT_MATERIAL_REQUESTS);
+    return [...list].sort((a, b) => (b.fechaCreacion || '').localeCompare(a.fechaCreacion || ''));
+  },
+
+  getMaterialRequestById(id) {
+    const list = this.getMaterialRequests();
+    return list.find((r) => r.id === id) || null;
+  },
+
+  saveMaterialRequest(req) {
+    const list = this.getMaterialRequests();
+    let updated;
+    const isNew = !req.id || !list.some((r) => r.id === req.id);
+    const projects = this.getProjects();
+    const project = projects.find((p) => p.id === req.proyectoId);
+    const materials = this.getMaterials();
+    const material = materials.find((m) => m.id === req.materialId);
+    const suppliers = this.getSuppliers();
+    const supplier = suppliers.find((s) => s.id === req.proveedorSugeridoId);
+
+    const projectNombre = project ? project.nombre : (req.proyectoNombre || 'Almacén General');
+    const materialNombre = material ? material.nombre : (req.materialNombre || 'Material no especificado');
+    const supplierNombre = supplier ? supplier.nombre : (req.proveedorSugeridoNombre || '');
+    const unidad = req.unidad || (material ? material.unidad : 'Unidades');
+
+    if (isNew) {
+      const newId = generateNextId(list, 'REQ');
+      const itemToSave = {
+        ...req,
+        id: newId,
+        numero: req.numero || `SM-${new Date().getFullYear()}-${String(list.length + 1).padStart(3, '0')}`,
+        proyectoNombre: projectNombre,
+        materialNombre: materialNombre,
+        proveedorSugeridoNombre: supplierNombre,
+        unidad,
+        estado: req.estado || 'Pendiente',
+        fechaCreacion: req.fechaCreacion || new Date().toISOString().split('T')[0],
+      };
+      updated = [itemToSave, ...list];
+      this.addHistoryEntry(
+        'Solicitud de Material',
+        `Nueva solicitud ${itemToSave.numero}: ${itemToSave.cantidad} ${unidad} de ${materialNombre}`,
+        projectNombre
+      );
+    } else {
+      updated = list.map((r) =>
+        r.id === req.id
+          ? {
+              ...r,
+              ...req,
+              proyectoNombre: projectNombre,
+              materialNombre: materialNombre,
+              proveedorSugeridoNombre: supplierNombre,
+              unidad,
+            }
+          : r
+      );
+      this.addHistoryEntry(
+        'Solicitud Actualizada',
+        `Modificación en solicitud ${req.numero || req.id}: ${req.cantidad} ${unidad} de ${materialNombre}`,
+        projectNombre
+      );
+    }
+
+    storageService.set(KEYS.MATERIAL_REQUESTS, updated);
+    return updated;
+  },
+
+  deleteMaterialRequest(id) {
+    const list = this.getMaterialRequests();
+    const target = list.find((r) => r.id === id);
+    const updated = list.filter((r) => r.id !== id);
+    storageService.set(KEYS.MATERIAL_REQUESTS, updated);
+
+    if (target) {
+      this.addHistoryEntry(
+        'Solicitud Cancelada',
+        `Baja de solicitud de material ${target.numero || target.id}`,
+        target.proyectoNombre
+      );
+    }
+    return updated;
+  },
+
+  updateMaterialRequestStatus(id, nuevoEstado, ordenCompraId = null) {
+    const list = this.getMaterialRequests();
+    const target = list.find((r) => r.id === id);
+    if (!target) return list;
+
+    const updated = list.map((r) =>
+      r.id === id
+        ? {
+            ...r,
+            estado: nuevoEstado,
+            ...(ordenCompraId ? { ordenCompraId } : {}),
+          }
+        : r
+    );
+
+    storageService.set(KEYS.MATERIAL_REQUESTS, updated);
+    this.addHistoryEntry(
+      'Estado de Solicitud',
+      `Solicitud ${target.numero || target.id} pasó a "${nuevoEstado}"`,
+      target.proyectoNombre
+    );
+    return updated;
+  },
+
+  // 2. ÓRDENES DE COMPRA Y SEGUIMIENTO
+  getPurchaseOrders() {
+    const list = storageService.get(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
+    return [...list].sort((a, b) => (b.fechaCreacion || '').localeCompare(a.fechaCreacion || ''));
+  },
+
+  getPurchaseOrderById(id) {
+    const list = this.getPurchaseOrders();
+    return list.find((o) => o.id === id || o.numeroOrden === id) || null;
+  },
+
+  savePurchaseOrder(order) {
+    const list = this.getPurchaseOrders();
+    const projects = this.getProjects();
+    const project = projects.find((p) => p.id === order.proyectoId);
+    const suppliers = this.getSuppliers();
+    const supplier = suppliers.find((s) => s.id === order.proveedorId);
+
+    const projectNombre = project ? project.nombre : (order.proyectoNombre || 'Proyecto General');
+    const supplierNombre = supplier ? supplier.nombre : (order.proveedorNombre || 'Proveedor');
+
+    // Calcular montos a partir de materiales
+    const materialsList = Array.isArray(order.materiales) ? order.materiales : [];
+    const subtotal = materialsList.reduce((acc, m) => acc + (Number(m.subtotal) || (Number(m.cantidad) * Number(m.precioUnitario)) || 0), 0);
+    const impuestos = order.impuestos !== undefined ? Number(order.impuestos) : Math.round(subtotal * 0.16);
+    const total = subtotal + impuestos;
+
+    const today = new Date().toISOString().split('T')[0];
+    const timeNow = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+    let updated;
+    const isNew = !order.id || !list.some((o) => o.id === order.id);
+
+    if (isNew) {
+      const newId = generateNextId(list, 'OC');
+      const nextNum = order.numeroOrden || `OC-${String(list.length + 25).padStart(4, '0')}`;
+      const itemToSave = {
+        ...order,
+        id: newId,
+        numeroOrden: nextNum,
+        proyectoNombre: projectNombre,
+        proveedorNombre: supplierNombre,
+        materiales: materialsList,
+        subtotal,
+        impuestos,
+        total,
+        condicionesPago: order.condicionesPago || supplier?.condicionesPago || 'Crédito 30 días',
+        fechaCreacion: order.fechaCreacion || today,
+        fechaSolicitada: order.fechaSolicitada || today,
+        fechaPrometida: order.fechaPrometida || order.fechaSolicitada || today,
+        fechaRealEntrega: null,
+        historialFechas: order.historialFechas || [],
+        estado: order.estado || 'Borrador',
+        confirmacionProveedor: order.confirmacionProveedor || {
+          confirmado: false,
+          fechaConfirmacion: null,
+          confirmDisponibilidad: false,
+          confirmCantidad: false,
+          confirmPrecio: false,
+          confirmFecha: false,
+          solicitoModificacion: false,
+          detalleModificacion: '',
+          noRespondio: false,
+          observaciones: '',
+        },
+        recepcion: null,
+        facturaId: null,
+        historialEstados: [
+          {
+            estado: order.estado || 'Borrador',
+            fecha: today,
+            hora: timeNow,
+            usuario: order.creadoPor || 'Administración',
+            comentario: order.observaciones || 'Generación de orden de compra en sistema.',
+          },
+        ],
+      };
+      updated = [itemToSave, ...list];
+
+      // Si proviene de una solicitud, marcar la solicitud como convertida en pedido
+      if (order.solicitudId) {
+        this.updateMaterialRequestStatus(order.solicitudId, 'Convertida en pedido', itemToSave.id);
+      }
+
+      this.addHistoryEntry(
+        'Orden de Compra Creada',
+        `Orden ${nextNum} generada para ${supplierNombre}`,
+        projectNombre,
+        total
+      );
+    } else {
+      updated = list.map((o) =>
+        o.id === order.id
+          ? {
+              ...o,
+              ...order,
+              proyectoNombre: projectNombre,
+              proveedorNombre: supplierNombre,
+              materiales: materialsList.length > 0 ? materialsList : o.materiales,
+              subtotal: subtotal > 0 ? subtotal : o.subtotal,
+              impuestos: impuestos >= 0 ? impuestos : o.impuestos,
+              total: total > 0 ? total : o.total,
+            }
+          : o
+      );
+      this.addHistoryEntry(
+        'Orden de Compra Modificada',
+        `Actualización en orden ${order.numeroOrden || order.id} (${supplierNombre})`,
+        projectNombre,
+        total
+      );
+    }
+
+    storageService.set(KEYS.PURCHASE_ORDERS, updated);
+    return updated;
+  },
+
+  deletePurchaseOrder(id) {
+    const list = this.getPurchaseOrders();
+    const target = list.find((o) => o.id === id);
+    const updated = list.filter((o) => o.id !== id);
+    storageService.set(KEYS.PURCHASE_ORDERS, updated);
+
+    if (target) {
+      this.addHistoryEntry(
+        'Orden de Compra Eliminada',
+        `Cancelación definitiva de orden ${target.numeroOrden || target.id}`,
+        target.proyectoNombre,
+        target.total
+      );
+    }
+    return updated;
+  },
+
+  updatePurchaseOrderStatus(id, nuevoEstado, comentario = '', usuario = 'Administración') {
+    const list = this.getPurchaseOrders();
+    const target = list.find((o) => o.id === id);
+    if (!target) return list;
+
+    const today = new Date().toISOString().split('T')[0];
+    const timeNow = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+    const newLog = {
+      estado: nuevoEstado,
+      fecha: today,
+      hora: timeNow,
+      usuario,
+      comentario: comentario || `Cambio de estado a "${nuevoEstado}".`,
+    };
+
+    const updated = list.map((o) =>
+      o.id === id
+        ? {
+            ...o,
+            estado: nuevoEstado,
+            historialEstados: [...(o.historialEstados || []), newLog],
+          }
+        : o
+    );
+
+    storageService.set(KEYS.PURCHASE_ORDERS, updated);
+    this.addHistoryEntry(
+      'Estado de Orden',
+      `Orden ${target.numeroOrden} cambió a "${nuevoEstado}"`,
+      target.proyectoNombre,
+      target.total
+    );
+    return updated;
+  },
+
+  confirmPurchaseOrder(id, confirmData, usuario = 'Administración') {
+    const list = this.getPurchaseOrders();
+    const target = list.find((o) => o.id === id);
+    if (!target) return list;
+
+    const today = new Date().toISOString().split('T')[0];
+    const timeNow = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+    const isConfirmed = confirmData.confirmado !== false && !confirmData.noRespondio;
+    const nuevoEstado = isConfirmed ? 'Confirmada' : target.estado;
+
+    const newLog = {
+      estado: nuevoEstado,
+      fecha: today,
+      hora: timeNow,
+      usuario,
+      comentario: `Respuesta del proveedor: ${isConfirmed ? 'Disponibilidad y pedido confirmados.' : 'Sin confirmación / Solicitud de ajuste.'} ${confirmData.observaciones || ''}`,
+    };
+
+    const updated = list.map((o) =>
+      o.id === id
+        ? {
+            ...o,
+            estado: nuevoEstado,
+            confirmacionProveedor: {
+              ...(o.confirmacionProveedor || {}),
+              ...confirmData,
+              fechaConfirmacion: today,
+            },
+            historialEstados: [...(o.historialEstados || []), newLog],
+          }
+        : o
+    );
+
+    storageService.set(KEYS.PURCHASE_ORDERS, updated);
+    this.addHistoryEntry(
+      'Confirmación de Proveedor',
+      `Proveedor ${isConfirmed ? 'confirmó' : 'registró respuesta para'} la orden ${target.numeroOrden}`,
+      target.proyectoNombre
+    );
+    return updated;
+  },
+
+  updatePurchaseOrderDeliveryDate(id, nuevaFecha, motivo = '', usuario = 'Logística') {
+    const list = this.getPurchaseOrders();
+    const target = list.find((o) => o.id === id);
+    if (!target) return list;
+
+    const today = new Date().toISOString().split('T')[0];
+    const timeNow = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const fechaAnterior = target.fechaPrometida || target.fechaSolicitada;
+
+    const dateLog = {
+      fechaAnterior,
+      fechaNueva: nuevaFecha,
+      motivo: motivo || 'Ajuste logístico de entrega',
+      fechaCambio: today,
+    };
+
+    const stateLog = {
+      estado: target.estado,
+      fecha: today,
+      hora: timeNow,
+      usuario,
+      comentario: `Fecha prometida modificada de ${fechaAnterior} a ${nuevaFecha}. Motivo: ${motivo}`,
+    };
+
+    const updated = list.map((o) =>
+      o.id === id
+        ? {
+            ...o,
+            fechaPrometida: nuevaFecha,
+            historialFechas: [...(o.historialFechas || []), dateLog],
+            historialEstados: [...(o.historialEstados || []), stateLog],
+          }
+        : o
+    );
+
+    storageService.set(KEYS.PURCHASE_ORDERS, updated);
+    this.addHistoryEntry(
+      'Fecha de Entrega Reprogramada',
+      `Orden ${target.numeroOrden}: nueva fecha ${nuevaFecha} (antes ${fechaAnterior})`,
+      target.proyectoNombre
+    );
+    return updated;
+  },
+
+  // 3. RECEPCIÓN DE MATERIALES, CONTROL DE CALIDAD Y KARDEX
+  registerOrderReception({ orderId, responsable, receivedItems = [], incidencias = [], notas = '' }) {
+    const orders = this.getPurchaseOrders();
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return { ok: false, mensaje: 'Orden de compra no encontrada.' };
+
+    const today = new Date().toISOString().split('T')[0];
+    const timeNow = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+    // Validar y procesar cada insumo recibido
+    let hasPartial = false;
+    const finalReceivedList = [];
+
+    (order.materiales || []).forEach((item) => {
+      const matchRec = receivedItems.find((r) => r.materialId === item.materialId);
+      const qtyReceived = matchRec ? Number(matchRec.cantidadRecibida) : Number(item.cantidad);
+      const qtyOrdered = Number(item.cantidad);
+
+      if (qtyReceived < qtyOrdered) {
+        hasPartial = true;
+      }
+
+      finalReceivedList.push({
+        materialId: item.materialId,
+        materialNombre: item.materialNombre,
+        cantidadPedida: qtyOrdered,
+        cantidadRecibida: qtyReceived,
+        unidad: item.unidad,
+      });
+
+      // ACTUALIZAR INVENTARIO EXISTENTE:
+      // La recepción aumenta el inventario ÚNICAMENTE en la cantidad real recibida
+      if (qtyReceived > 0) {
+        this.registerStockMovement({
+          materialId: item.materialId,
+          tipo: 'Entrada',
+          cantidad: qtyReceived,
+          proyectoId: order.proyectoId,
+          responsable: responsable || 'Almacén General de Obra',
+          motivo: `Recepción Orden ${order.numeroOrden} (${order.proveedorNombre})`,
+        });
+      }
+    });
+
+    const isPartial = hasPartial || incidencias.some((i) => i.tipo === 'faltante');
+    const nuevoEstado = isPartial ? 'Recibida parcialmente' : 'Entregada';
+
+    const stateLog = {
+      estado: nuevoEstado,
+      fecha: today,
+      hora: timeNow,
+      usuario: responsable || 'Bodega de Obra',
+      comentario: `Recepción física registrada (${nuevoEstado}). ${incidencias.length > 0 ? `${incidencias.length} incidencia(s) reportadas.` : 'Mercancía conforme.'} ${notas}`,
+    };
+
+    const receptionRecord = {
+      fechaRecepcion: today,
+      responsable: responsable || 'Bodega de Obra',
+      itemsRecibidos: finalReceivedList,
+      estadoRecepcion: isPartial ? 'Parcial' : 'Completa',
+      incidencias: incidencias || [],
+      notas: notas || '',
+    };
+
+    const updatedOrders = orders.map((o) =>
+      o.id === orderId
+        ? {
+            ...o,
+            estado: nuevoEstado,
+            fechaRealEntrega: today,
+            recepcion: receptionRecord,
+            historialEstados: [...(o.historialEstados || []), stateLog],
+          }
+        : o
+    );
+
+    storageService.set(KEYS.PURCHASE_ORDERS, updatedOrders);
+    this.addHistoryEntry(
+      isPartial ? 'Recepción Parcial' : 'Material Recibido',
+      `Recepción de orden ${order.numeroOrden} para ${order.proyectoNombre}: ${isPartial ? 'Entrega con faltantes o incidencias' : 'Entrega completa satisfactoria'}`,
+      order.proyectoNombre
+    );
+
+    return {
+      ok: true,
+      order: updatedOrders.find((o) => o.id === orderId),
+      isPartial,
+      orders: updatedOrders,
+      materials: this.getMaterials(),
+      movements: this.getInventoryMovements(),
+    };
+  },
+
+  // 4. FACTURAS DE PROVEEDORES Y VALIDACIÓN DE TRES ELEMENTOS
+  getSupplierInvoices() {
+    const list = storageService.get(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
+    return [...list].sort((a, b) => (b.fechaEmision || '').localeCompare(a.fechaEmision || ''));
+  },
+
+  getSupplierInvoiceById(id) {
+    const list = this.getSupplierInvoices();
+    return list.find((f) => f.id === id || f.numero === id) || null;
+  },
+
+  calculateScheduledPaymentDate(emissionDate, paymentCondition = 'Crédito 30 días') {
+    if (!emissionDate) return new Date().toISOString().split('T')[0];
+    const cond = (paymentCondition || '').toLowerCase();
+    let daysToAdd = 30;
+
+    if (cond.includes('15')) daysToAdd = 15;
+    else if (cond.includes('60')) daysToAdd = 60;
+    else if (cond.includes('45')) daysToAdd = 45;
+    else if (cond.includes('contado') || cond.includes('inmediato')) daysToAdd = 0;
+    else if (cond.includes('50%')) daysToAdd = 15;
+
+    try {
+      const [y, m, d] = emissionDate.split('-');
+      const date = new Date(Number(y), Number(m) - 1, Number(d));
+      date.setDate(date.getDate() + daysToAdd);
+      return date.toISOString().split('T')[0];
+    } catch {
+      return emissionDate;
+    }
+  },
+
+  validateThreeWayMatch(invoiceId) {
+    const invoice = this.getSupplierInvoiceById(invoiceId);
+    if (!invoice) return { ok: false, mensaje: 'Factura no encontrada' };
+
+    const order = this.getPurchaseOrderById(invoice.ordenCompraId);
+    if (!order) {
+      return {
+        ok: true,
+        hasDiscrepancy: true,
+        discrepancies: ['La factura no cuenta con una orden de compra vinculada válida.'],
+        details: { ordenValida: false, recepcionValida: false, coincideProveedor: false },
+        order: null,
+        invoice,
+        reception: null,
+      };
+    }
+
+    const discrepancies = [];
+    const coincideProveedor = invoice.proveedorId === order.proveedorId;
+    if (!coincideProveedor) {
+      discrepancies.push(`Proveedor de la factura (${invoice.proveedorNombre}) no coincide con la orden (${order.proveedorNombre}).`);
+    }
+
+    const totalDiff = Math.abs(Number(invoice.total) - Number(order.total));
+    const coincideTotal = totalDiff <= 1.0; // margen de redondeo fiscal
+    if (!coincideTotal) {
+      discrepancies.push(`El importe total facturado ($${Number(invoice.total).toLocaleString('es-MX')}) difiere de la orden ($${Number(order.total).toLocaleString('es-MX')}) en $${totalDiff.toLocaleString('es-MX')}.`);
+    }
+
+    const recepcionValida = Boolean(order.recepcion);
+    if (!recepcionValida) {
+      discrepancies.push('El pedido no ha sido recibido físicamente en el almacén de obra.');
+    } else if (order.recepcion.estadoRecepcion === 'Parcial' || (order.recepcion.incidencias && order.recepcion.incidencias.length > 0)) {
+      const incs = (order.recepcion.incidencias || []).map((i) => `${i.tipo}: ${i.descripcion}`).join('; ');
+      discrepancies.push(`Recepción con incidencias reportadas: ${incs || 'Recepción parcial registrada'}. Validar cobro de faltantes.`);
+    }
+
+    return {
+      ok: true,
+      hasDiscrepancy: discrepancies.length > 0,
+      discrepancies,
+      order,
+      invoice,
+      reception: order.recepcion || null,
+      details: {
+        coincideProveedor,
+        coincideTotal,
+        ordenValida: true,
+        recepcionValida,
+      },
+    };
+  },
+
+  saveSupplierInvoice(invoice) {
+    const list = this.getSupplierInvoices();
+    const suppliers = this.getSuppliers();
+    const supplier = suppliers.find((s) => s.id === invoice.proveedorId);
+    const orders = this.getPurchaseOrders();
+    const order = orders.find((o) => o.id === invoice.ordenCompraId);
+
+    const supplierNombre = supplier ? supplier.nombre : (invoice.proveedorNombre || 'Proveedor');
+    const orderNum = order ? order.numeroOrden : (invoice.ordenNumero || '');
+    const projectNombre = order ? order.proyectoNombre : (invoice.proyectoNombre || 'Proyecto General');
+    const projectId = order ? order.proyectoId : invoice.proyectoId;
+
+    const subtotal = Number(invoice.subtotal) || 0;
+    const impuestos = invoice.impuestos !== undefined ? Number(invoice.impuestos) : Math.round(subtotal * 0.16);
+    const total = Number(invoice.total) || (subtotal + impuestos);
+
+    const fechaEmision = invoice.fechaEmision || new Date().toISOString().split('T')[0];
+    const condPago = supplier?.condicionesPago || order?.condicionesPago || 'Crédito 30 días';
+    const fechaProgramada = invoice.fechaProgramadaPago || this.calculateScheduledPaymentDate(fechaEmision, condPago);
+
+    let updated;
+    const isNew = !invoice.id || !list.some((f) => f.id === invoice.id);
+
+    if (isNew) {
+      const newId = generateNextId(list, 'FAC');
+      const itemToSave = {
+        ...invoice,
+        id: newId,
+        numero: invoice.numero || `FAC-${String(list.length + 9000).padStart(4, '0')}`,
+        proveedorNombre: supplierNombre,
+        ordenNumero: orderNum,
+        proyectoId: projectId,
+        proyectoNombre: projectNombre,
+        subtotal,
+        impuestos,
+        total,
+        fechaEmision,
+        fechaVencimiento: invoice.fechaVencimiento || this.calculateScheduledPaymentDate(fechaEmision, condPago),
+        fechaProgramadaPago: fechaProgramada,
+        fechaRealPago: null,
+        metodoPago: invoice.metodoPago || 'Transferencia SPEI',
+        estado: invoice.estado || 'Pendiente de revisión',
+        tresViasMatch: invoice.tresViasMatch || {
+          revisado: false,
+          ordenValida: Boolean(order),
+          recepcionValida: Boolean(order?.recepcion),
+          coincideProveedor: true,
+          coincideMaterial: true,
+          coincideCantidad: true,
+          coincidePrecio: true,
+          coincideTotal: true,
+          tieneDiscrepancia: false,
+          discrepancias: [],
+          resuelto: false,
+        },
+        pagoInfo: null,
+      };
+      updated = [itemToSave, ...list];
+
+      // Vincular con la orden de compra
+      if (order) {
+        const updatedOrders = orders.map((o) =>
+          o.id === order.id ? { ...o, facturaId: itemToSave.id } : o
+        );
+        storageService.set(KEYS.PURCHASE_ORDERS, updatedOrders);
+      }
+
+      this.addHistoryEntry(
+        'Factura Registrada',
+        `Factura ${itemToSave.numero} recibida de ${supplierNombre}`,
+        projectNombre,
+        total
+      );
+    } else {
+      updated = list.map((f) =>
+        f.id === invoice.id
+          ? {
+              ...f,
+              ...invoice,
+              proveedorNombre: supplierNombre,
+              ordenNumero: orderNum,
+              proyectoId: projectId,
+              proyectoNombre: projectNombre,
+              subtotal,
+              impuestos,
+              total,
+            }
+          : f
+      );
+      this.addHistoryEntry(
+        'Factura Actualizada',
+        `Modificación en factura ${invoice.numero || invoice.id} (${supplierNombre})`,
+        projectNombre,
+        total
+      );
+    }
+
+    storageService.set(KEYS.SUPPLIER_INVOICES, updated);
+    return updated;
+  },
+
+  deleteSupplierInvoice(id) {
+    const list = this.getSupplierInvoices();
+    const target = list.find((f) => f.id === id);
+    const updated = list.filter((f) => f.id !== id);
+    storageService.set(KEYS.SUPPLIER_INVOICES, updated);
+
+    if (target) {
+      this.addHistoryEntry(
+        'Factura Cancelada',
+        `Baja de factura de proveedor ${target.numero || target.id}`,
+        target.proyectoNombre,
+        target.total
+      );
+    }
+    return updated;
+  },
+
+  scheduleInvoicePayment({ invoiceId, fechaPago, metodoPago, programadoPor = 'Administración', forceOverride = false }) {
+    const match = this.validateThreeWayMatch(invoiceId);
+    if (match.hasDiscrepancy && !forceOverride) {
+      return {
+        ok: false,
+        blocked: true,
+        mensaje: 'Diferencia detectada: Revisa la orden, la recepción y la factura antes de continuar.',
+        discrepancies: match.discrepancies,
+      };
+    }
+
+    const invoices = this.getSupplierInvoices();
+    const invoice = invoices.find((f) => f.id === invoiceId);
+    if (!invoice) return { ok: false, mensaje: 'Factura no encontrada' };
+
+    const today = new Date().toISOString().split('T')[0];
+    const targetPaymentDate = fechaPago || invoice.fechaProgramadaPago || today;
+
+    const updated = invoices.map((f) =>
+      f.id === invoiceId
+        ? {
+            ...f,
+            estado: 'Programada para pago',
+            fechaProgramadaPago: targetPaymentDate,
+            metodoPago: metodoPago || f.metodoPago || 'Transferencia SPEI',
+            tresViasMatch: {
+              ...(f.tresViasMatch || {}),
+              revisado: true,
+              resuelto: true,
+            },
+            pagoInfo: {
+              ...(f.pagoInfo || {}),
+              programadoPor,
+              fechaProgramacion: today,
+            },
+          }
+        : f
+    );
+
+    storageService.set(KEYS.SUPPLIER_INVOICES, updated);
+    this.addHistoryEntry(
+      'Pago Programado',
+      `Factura ${invoice.numero} programada para pago el ${targetPaymentDate}`,
+      invoice.proyectoNombre,
+      invoice.total
+    );
+
+    return { ok: true, invoices: updated };
+  },
+
+  processInvoicePayment({ invoiceId, procesadoPor = 'Dirección de Finanzas', metodoPago }) {
+    const invoices = this.getSupplierInvoices();
+    const invoice = invoices.find((f) => f.id === invoiceId);
+    if (!invoice) return { ok: false, mensaje: 'Factura no encontrada' };
+
+    const today = new Date().toISOString().split('T')[0];
+    const simVoucher = 'PAG-SIM-' + Date.now().toString().slice(-6);
+
+    const updated = invoices.map((f) =>
+      f.id === invoiceId
+        ? {
+            ...f,
+            estado: 'Pagada',
+            fechaRealPago: today,
+            metodoPago: metodoPago || f.metodoPago || 'Transferencia SPEI',
+            pagoInfo: {
+              ...(f.pagoInfo || {}),
+              procesadoPor,
+              fechaProcesamiento: today,
+              comprobanteSimulado: simVoucher,
+            },
+          }
+        : f
+    );
+
+    storageService.set(KEYS.SUPPLIER_INVOICES, updated);
+    this.addHistoryEntry(
+      'Pago Procesado',
+      `Liquidación administrativa de factura ${invoice.numero} (${simVoucher})`,
+      invoice.proyectoNombre,
+      invoice.total
+    );
+
+    return { ok: true, invoices: updated, comprobante: simVoucher };
+  },
+
+  // 5. COMUNICACIONES Y CONTACTO CON PROVEEDORES
+  getSupplierCommunications(supplierId = null) {
+    const list = storageService.get(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
+    const sorted = [...list].sort((a, b) => {
+      const dtA = `${a.fecha || ''} ${a.hora || ''}`;
+      const dtB = `${b.fecha || ''} ${b.hora || ''}`;
+      return dtB.localeCompare(dtA);
+    });
+    if (supplierId) {
+      return sorted.filter((c) => c.proveedorId === supplierId);
+    }
+    return sorted;
+  },
+
+  saveSupplierCommunication(comm) {
+    const list = storageService.get(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
+    const suppliers = this.getSuppliers();
+    const supplier = suppliers.find((s) => s.id === comm.proveedorId);
+    const supplierNombre = supplier ? supplier.nombre : (comm.proveedorNombre || 'Proveedor');
+
+    const today = new Date().toISOString().split('T')[0];
+    const timeNow = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+    let updated;
+    const isNew = !comm.id || !list.some((c) => c.id === comm.id);
+
+    if (isNew) {
+      const newId = generateNextId(list, 'COM');
+      const itemToSave = {
+        ...comm,
+        id: newId,
+        proveedorNombre: supplierNombre,
+        fecha: comm.fecha || today,
+        hora: comm.hora || timeNow,
+        registradoPor: comm.registradoPor || 'Personal CONSTRUCTA',
+      };
+      updated = [itemToSave, ...list];
+      this.addHistoryEntry(
+        'Contacto con Proveedor',
+        `Comunicación registrada (${comm.medio}) con ${supplierNombre}: ${comm.motivo || 'Seguimiento de suministro'}`
+      );
+    } else {
+      updated = list.map((c) =>
+        c.id === comm.id
+          ? {
+              ...c,
+              ...comm,
+              proveedorNombre: supplierNombre,
+            }
+          : c
+      );
+    }
+
+    storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, updated);
+    return updated;
+  },
+
+  // 6. ESTADO FINANCIERO Y RESUMEN INTEGRAL DEL PROVEEDOR
+  getSupplierFinancialSummary(supplierId) {
+    const supplier = this.getSupplierById(supplierId);
+    const allOrders = this.getPurchaseOrders().filter((o) => o.proveedorId === supplierId);
+    const allInvoices = this.getSupplierInvoices().filter((f) => f.proveedorId === supplierId);
+    const allComms = this.getSupplierCommunications(supplierId);
+
+    // Pedidos pendientes
+    const pendingOrders = allOrders.filter(
+      (o) => !['Entregada', 'Recibida parcialmente', 'Cancelada'].includes(o.estado)
+    );
+    const pendingOrdersAmount = pendingOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+
+    // Pedidos entregados
+    const deliveredOrders = allOrders.filter(
+      (o) => o.estado === 'Entregada' || o.estado === 'Recibida parcialmente'
+    );
+    const deliveredOrdersAmount = deliveredOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+
+    // Facturas pendientes
+    const pendingInvoices = allInvoices.filter((f) => f.estado !== 'Pagada' && f.estado !== 'Cancelada');
+    const pendingInvoicesAmount = pendingInvoices.reduce((acc, f) => acc + (Number(f.total) || 0), 0);
+
+    // Pagos programados
+    const scheduledInvoices = allInvoices.filter((f) => f.estado === 'Programada para pago');
+    const scheduledAmount = scheduledInvoices.reduce((acc, f) => acc + (Number(f.total) || 0), 0);
+
+    // Pagos realizados
+    const paidInvoices = allInvoices.filter((f) => f.estado === 'Pagada');
+    const paidAmount = paidInvoices.reduce((acc, f) => acc + (Number(f.total) || 0), 0);
+
+    // Incidencias acumuladas
+    const incidents = [];
+    allOrders.forEach((o) => {
+      if (o.recepcion && Array.isArray(o.recepcion.incidencias)) {
+        o.recepcion.incidencias.forEach((inc) => {
+          incidents.push({
+            ...inc,
+            ordenId: o.id,
+            numeroOrden: o.numeroOrden,
+            fecha: o.recepcion.fechaRecepcion,
+            proyectoNombre: o.proyectoNombre,
+          });
+        });
+      }
+    });
+
+    return {
+      supplier,
+      pedidosPendientesCount: pendingOrders.length,
+      pedidosPendientesMonto: pendingOrdersAmount,
+      pedidosEntregadosCount: deliveredOrders.length,
+      pedidosEntregadosMonto: deliveredOrdersAmount,
+      facturasPendientesCount: pendingInvoices.length,
+      facturasPendientesMonto: pendingInvoicesAmount,
+      pagosProgramadosCount: scheduledInvoices.length,
+      pagosProgramadosMonto: scheduledAmount,
+      pagosRealizadosCount: paidInvoices.length,
+      pagosRealizadosMonto: paidAmount,
+      montoPendiente: pendingInvoicesAmount,
+      totalComprasHistoricas: allOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0),
+      historialPedidos: allOrders,
+      historialEntregas: deliveredOrders,
+      historialIncidencias: incidents,
+      historialPagos: allInvoices,
+      historialComunicaciones: allComms,
+    };
+  },
+
+  // ----------------------------------------------------
   // CÁLCULO DE MÉTRICAS INTERCONECTADAS EN TIEMPO REAL
   // ----------------------------------------------------
   calculateMetrics() {
@@ -1480,6 +2860,9 @@ export const dataService = {
     const applicants = this.getApplicants();
     const interviews = this.getInterviews();
     const agendaActivities = this.getAgendaActivities();
+    const purchaseOrders = this.getPurchaseOrders();
+    const supplierInvoices = this.getSupplierInvoices();
+    const materialRequests = this.getMaterialRequests();
 
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1501,6 +2884,37 @@ export const dataService = {
       (a) => a.fecha === todayStr && a.estado !== 'Cancelada'
     ).length;
     const totalTodayCommitments = todayInterviews + todayAgendaCount;
+
+    // Métricas de Abastecimiento y Compras
+    const pendingPurchaseOrders = purchaseOrders.filter(
+      (o) => !['Entregada', 'Recibida parcialmente', 'Cancelada'].includes(o.estado)
+    ).length;
+    const inTransitOrders = purchaseOrders.filter((o) => o.estado === 'En camino').length;
+    const upcomingDeliveries = purchaseOrders.filter((o) =>
+      ['En camino', 'Preparando pedido', 'Confirmada'].includes(o.estado)
+    ).length;
+    const pendingReceptions = purchaseOrders.filter((o) =>
+      ['En camino', 'Enviada al proveedor', 'Preparando pedido'].includes(o.estado)
+    ).length;
+    const pendingSupplierInvoices = supplierInvoices.filter(
+      (f) => f.estado !== 'Pagada' && f.estado !== 'Cancelada'
+    ).length;
+    const scheduledPayments = supplierInvoices.filter((f) => f.estado === 'Programada para pago').length;
+    const overduePayments = supplierInvoices.filter(
+      (f) => f.estado !== 'Pagada' && f.estado !== 'Cancelada' && f.fechaVencimiento && f.fechaVencimiento < todayStr
+    ).length;
+    const totalScheduledPaymentsAmount = supplierInvoices
+      .filter((f) => f.estado === 'Programada para pago')
+      .reduce((acc, f) => acc + (Number(f.total) || 0), 0);
+    const totalPurchaseCommitments = purchaseOrders
+      .filter((o) => !['Cancelada', 'Borrador'].includes(o.estado))
+      .reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+    const totalPaidSuppliers = supplierInvoices
+      .filter((f) => f.estado === 'Pagada')
+      .reduce((acc, f) => acc + (Number(f.total) || 0), 0);
+    const pendingMaterialRequests = materialRequests.filter(
+      (r) => r.estado === 'Pendiente' || r.estado === 'En revisión'
+    ).length;
 
     // Presupuestos y Gastos
     const totalBudget = projects.reduce((acc, p) => acc + (Number(p.presupuesto) || 0), 0);
@@ -1611,6 +3025,18 @@ export const dataService = {
       todayInterviews,
       todayAgendaCount,
       totalTodayCommitments,
+      // Abastecimiento y Compras
+      pendingPurchaseOrders,
+      inTransitOrders,
+      upcomingDeliveries,
+      pendingReceptions,
+      pendingSupplierInvoices,
+      scheduledPayments,
+      overduePayments,
+      totalScheduledPaymentsAmount,
+      totalPurchaseCommitments,
+      totalPaidSuppliers,
+      pendingMaterialRequests,
     };
   },
 

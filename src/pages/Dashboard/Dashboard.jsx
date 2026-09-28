@@ -23,6 +23,8 @@ import {
   TrendingUp,
   FileCheck,
   Sparkles,
+  ShoppingCart,
+  CreditCard,
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import DashboardCharts from '../../components/dashboard/DashboardCharts.jsx';
@@ -407,14 +409,24 @@ export const Dashboard = ({ onNavigate }) => {
                 </p>
               </div>
             </div>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => navigate('materiales', { filterLowStock: true })}
-              icon={ArrowRight}
-            >
-              Revisar Inventario
-            </Button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => navigate('proveedores', { openRequestModal: true, material: lowStockItems[0] })}
+                icon={ShoppingCart}
+              >
+                Solicitar Reposición
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => navigate('materiales', { filterLowStock: true })}
+                icon={ArrowRight}
+              >
+                Revisar Inventario
+              </Button>
+            </div>
           </div>
         )}
 
@@ -694,6 +706,58 @@ export const Dashboard = ({ onNavigate }) => {
           </div>
         </div>
 
+        {/* Monitoreo de Abastecimiento Operativo (Gerente) */}
+        <div className="constructa-card" style={{ padding: '20px', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Truck size={20} style={{ color: 'var(--color-gold)' }} />
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  Monitoreo de Abastecimiento y Compras de Obra
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                  Flujo de pedidos, recepciones físicas en campo y solicitudes de materiales
+                </p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" icon={ExternalLink} onClick={() => navigate('proveedores')}>
+              Centro de Abastecimiento
+            </Button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+            <div onClick={() => navigate('proveedores', { activeTab: 'ordenes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Pedidos Pendientes</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '4px' }}>{metrics?.pendingPurchaseOrders || 0}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Por aprobar/enviar</div>
+            </div>
+
+            <div onClick={() => navigate('proveedores', { activeTab: 'ordenes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>En Camino</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-sky)', marginTop: '4px' }}>{metrics?.inTransitOrders || 0}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>En tránsito a obra</div>
+            </div>
+
+            <div onClick={() => navigate('proveedores', { activeTab: 'ordenes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Entregas Próximas</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '4px' }}>{metrics?.upcomingDeliveries || 0}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Próximos 5 días</div>
+            </div>
+
+            <div onClick={() => navigate('proveedores', { activeTab: 'recepcion' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Por Recibir en Obra</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>{metrics?.pendingReceptions || 0}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Verificación física</div>
+            </div>
+
+            <div onClick={() => navigate('proveedores', { activeTab: 'solicitudes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Reposición Pendiente</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>{metrics?.pendingMaterialRequests || 0}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Solicitudes activas</div>
+            </div>
+          </div>
+        </div>
+
         {/* Gráficos de Obras */}
         <DashboardCharts />
       </div>
@@ -734,16 +798,26 @@ export const Dashboard = ({ onNavigate }) => {
               </p>
             </div>
           </div>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => navigate('materiales', { filterLowStock: true })}
-            icon={ArrowRight}
-          >
-            Revisar Inventario
-          </Button>
-        </div>
-      )}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => navigate('proveedores', { openRequestModal: true, material: lowStockItems[0] })}
+                icon={ShoppingCart}
+              >
+                Solicitar Reposición
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => navigate('materiales', { filterLowStock: true })}
+                icon={ArrowRight}
+              >
+                Revisar Inventario
+              </Button>
+            </div>
+          </div>
+        )}
 
       {/* KPI GRID DE 8 TARJETAS DINÁMICAS (Visión Global Corporativa) */}
       <div className="kpi-grid">
@@ -891,6 +965,84 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
       </div>
 
+      {/* SECCIÓN DE ABASTECIMIENTO, COMPRAS Y PAGOS (Requerimiento #27) */}
+      <div className="constructa-card" style={{ padding: '20px', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Truck size={20} style={{ color: 'var(--color-gold)' }} />
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                Monitoreo de Abastecimiento, Compras y Pagos
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                Flujo de órdenes de compra, recepciones en obra, control 3-way match y pagos programados
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" icon={ExternalLink} onClick={() => navigate('proveedores')}>
+            Centro de Abastecimiento
+          </Button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+          {/* 1. Pedidos Pendientes */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'ordenes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Pedidos Pendientes</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '4px' }}>{metrics?.pendingPurchaseOrders || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Por aprobar/enviar</div>
+          </div>
+
+          {/* 2. En Camino */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'ordenes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>En Camino</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-sky)', marginTop: '4px' }}>{metrics?.inTransitOrders || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>En tránsito a obra</div>
+          </div>
+
+          {/* 3. Entregas Próximas */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'ordenes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Entregas Próximas</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '4px' }}>{metrics?.upcomingDeliveries || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Próximos 5 días</div>
+          </div>
+
+          {/* 4. Recepciones Pendientes */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'recepcion' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Por Recibir</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>{metrics?.pendingReceptions || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Verificación física</div>
+          </div>
+
+          {/* 5. Facturas Pendientes */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'facturas' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Facturas por Revisar</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '4px' }}>{metrics?.pendingSupplierInvoices || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Validación 3-way</div>
+          </div>
+
+          {/* 6. Pagos Programados */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'facturas' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Pagos Programados</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>{metrics?.scheduledPayments || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-emerald)', marginTop: '2px' }}>{formatCurrency(metrics?.totalScheduledPaymentsAmount || 0)}</div>
+          </div>
+
+          {/* 7. Pagos Vencidos */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'facturas' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: (metrics?.overduePayments > 0) ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Pagos Vencidos</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: (metrics?.overduePayments > 0) ? 'var(--color-rose)' : 'var(--color-text-muted)', marginTop: '4px' }}>{metrics?.overduePayments || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: (metrics?.overduePayments > 0) ? 'var(--color-rose)' : 'var(--color-text-secondary)', marginTop: '2px' }}>{(metrics?.overduePayments > 0) ? 'Urgente tramitar' : 'Al corriente'}</div>
+          </div>
+
+          {/* 8. Solicitudes Pendientes */}
+          <div onClick={() => navigate('proveedores', { activeTab: 'solicitudes' })} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '12px', cursor: 'pointer' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Reposición Pendiente</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>{metrics?.pendingMaterialRequests || 0}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>Solicitudes activas</div>
+          </div>
+        </div>
+      </div>
+
       {/* ACCIONES RÁPIDAS CORPORATIVAS */}
       <div className="quick-actions-bar">
         <span className="quick-actions-title">
@@ -943,6 +1095,14 @@ export const Dashboard = ({ onNavigate }) => {
           onClick={() => navigate('materiales', { filterLowStock: true })}
         >
           Revisar Inventario
+        </Button>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          icon={Truck} 
+          onClick={() => navigate('proveedores')}
+        >
+          Abastecimiento y Proveedores
         </Button>
       </div>
 
