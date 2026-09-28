@@ -10,6 +10,7 @@ import Expenses from '../pages/Expenses/Expenses';
 import Schedule from '../pages/Schedule/Schedule';
 import Progress from '../pages/Progress/Progress';
 import Reports from '../pages/Reports/Reports';
+import Agenda from '../pages/Agenda/Agenda';
 
 import Login from '../pages/Login/Login';
 import Status401 from '../pages/Status/Status401';
@@ -22,6 +23,7 @@ export const PRIVATE_MODULES = [
   'empleados',
   'postulantes',
   'entrevistas',
+  'agenda',
   'materiales',
   'proveedores',
   'presupuestos',
@@ -72,6 +74,13 @@ export const routeConfig = {
     path: 'entrevistas',
     label: 'Agenda de Entrevistas',
     component: Interviews,
+    isPrivate: true,
+    requiredRole: null,
+  },
+  agenda: {
+    path: 'agenda',
+    label: 'Agenda Central de Actividades',
+    component: Agenda,
     isPrivate: true,
     requiredRole: null,
   },

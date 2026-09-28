@@ -45,6 +45,7 @@ export const ConstructaProvider = ({ children }) => {
   const [history, setHistory] = useState(() => dataService.getHistory());
   const [applicants, setApplicants] = useState(() => dataService.getApplicants());
   const [interviews, setInterviews] = useState(() => dataService.getInterviews());
+  const [agendaActivities, setAgendaActivities] = useState(() => dataService.getAgendaActivities());
 
   // 4. Métricas Interconectadas Dinámicas
   const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
@@ -56,6 +57,7 @@ export const ConstructaProvider = ({ children }) => {
     setMovements(dataService.getInventoryMovements());
     setApplicants(dataService.getApplicants());
     setInterviews(dataService.getInterviews());
+    setAgendaActivities(dataService.getAgendaActivities());
     setEmployees(dataService.getEmployees());
   }, []);
 
@@ -382,6 +384,33 @@ export const ConstructaProvider = ({ children }) => {
     return true;
   };
 
+  // ----------------------------------------------------
+  // GESTIÓN DE AGENDA CENTRAL Y REUNIONES DE OBRA
+  // ----------------------------------------------------
+  const saveAgendaActivity = (activityData) => {
+    try {
+      const updated = dataService.saveAgendaActivity(activityData);
+      setAgendaActivities(updated);
+      refreshMetrics();
+      showAlert(
+        activityData.id ? 'Actividad de agenda actualizada.' : 'Actividad agendada exitosamente sin conflictos.',
+        'exito'
+      );
+      return { success: true };
+    } catch (err) {
+      showAlert(err.message || 'Conflicto al agendar actividad', 'error');
+      return { success: false, error: err.message };
+    }
+  };
+
+  const deleteAgendaActivity = (id) => {
+    const updated = dataService.deleteAgendaActivity(id);
+    setAgendaActivities(updated);
+    refreshMetrics();
+    showAlert('Actividad retirada de la agenda y horario liberado.', 'info');
+    return true;
+  };
+
   // Restablecer datos a la semilla inicial de db.json
   const resetDemoData = () => {
     dataService.resetAllData();
@@ -395,6 +424,7 @@ export const ConstructaProvider = ({ children }) => {
     setHistory(dataService.getHistory());
     setApplicants(dataService.getApplicants());
     setInterviews(dataService.getInterviews());
+    setAgendaActivities(dataService.getAgendaActivities());
     refreshMetrics();
     showAlert('Los datos del sistema han sido restaurados a sus valores predeterminados.', 'info');
   };
@@ -412,7 +442,8 @@ export const ConstructaProvider = ({ children }) => {
     history,
     applicants,
     interviews,
-  }), [projects, employees, materials, suppliers, expenses, schedule, movements, history, applicants, interviews]);
+    agendaActivities,
+  }), [projects, employees, materials, suppliers, expenses, schedule, movements, history, applicants, interviews, agendaActivities]);
 
   return (
     <ConstructaContext.Provider
@@ -461,6 +492,9 @@ export const ConstructaProvider = ({ children }) => {
         recordInterviewResult,
         checkInterviewConflict,
         calculateEndTime: dataService.calculateEndTime,
+        agendaActivities,
+        saveAgendaActivity,
+        deleteAgendaActivity,
         movements,
         inventoryMovements: movements,
         history,

@@ -15,6 +15,14 @@ import {
   Truck,
   UserCheck,
   CalendarClock,
+  CalendarDays,
+  CalendarPlus,
+  Building2,
+  ExternalLink,
+  MapPin,
+  TrendingUp,
+  FileCheck,
+  Sparkles,
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import DashboardCharts from '../../components/dashboard/DashboardCharts.jsx';
@@ -23,10 +31,14 @@ import Badge from '../../components/common/Badge.jsx';
 
 export const Dashboard = ({ onNavigate }) => {
   const { 
+    currentUser,
     metrics, 
     history, 
     materials, 
     projects, 
+    applicants,
+    interviews,
+    agendaActivities,
     formatCurrency, 
     formatNumber,
     navigateTo,
@@ -44,14 +56,656 @@ export const Dashboard = ({ onNavigate }) => {
     }
   };
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   // Materiales en stock crítico
-  const lowStockItems = materials.filter(
+  const lowStockItems = (materials || []).filter(
     (m) => Number(m.stockActual ?? m.stock) <= Number(m.stockMinimo)
   );
 
+  // =========================================================================
+  // VISTA 1: DASHBOARD PARA RRHH / RECLUTAMIENTO
+  // =========================================================================
+  if (currentUser?.rol === 'RRHH / Reclutamiento') {
+    const upcomingList = (interviews || [])
+      .filter((i) => i.estado === 'Programada' || i.estado === 'Reprogramada')
+      .sort((a, b) => {
+        if (a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha);
+        return (a.horaInicio || '').localeCompare(b.horaInicio || '');
+      })
+      .slice(0, 5);
+
+    const recentApplicants = (applicants || []).slice(0, 6);
+
+    return (
+      <div className="dashboard-page">
+        {/* Welcome Banner RRHH */}
+        <div
+          className="constructa-card"
+          style={{
+            padding: '20px 24px',
+            marginBottom: '1.5rem',
+            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(17, 23, 36, 0.95) 100%)',
+            borderLeft: '4px solid var(--color-sky)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '14px',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <Sparkles size={18} style={{ color: 'var(--color-sky)' }} />
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-sky)', fontWeight: 600, textTransform: 'uppercase' }}>
+                Gestión de Personal y Selección
+              </span>
+            </div>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--color-text-primary)' }}>
+              Bienvenida, {currentUser?.nombre || 'Coordinadora de RRHH'}
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+              Panel de control para procesos de reclutamiento, entrevistas laborales y altas en la plantilla de CONSTRUCTA.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button variant="primary" icon={CalendarClock} onClick={() => navigate('entrevistas')}>
+              Agenda de Entrevistas
+            </Button>
+            <Button variant="outline" icon={UserCheck} onClick={() => navigate('postulantes')}>
+              Registrar Candidato
+            </Button>
+          </div>
+        </div>
+
+        {/* KPI Grid RRHH (6 Tarjetas Dinámicas) */}
+        <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+          {/* 1. Candidatos Totales */}
+          <div className="kpi-card" onClick={() => navigate('postulantes')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Candidatos Registrados</span>
+              <div className="kpi-icon-box blue">
+                <UserCheck size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.totalApplicants || 0}</div>
+              <div className="kpi-subtext">
+                <span>Expedientes en base de datos</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Candidaturas Activas */}
+          <div className="kpi-card" onClick={() => navigate('postulantes')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">En Evaluación Activa</span>
+              <div className="kpi-icon-box amber">
+                <Clock size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.activeApplicants || 0}</div>
+              <div className="kpi-subtext">
+                <span style={{ color: 'var(--accent-amber)' }}>Procesos en curso</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Entrevistas Programadas */}
+          <div className="kpi-card" onClick={() => navigate('entrevistas')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Entrevistas Programadas</span>
+              <div className="kpi-icon-box blue">
+                <CalendarClock size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.upcomingInterviews || 0}</div>
+              <div className="kpi-subtext">
+                <span>Citas agendadas por realizar</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Entrevistas de Hoy */}
+          <div className="kpi-card" onClick={() => navigate('agenda')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Citas para Hoy</span>
+              <div className="kpi-icon-box green">
+                <CheckCircle2 size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value" style={{ color: metrics?.todayInterviews > 0 ? '#34d399' : 'inherit' }}>
+                {metrics?.todayInterviews || 0}
+              </div>
+              <div className="kpi-subtext">
+                <span style={{ color: 'var(--accent-green)' }}>Compromisos en el día</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. Candidatos Seleccionados */}
+          <div className="kpi-card" onClick={() => navigate('postulantes')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Seleccionados para Obra</span>
+              <div className="kpi-icon-box green">
+                <FileCheck size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.selectedApplicants || 0}</div>
+              <div className="kpi-subtext">
+                <span>Listos para contratación</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 6. Plantilla de Personal */}
+          <div className="kpi-card" onClick={() => navigate('empleados')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Plantilla de Personal</span>
+              <div className="kpi-icon-box blue">
+                <Users size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.totalEmployees || 0}</div>
+              <div className="kpi-subtext">
+                <span>{metrics?.activeEmployees || 0} activos en nómina</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Accesos Rápidos RRHH */}
+        <div className="quick-actions-bar" style={{ marginBottom: '2rem' }}>
+          <span className="quick-actions-title">Accesos Rápidos de Selección:</span>
+          <Button variant="secondary" size="sm" icon={UserCheck} onClick={() => navigate('postulantes')}>
+            Gestionar Candidatos
+          </Button>
+          <Button variant="secondary" size="sm" icon={CalendarClock} onClick={() => navigate('entrevistas')}>
+            Programar / Ver Entrevistas
+          </Button>
+          <Button variant="secondary" size="sm" icon={CalendarDays} onClick={() => navigate('agenda')}>
+            Agenda Centralizada
+          </Button>
+          <Button variant="secondary" size="sm" icon={Users} onClick={() => navigate('empleados')}>
+            Consultar Plantilla de Empleados
+          </Button>
+        </div>
+
+        {/* Grid: Próximas Entrevistas + Candidatos Recientes */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+          {/* Card 1: Próximas Entrevistas */}
+          <div className="constructa-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CalendarClock size={20} style={{ color: 'var(--color-sky)' }} />
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  Próximas Citas de Entrevista
+                </h3>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate('entrevistas')}>
+                Ver Todas
+              </Button>
+            </div>
+
+            {upcomingList.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem' }}>
+                No hay entrevistas pendientes programadas.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {upcomingList.map((inv) => (
+                  <div
+                    key={inv.id}
+                    style={{
+                      padding: '12px 14px',
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-sm)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div>
+                      <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block' }}>
+                        {inv.postulanteNombre}
+                      </strong>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                        {inv.puesto} • Entrevistador: <strong style={{ color: 'var(--color-text-secondary)' }}>{inv.entrevistador}</strong>
+                      </span>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--color-gold)', fontWeight: 600, display: 'block' }}>
+                        {inv.fecha}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                        {inv.horaInicio} - {inv.horaFin}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Card 2: Candidatos Recientes */}
+          <div className="constructa-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <UserCheck size={20} style={{ color: 'var(--color-gold)' }} />
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  Candidatos en Proceso
+                </h3>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate('postulantes')}>
+                Ver Expedientes
+              </Button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {recentApplicants.map((app) => (
+                <div
+                  key={app.id}
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block' }}>
+                      {app.nombre}
+                    </strong>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                      {app.puestoSolicitado} ({app.area || 'Operativo'})
+                    </span>
+                  </div>
+
+                  <Badge
+                    variant={
+                      app.estado === 'Seleccionado'
+                        ? 'success'
+                        : app.estado === 'Entrevista programada'
+                        ? 'info'
+                        : app.estado === 'En revisión'
+                        ? 'warning'
+                        : 'neutral'
+                    }
+                  >
+                    {app.estado}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VISTA 2: DASHBOARD PARA GERENTE DE CONSTRUCCIÓN
+  // =========================================================================
+  if (currentUser?.rol === 'Gerente de Construcción') {
+    // Actividades asignadas al gerente de construcción
+    const myActivities = (agendaActivities || [])
+      .filter(
+        (a) =>
+          a.responsable &&
+          (a.responsable.includes('Carlos Mendoza') || a.responsable.includes('Gerente'))
+      )
+      .slice(0, 4);
+
+    // Entrevistas donde Carlos Mendoza es entrevistador
+    const myInterviews = (interviews || [])
+      .filter(
+        (i) =>
+          i.entrevistador &&
+          i.entrevistador.includes('Carlos Mendoza') &&
+          i.estado !== 'Cancelada'
+      )
+      .slice(0, 3);
+
+    return (
+      <div className="dashboard-page">
+        {/* Alerta de Stock Bajo si existe */}
+        {lowStockItems.length > 0 && (
+          <div className="dashboard-alert-banner">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  color: '#f87171',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                  Atención en Almacén: {lowStockItems.length} materiales bajo stock mínimo
+                </strong>
+                <p style={{ color: '#fca5a5', fontSize: '0.82rem', margin: '2px 0 0 0' }}>
+                  {lowStockItems.map((m) => m.nombre).slice(0, 3).join(', ')}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => navigate('materiales', { filterLowStock: true })}
+              icon={ArrowRight}
+            >
+              Revisar Inventario
+            </Button>
+          </div>
+        )}
+
+        {/* Banner Gerente */}
+        <div
+          className="constructa-card"
+          style={{
+            padding: '20px 24px',
+            marginBottom: '1.5rem',
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(17, 23, 36, 0.95) 100%)',
+            borderLeft: '4px solid var(--color-gold)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '14px',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <HardHat size={18} style={{ color: 'var(--color-gold)' }} />
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-gold)', fontWeight: 600, textTransform: 'uppercase' }}>
+                Dirección y Operaciones de Obra
+              </span>
+            </div>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--color-text-primary)' }}>
+              Bienvenido, {currentUser?.nombre || 'Ing. Carlos Mendoza Rivas'}
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+              Supervisión de frentes constructivos, asignaciones de cuadrillas, control de almacén y compromisos de agenda.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button variant="primary" icon={CalendarDays} onClick={() => navigate('agenda')}>
+              Mi Agenda de Hoy
+            </Button>
+            <Button variant="outline" icon={TrendingUp} onClick={() => navigate('avance')}>
+              Actualizar Avance
+            </Button>
+          </div>
+        </div>
+
+        {/* KPI Grid Operativo (7 Tarjetas Dinámicas) */}
+        <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+          {/* 1. Proyectos activos */}
+          <div className="kpi-card" onClick={() => navigate('proyectos')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Proyectos en Ejecución</span>
+              <div className="kpi-icon-box amber">
+                <HardHat size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.activeProjects || 0}</div>
+              <div className="kpi-subtext">
+                <span style={{ color: 'var(--accent-amber)' }}>Obras activas en campo</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Avance Físico Promedio */}
+          <div className="kpi-card" onClick={() => navigate('avance')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Avance Físico Promedio</span>
+              <div className="kpi-icon-box green">
+                <TrendingUp size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.averageProgress || metrics?.avgProgress || 0}%</div>
+              <div className="kpi-subtext">
+                <span style={{ color: 'var(--accent-green)' }}>Ejecución ponderada</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Cuadrillas en Campo */}
+          <div className="kpi-card" onClick={() => navigate('empleados')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Personal Operativo</span>
+              <div className="kpi-icon-box blue">
+                <Users size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.activeEmployees || 0}</div>
+              <div className="kpi-subtext">
+                <span>De {metrics?.totalEmployees || 0} colaboradores totales</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Materiales e Inventario */}
+          <div className="kpi-card" onClick={() => navigate('materiales')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Materiales en Almacén</span>
+              <div className="kpi-icon-box blue">
+                <Package size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.totalMaterials || 0}</div>
+              <div className="kpi-subtext">
+                <span>Catálogo de insumos</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. Alertas de Stock */}
+          <div className="kpi-card" onClick={() => navigate('materiales', { filterLowStock: true })} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Stock Bajo</span>
+              <div className="kpi-icon-box red">
+                <AlertTriangle size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value" style={{ color: metrics?.lowStockCount > 0 ? '#f87171' : 'inherit' }}>
+                {metrics?.lowStockCount || 0}
+              </div>
+              <div className="kpi-subtext">
+                <span style={{ color: metrics?.lowStockCount > 0 ? '#f87171' : 'var(--color-text-muted)' }}>
+                  {metrics?.lowStockCount > 0 ? 'Requieren reposición' : 'Almacén estable'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 6. Gastos Ejecutados en Obras */}
+          <div className="kpi-card" onClick={() => navigate('gastos')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Gastos de Obra</span>
+              <div className="kpi-icon-box amber">
+                <Receipt size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value" style={{ fontSize: '1.4rem', color: '#fbbf24' }}>
+                {formatCurrency(metrics?.totalSpent)}
+              </div>
+              <div className="kpi-subtext">
+                <span>{metrics?.budgetUtilization || 0}% de ejecución</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 7. Compromisos de Hoy */}
+          <div className="kpi-card" onClick={() => navigate('agenda')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-header">
+              <span className="kpi-title">Compromisos de Hoy</span>
+              <div className="kpi-icon-box green">
+                <Clock size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="kpi-value">{metrics?.totalTodayCommitments || 0}</div>
+              <div className="kpi-subtext">
+                <span style={{ color: 'var(--accent-green)' }}>Reuniones, visitas y entrevistas</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Accesos Rápidos Operativos */}
+        <div className="quick-actions-bar" style={{ marginBottom: '2rem' }}>
+          <span className="quick-actions-title">Accesos Rápidos Operativos:</span>
+          <Button variant="secondary" size="sm" icon={HardHat} onClick={() => navigate('proyectos')}>
+            Explorar Proyectos
+          </Button>
+          <Button variant="secondary" size="sm" icon={TrendingUp} onClick={() => navigate('avance')}>
+            Registrar Avance de Obra
+          </Button>
+          <Button variant="secondary" size="sm" icon={Package} onClick={() => navigate('materiales')}>
+            Gestionar Materiales
+          </Button>
+          <Button variant="secondary" size="sm" icon={Users} onClick={() => navigate('empleados', { viewMode: 'agenda' })}>
+            Ver Horarios de Cuadrillas
+          </Button>
+          <Button variant="secondary" size="sm" icon={Receipt} onClick={() => navigate('gastos', { openCreateModal: true })}>
+            Registrar Gasto de Obra
+          </Button>
+          <Button variant="secondary" size="sm" icon={CalendarDays} onClick={() => navigate('agenda')}>
+            Ver Mi Agenda Operativa
+          </Button>
+        </div>
+
+        {/* Sección: Mi Agenda Operativa y Entrevistas Técnicas */}
+        <div className="constructa-card" style={{ padding: '20px', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={20} style={{ color: 'var(--color-gold)' }} />
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  Mi Agenda Operativa y Entrevistas Asignadas
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                  Compromisos técnicos agendados para {currentUser?.nombre}
+                </p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" icon={CalendarDays} onClick={() => navigate('agenda')}>
+              Ver Agenda Completa
+            </Button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+            {/* Actividades de Obra */}
+            {myActivities.map((act) => (
+              <div
+                key={act.id}
+                style={{
+                  padding: '14px',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <div>
+                  <Badge variant={act.tipo === 'Visitas' ? 'success' : 'warning'}>
+                    {act.tipo}
+                  </Badge>
+                  <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block', marginTop: '6px' }}>
+                    {act.titulo}
+                  </strong>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    {act.proyectoNombre} • {act.ubicacion}
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', fontWeight: 600 }}>
+                    {act.horaInicio} - {act.horaFin}
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                    {act.fecha}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Entrevistas Asignadas */}
+            {myInterviews.map((inv) => (
+              <div
+                key={inv.id}
+                style={{
+                  padding: '14px',
+                  background: 'rgba(56, 189, 248, 0.03)',
+                  border: '1px solid rgba(56, 189, 248, 0.25)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <div>
+                  <Badge variant="info">Entrevista Técnica</Badge>
+                  <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block', marginTop: '6px' }}>
+                    {inv.postulanteNombre}
+                  </strong>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    Puesto: {inv.puesto}
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-sky)', fontWeight: 600 }}>
+                    {inv.horaInicio} - {inv.horaFin}
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                    {inv.fecha}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gráficos de Obras */}
+        <DashboardCharts />
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VISTA 3: DASHBOARD GENERAL CORPORATIVO (ADMINISTRADOR)
+  // =========================================================================
   return (
     <div className="dashboard-page">
-      {/* Alerta si existen materiales en stock crítico (Responsive y accionable) */}
+      {/* Alerta si existen materiales en stock crítico */}
       {lowStockItems.length > 0 && (
         <div className="dashboard-alert-banner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
@@ -91,7 +745,7 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
       )}
 
-      {/* KPI GRID DE 8 TARJETAS DINÁMICAS (Requerimiento Prompt #13 - Responsive 4 col / 2 col / 1 col) */}
+      {/* KPI GRID DE 8 TARJETAS DINÁMICAS (Visión Global Corporativa) */}
       <div className="kpi-grid">
         {/* 1. Proyectos activos */}
         <div className="kpi-card" onClick={() => navigate('proyectos')} style={{ cursor: 'pointer' }} title="Ir a Proyectos Activos">
@@ -237,7 +891,7 @@ export const Dashboard = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* ACCIONES RÁPIDAS EMPRESARIALES (Totalmente funcionales y adaptables a móvil) */}
+      {/* ACCIONES RÁPIDAS CORPORATIVAS */}
       <div className="quick-actions-bar">
         <span className="quick-actions-title">
           Accesos Rápidos:
@@ -269,6 +923,14 @@ export const Dashboard = ({ onNavigate }) => {
         <Button 
           variant="secondary" 
           size="sm" 
+          icon={CalendarDays} 
+          onClick={() => navigate('agenda')}
+        >
+          Agenda Central
+        </Button>
+        <Button 
+          variant="secondary" 
+          size="sm" 
           icon={Users} 
           onClick={() => navigate('empleados', { viewMode: 'agenda' })}
         >
@@ -282,73 +944,6 @@ export const Dashboard = ({ onNavigate }) => {
         >
           Revisar Inventario
         </Button>
-        <Button 
-          variant="secondary" 
-          size="sm" 
-          icon={UserCheck} 
-          onClick={() => navigate('postulantes')}
-        >
-          Gestionar Postulantes
-        </Button>
-      </div>
-
-      {/* BANNER INFORMATIVO DE PROCESO DE SELECCIÓN Y ENTREVISTAS */}
-      <div 
-        className="constructa-card"
-        style={{
-          padding: '14px 20px',
-          marginBottom: '2rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          borderLeft: '4px solid var(--color-sky)',
-          background: 'rgba(56, 189, 248, 0.03)'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <UserCheck size={18} style={{ color: 'var(--color-sky)' }} />
-            <span style={{ fontSize: '0.9rem', color: 'var(--color-text-primary)', fontWeight: 600 }}>
-              Selección de Personal:
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '16px', fontSize: '0.85rem' }}>
-            <div>
-              <span style={{ color: 'var(--color-text-muted)' }}>Candidaturas en evaluación: </span>
-              <strong style={{ color: 'var(--color-gold)' }}>{metrics?.activeApplicants || 0}</strong>
-            </div>
-            <div>
-              <span style={{ color: 'var(--color-text-muted)' }}>Entrevistas programadas: </span>
-              <strong style={{ color: 'var(--color-sky)' }}>{metrics?.upcomingInterviews || 0}</strong>
-            </div>
-            <div>
-              <span style={{ color: 'var(--color-text-muted)' }}>Seleccionados para obra: </span>
-              <strong style={{ color: 'var(--color-emerald)' }}>{metrics?.selectedApplicants || 0}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button
-            variant="outline"
-            size="sm"
-            icon={CalendarClock}
-            onClick={() => navigate('entrevistas')}
-          >
-            Agenda de Entrevistas
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={ArrowRight}
-            onClick={() => navigate('postulantes')}
-          >
-            Ver Candidatos
-          </Button>
-        </div>
       </div>
 
       {/* GRÁFICOS DINÁMICOS CONECTADOS */}
@@ -362,7 +957,7 @@ export const Dashboard = ({ onNavigate }) => {
               <Clock size={18} style={{ color: 'var(--accent-amber)' }} />
               Historial de Movimientos Recientes
             </h3>
-            <p className="card-desc">Registro cronológico de operaciones operativas, financieras y de personal</p>
+            <p className="card-desc">Registro cronológico de operaciones operativas, financieras y de obra</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate('reportes')}>
             Ver Reporte Completo

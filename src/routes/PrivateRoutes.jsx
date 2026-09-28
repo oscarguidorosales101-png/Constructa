@@ -3,6 +3,7 @@ import { useConstructa } from '../context/ConstructaContext';
 import MainLayout from '../components/layout/MainLayout';
 import Status401 from '../pages/Status/Status401';
 import Status403 from '../pages/Status/Status403';
+import { hasPermission } from '../utils/permissions';
 
 /**
  * Guardián de Rutas Privadas para CONSTRUCTA.
@@ -24,8 +25,9 @@ export const PrivateRoutes = ({ route, children }) => {
     );
   }
 
-  // 2. Verificación de autorización de roles (403 - Acceso no autorizado)
-  if (route?.requiredRole && currentUser.rol !== route.requiredRole) {
+  // 2. Verificación paramétrica de autorización de roles (403 - Acceso no autorizado)
+  const isAllowed = hasPermission(currentUser.rol, route?.path);
+  if (!isAllowed) {
     return (
       <Status403 
         onBackToHome={() => navigate('dashboard')} 

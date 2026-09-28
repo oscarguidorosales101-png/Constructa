@@ -39,17 +39,25 @@ export const Login = ({ onLoginSuccess }) => {
     }, 300);
   };
 
-  const handleFillDemo = () => {
-    setIdentifier('admin@constructa.com');
-    setPassword('admin123');
+  const handleQuickLogin = (email, pass) => {
+    setIdentifier(email);
+    setPassword(pass);
     setErrors({});
+    setIsSubmitting(true);
+    setTimeout(() => {
+      const res = login(email, pass);
+      setIsSubmitting(false);
+      if (res.ok && onLoginSuccess) {
+        onLoginSuccess();
+      }
+    }, 200);
   };
 
   return (
     <div className="login-wrapper">
       <div className="login-glow-bg" />
 
-      <div className="login-card">
+      <div className="login-card" style={{ maxWidth: '480px', width: '95%' }}>
         <div className="login-brand">
           <div className="login-logo-box">
             <HardHat size={30} />
@@ -134,22 +142,97 @@ export const Login = ({ onLoginSuccess }) => {
           </div>
         </form>
 
-        <div className="login-demo-box">
-          <div className="login-demo-title">
-            <ShieldCheck size={16} />
-            <span>Acceso Empresarial Autorizado</span>
+        <div className="login-demo-box" style={{ marginTop: '1.5rem' }}>
+          <div className="login-demo-title" style={{ marginBottom: '0.75rem' }}>
+            <ShieldCheck size={16} style={{ color: 'var(--color-gold)' }} />
+            <span>Accesos Rápidos de Demostración por Rol</span>
           </div>
-          <p style={{ margin: '0.25rem 0 0.5rem', lineHeight: 1.4 }}>
-            Usuario: <strong style={{ color: '#ffffff' }}>admin@constructa.com</strong> / Clave: <strong style={{ color: '#ffffff' }}>admin123</strong>
-          </p>
-          <button
-            type="button"
-            className="btn-outline btn-sm"
-            onClick={handleFillDemo}
-            style={{ width: '100%', fontSize: '0.75rem', padding: '0.35rem' }}
-          >
-            Cargar credenciales de demostración
-          </button>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* 1. Administrador */}
+            <button
+              type="button"
+              className="btn-outline btn-sm"
+              onClick={() => handleQuickLogin('admin@constructa.com', 'admin123')}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                textAlign: 'left',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(255, 255, 255, 0.02)',
+              }}
+            >
+              <div>
+                <strong style={{ color: '#ffffff', display: 'block', fontSize: '0.82rem' }}>
+                  Administrador General
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                  admin@constructa.com (Ing. Fernando Mendoza)
+                </span>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 600 }}>
+                Entrar &rarr;
+              </span>
+            </button>
+
+            {/* 2. Gerente de Construcción */}
+            <button
+              type="button"
+              className="btn-outline btn-sm"
+              onClick={() => handleQuickLogin('gerente@constructa.com', 'gerente123')}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                textAlign: 'left',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(255, 255, 255, 0.02)',
+              }}
+            >
+              <div>
+                <strong style={{ color: '#ffffff', display: 'block', fontSize: '0.82rem' }}>
+                  Gerente de Construcción
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                  gerente@constructa.com (Ing. Carlos Mendoza Rivas)
+                </span>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 600 }}>
+                Entrar &rarr;
+              </span>
+            </button>
+
+            {/* 3. RRHH / Reclutamiento */}
+            <button
+              type="button"
+              className="btn-outline btn-sm"
+              onClick={() => handleQuickLogin('rrhh@constructa.com', 'rrhh123')}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                textAlign: 'left',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(255, 255, 255, 0.02)',
+              }}
+            >
+              <div>
+                <strong style={{ color: '#ffffff', display: 'block', fontSize: '0.82rem' }}>
+                  RRHH / Reclutamiento
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                  rrhh@constructa.com (Lic. Mariana Morales Solís)
+                </span>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 600 }}>
+                Entrar &rarr;
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -16,6 +16,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
+import { hasPermission } from '../../utils/permissions.js';
 
 export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
   const { currentUser, metrics, requestConfirm, logout, setActiveView } = useConstructa();
@@ -35,7 +36,7 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
     });
   };
 
-  const navItems = [
+  const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     {
       id: 'proyectos',
@@ -45,13 +46,13 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
     },
     {
       id: 'empleados',
-      label: 'Empleados',
+      label: currentUser?.rol === 'RRHH / Reclutamiento' ? 'Personal (Plantilla)' : 'Empleados',
       icon: Users,
       badge: metrics?.totalEmployees ? `${metrics.totalEmployees}` : null,
     },
     {
       id: 'postulantes',
-      label: 'Postulantes',
+      label: 'Candidatos',
       icon: UserCheck,
       badge: metrics?.activeApplicants ? `${metrics.activeApplicants}` : null,
     },
@@ -62,6 +63,12 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
       badge: metrics?.upcomingInterviews ? `${metrics.upcomingInterviews}` : null,
     },
     {
+      id: 'agenda',
+      label: 'Agenda Central',
+      icon: CalendarDays,
+      badge: metrics?.todayAgendaCount > 0 ? `${metrics.todayAgendaCount} hoy` : null,
+    },
+    {
       id: 'materiales',
       label: 'Materiales',
       icon: Package,
@@ -69,11 +76,14 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
     },
     { id: 'proveedores', label: 'Proveedores', icon: Truck },
     { id: 'presupuestos', label: 'Presupuestos', icon: DollarSign },
-    { id: 'gastos', label: 'Gastos', icon: Receipt },
+    { id: 'gastos', label: 'Gastos de Obra', icon: Receipt },
     { id: 'cronograma', label: 'Cronograma', icon: CalendarDays },
-    { id: 'avance', label: 'Avance', icon: TrendingUp },
+    { id: 'avance', label: 'Avance de Obra', icon: TrendingUp },
     { id: 'reportes', label: 'Reportes y Estadísticas', icon: BarChart3 },
   ];
+
+  // Filtrar navegación paramétricamente según el rol del usuario conectado
+  const navItems = allNavItems.filter((item) => hasPermission(currentUser?.rol, item.id));
 
   const handleItemClick = (id) => {
     navigate(id);

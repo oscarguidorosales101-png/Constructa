@@ -13,18 +13,128 @@ const KEYS = {
   HISTORY: 'historial_movimientos',
   APPLICANTS: 'postulantes',
   INTERVIEWS: 'entrevistas',
+  AGENDA: 'agenda_actividades',
   AUTH: 'sesion_usuario',
 };
 
-// Usuario administrador corporativo predeterminado
-export const DEFAULT_ADMIN = {
-  id: 'USR-001',
-  nombre: 'Ing. Fernando Mendoza',
-  cargo: 'Director General de Operaciones',
-  email: 'admin@constructa.com',
-  usuario: 'admin',
-  rol: 'Administrador',
-};
+// Usuarios del sistema con acceso autorizado por rol
+export const SYSTEM_USERS = [
+  {
+    id: 'USR-001',
+    nombre: 'Ing. Fernando Mendoza',
+    cargo: 'Director General de Operaciones',
+    email: 'admin@constructa.com',
+    usuario: 'admin',
+    clave: 'admin',
+    rol: 'Administrador',
+    avatar: 'FM',
+    descripcion: 'Control general del sistema, configuración corporativa, finanzas y supervisión global.',
+  },
+  {
+    id: 'USR-002',
+    nombre: 'Ing. Carlos Mendoza Rivas',
+    cargo: 'Gerente de Construcción y Operaciones',
+    email: 'gerente@constructa.com',
+    usuario: 'gerente',
+    clave: 'gerente123',
+    rol: 'Gerente de Construcción',
+    avatar: 'CM',
+    descripcion: 'Supervisión de obras, cuadrillas de personal, avance físico, control de almacén y agenda operativa.',
+  },
+  {
+    id: 'USR-003',
+    nombre: 'Lic. Mariana Morales Solís',
+    cargo: 'Coordinadora de Talento y Selección',
+    email: 'rrhh@constructa.com',
+    usuario: 'rrhh',
+    clave: 'rrhh123',
+    rol: 'RRHH / Reclutamiento',
+    avatar: 'MM',
+    descripcion: 'Gestión de candidatos, programación de entrevistas laborales, agenda de citas y contratación.',
+  },
+];
+
+// Usuario administrador corporativo predeterminado (compatibilidad hacia atrás)
+export const DEFAULT_ADMIN = SYSTEM_USERS[0];
+
+// Actividades iniciales de demostración para la agenda centralizada
+export const DEFAULT_AGENDA_ACTIVITIES = [
+  {
+    id: 'ACT-001',
+    titulo: 'Reunión de coordinación de proyecto: Torre Altavista',
+    tipo: 'Reuniones',
+    fecha: '2026-03-27',
+    horaInicio: '09:00',
+    horaFin: '09:45',
+    duracionMinutos: 45,
+    responsable: 'Ing. Carlos Mendoza Rivas',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    ubicacion: 'Sala de Juntas Obra 1 / Oficina Central',
+    estado: 'Programada',
+    descripcion: 'Revisión semanal de avance de cimentación y entrega de subcontratas con superintendentes.',
+  },
+  {
+    id: 'ACT-002',
+    titulo: 'Visita de obra técnica: Inspección Estructural Torre Altavista',
+    tipo: 'Visitas',
+    fecha: '2026-03-27',
+    horaInicio: '11:00',
+    horaFin: '11:30',
+    duracionMinutos: 30,
+    responsable: 'Ing. Carlos Mendoza Rivas',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    ubicacion: 'Losa Nivel 14, Frente Torre Altavista',
+    estado: 'Programada',
+    descripcion: 'Verificación de armado de acero y control de calidad de colado de columnas.',
+  },
+  {
+    id: 'ACT-003',
+    titulo: 'Reunión con Subcontratista de Instalaciones Eléctricas',
+    tipo: 'Reuniones',
+    fecha: '2026-03-27',
+    horaInicio: '15:00',
+    horaFin: '16:00',
+    duracionMinutos: 60,
+    responsable: 'Ing. Carlos Mendoza Rivas',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    ubicacion: 'Oficina Técnica de Obra',
+    estado: 'Programada',
+    descripcion: 'Alineación de cronograma de cableado y revisión de suministros certificados.',
+  },
+  {
+    id: 'ACT-004',
+    titulo: 'Visita técnica de supervisión ambiental y seguridad',
+    tipo: 'Visitas',
+    fecha: '2026-03-28',
+    horaInicio: '10:00',
+    horaFin: '11:30',
+    duracionMinutos: 90,
+    responsable: 'Arq. Sofía Valenzuela Morales',
+    proyectoId: 'PRJ-002',
+    proyectoNombre: 'Complejo Corporativo Nexus',
+    ubicacion: 'Complejo Nexus Poniente',
+    estado: 'Programada',
+    descripcion: 'Recorrido de seguridad industrial y protocolos de trabajo en alturas con el comité.',
+  },
+  {
+    id: 'ACT-005',
+    titulo: 'Comité de Dirección y Revisión de Hitos Mensuales',
+    tipo: 'Reuniones',
+    fecha: '2026-03-30',
+    horaInicio: '09:00',
+    horaFin: '11:00',
+    duracionMinutos: 120,
+    responsable: 'Ing. Fernando Mendoza',
+    proyectoId: null,
+    proyectoNombre: 'General Corporativo',
+    ubicacion: 'Sala Magna Dirección General',
+    estado: 'Programada',
+    descripcion: 'Evaluación ejecutiva de presupuestos, avance físico general y cartera de proyectos.',
+  },
+];
 
 // Generador de IDs únicos incrementales sin riesgo de colisión
 const generateNextId = (list, prefix) => {
@@ -53,6 +163,7 @@ export const dataService = {
       storageService.set(KEYS.HISTORY, db.history || []);
       storageService.set(KEYS.APPLICANTS, db.applicants || []);
       storageService.set(KEYS.INTERVIEWS, db.interviews || []);
+      storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
       storageService.set(KEYS.INITIALIZED, true);
     } else {
       // Si por alguna razón alguna colección estuviera ausente o vacía en el almacenamiento local, se recupera de db.json
@@ -66,6 +177,7 @@ export const dataService = {
       if (!storageService.get(KEYS.HISTORY)) storageService.set(KEYS.HISTORY, db.history || []);
       if (!storageService.get(KEYS.APPLICANTS)) storageService.set(KEYS.APPLICANTS, db.applicants || []);
       if (!storageService.get(KEYS.INTERVIEWS)) storageService.set(KEYS.INTERVIEWS, db.interviews || []);
+      if (!storageService.get(KEYS.AGENDA)) storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
     }
   },
 
@@ -81,32 +193,41 @@ export const dataService = {
     storageService.set(KEYS.HISTORY, db.history || []);
     storageService.set(KEYS.APPLICANTS, db.applicants || []);
     storageService.set(KEYS.INTERVIEWS, db.interviews || []);
+    storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
     storageService.set(KEYS.INITIALIZED, true);
   },
 
   // ----------------------------------------------------
-  // GESTIÓN DE SESIÓN Y AUTENTICACIÓN
+  // GESTIÓN DE SESIÓN Y AUTENTICACIÓN MULTI-ROL
   // ----------------------------------------------------
   getSession() {
     return storageService.get(KEYS.AUTH, null);
+  },
+
+  getSystemUsers() {
+    return SYSTEM_USERS;
   },
 
   login(identifier, password) {
     const cleanId = (identifier || '').trim().toLowerCase();
     const cleanPass = (password || '').trim();
 
-    // Acepta 'admin@constructa.com' o 'admin' con claves 'admin' o 'admin123'
-    if (
-      (cleanId === 'admin@constructa.com' || cleanId === 'admin') &&
-      (cleanPass === 'admin' || cleanPass === 'admin123')
-    ) {
-      const sessionData = {
-        usuario: DEFAULT_ADMIN,
-        fechaInicio: new Date().toISOString(),
-        activo: true,
-      };
-      storageService.set(KEYS.AUTH, sessionData);
-      return { ok: true, usuario: DEFAULT_ADMIN };
+    // Buscar coincidencia en la lista de usuarios del sistema
+    const matchedUser = SYSTEM_USERS.find(
+      (u) => u.email.toLowerCase() === cleanId || u.usuario.toLowerCase() === cleanId
+    );
+
+    if (matchedUser) {
+      const validPasswords = [matchedUser.clave, `${matchedUser.usuario}123`, 'admin123', 'admin'];
+      if (validPasswords.includes(cleanPass)) {
+        const sessionData = {
+          usuario: matchedUser,
+          fechaInicio: new Date().toISOString(),
+          activo: true,
+        };
+        storageService.set(KEYS.AUTH, sessionData);
+        return { ok: true, usuario: matchedUser };
+      }
     }
 
     return {
@@ -862,16 +983,15 @@ export const dataService = {
     const startMin = this.timeToMinutes(horaInicio);
     const endMin = this.timeToMinutes(horaFin);
 
+    // 1. Verificar solapamiento con entrevistas existentes
     const interviews = this.getInterviews();
-    const sameDay = interviews.filter(
+    const sameDayInterviews = interviews.filter(
       (i) => i.fecha === fecha && i.id !== excludeId && i.estado !== 'Cancelada'
     );
 
-    for (const existing of sameDay) {
+    for (const existing of sameDayInterviews) {
       const existStart = this.timeToMinutes(existing.horaInicio);
       const existEnd = this.timeToMinutes(existing.horaFin);
-
-      // Verificación de solapamiento de intervalos
       const overlaps = startMin < existEnd && endMin > existStart;
 
       if (overlaps) {
@@ -879,7 +999,7 @@ export const dataService = {
           return {
             conflict: true,
             type: 'candidate',
-            message: `El postulante ya tiene una entrevista programada en ese horario (${existing.horaInicio} a ${existing.horaFin}). Selecciona otro horario.`,
+            message: `El candidato ya cuenta con una cita programada para este horario (${existing.horaInicio} a ${existing.horaFin}). Selecciona otro horario.`,
             existing,
           };
         }
@@ -887,19 +1007,174 @@ export const dataService = {
         if (
           entrevistador &&
           existing.entrevistador &&
-          existing.entrevistador.trim().toLowerCase() === entrevistador.trim().toLowerCase()
+          (existing.entrevistador.trim().toLowerCase().includes(entrevistador.trim().toLowerCase()) ||
+           entrevistador.trim().toLowerCase().includes(existing.entrevistador.trim().toLowerCase()))
         ) {
           return {
             conflict: true,
             type: 'interviewer',
-            message: `El entrevistador seleccionado (${entrevistador}) ya tiene una entrevista programada de ${existing.horaInicio} a ${existing.horaFin}. Selecciona otro horario o cambia de entrevistador.`,
+            message: `Horario no disponible. El entrevistador ya tiene una actividad programada para este horario (Entrevista técnica de ${existing.horaInicio} a ${existing.horaFin}).`,
             existing,
           };
         }
       }
     }
 
+    // 2. Verificar solapamiento con actividades de agenda (reuniones de obra, visitas técnicas)
+    const agendaList = this.getAgendaActivities();
+    const sameDayAgenda = agendaList.filter(
+      (a) => a.fecha === fecha && a.id !== excludeId && a.estado !== 'Cancelada'
+    );
+
+    for (const act of sameDayAgenda) {
+      const actStart = this.timeToMinutes(act.horaInicio);
+      const actEnd = this.timeToMinutes(act.horaFin);
+      const overlaps = startMin < actEnd && endMin > actStart;
+
+      if (overlaps) {
+        if (
+          entrevistador &&
+          act.responsable &&
+          (act.responsable.trim().toLowerCase().includes(entrevistador.trim().toLowerCase()) ||
+           entrevistador.trim().toLowerCase().includes(act.responsable.trim().toLowerCase()))
+        ) {
+          return {
+            conflict: true,
+            type: 'interviewer',
+            message: `Horario no disponible. El entrevistador ya tiene una actividad programada para este horario (${act.tipo}: "${act.titulo}" de ${act.horaInicio} a ${act.horaFin}).`,
+            existing: act,
+          };
+        }
+      }
+    }
+
     return { conflict: false };
+  },
+
+  // ----------------------------------------------------
+  // GESTIÓN DE AGENDA CENTRALIZADA Y ACTIVIDADES
+  // ----------------------------------------------------
+  getAgendaActivities() {
+    return storageService.get(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
+  },
+
+  saveAgendaActivity(activityData) {
+    const list = this.getAgendaActivities();
+    const horaFin = activityData.horaFin || this.calculateEndTime(activityData.horaInicio, activityData.duracionMinutos || 60);
+
+    let updated;
+    if (!activityData.id) {
+      const newId = generateNextId(list, 'ACT');
+      const newActivity = {
+        ...activityData,
+        id: newId,
+        horaFin,
+        duracionMinutos: Number(activityData.duracionMinutos) || 60,
+        estado: activityData.estado || 'Programada',
+      };
+      updated = [newActivity, ...list];
+      this.addHistoryEntry(
+        'Actividad de Agenda Creada',
+        `${newActivity.tipo}: ${newActivity.titulo} (${newActivity.responsable})`,
+        newActivity.proyectoId
+      );
+    } else {
+      updated = list.map((a) => (a.id === activityData.id ? { ...a, ...activityData, horaFin } : a));
+      this.addHistoryEntry(
+        'Actividad de Agenda Actualizada',
+        `Actualización en agenda: ${activityData.titulo}`,
+        activityData.proyectoId
+      );
+    }
+
+    storageService.set(KEYS.AGENDA, updated);
+    return updated;
+  },
+
+  deleteAgendaActivity(id) {
+    const list = this.getAgendaActivities();
+    const target = list.find((a) => a.id === id);
+    const updated = list.filter((a) => a.id !== id);
+    storageService.set(KEYS.AGENDA, updated);
+    if (target) {
+      this.addHistoryEntry('Actividad de Agenda Retirada', `Retiro de agenda: ${target.titulo}`);
+    }
+    return updated;
+  },
+
+  getUnifiedAgenda({ fecha = null, tipo = 'ALL', responsable = 'ALL' } = {}) {
+    const interviews = this.getInterviews();
+    const activities = this.getAgendaActivities();
+    const schedule = this.getSchedule();
+
+    const unified = [];
+
+    // 1. Integración de entrevistas activas
+    interviews.forEach((inv) => {
+      unified.push({
+        id: inv.id,
+        titulo: `Entrevista: ${inv.postulanteNombre} (${inv.puesto})`,
+        tipo: 'Entrevistas',
+        fecha: inv.fecha,
+        horaInicio: inv.horaInicio,
+        horaFin: inv.horaFin || this.calculateEndTime(inv.horaInicio, inv.duracionMinutos || 45),
+        duracionMinutos: inv.duracionMinutos || 45,
+        responsable: inv.entrevistador,
+        proyectoId: null,
+        proyectoNombre: 'Selección y Reclutamiento',
+        ubicacion: inv.tipo,
+        estado: inv.estado,
+        descripcion: inv.observaciones || 'Entrevista laboral coordinada por RRHH',
+        resultado: inv.resultado,
+        evaluacion: inv.evaluacion,
+        source: 'interview',
+        raw: inv,
+      });
+    });
+
+    // 2. Actividades de agenda (reuniones, visitas de obra, coordinación)
+    activities.forEach((act) => {
+      unified.push({
+        ...act,
+        source: 'agenda',
+      });
+    });
+
+    // 3. Actividades del cronograma de proyectos (hitos clave de obra)
+    schedule.forEach((task) => {
+      unified.push({
+        id: `SCH-${task.id}`,
+        titulo: `Hito de Obra: ${task.actividad}`,
+        tipo: 'Proyectos',
+        fecha: task.fechaInicio,
+        horaInicio: '08:00',
+        horaFin: '17:00',
+        duracionMinutos: 540,
+        responsable: task.responsable,
+        proyectoId: task.proyectoId,
+        proyectoNombre: task.proyectoNombre || `Proyecto ${task.proyectoId}`,
+        ubicacion: 'Frente de Obra',
+        estado: task.estado,
+        descripcion: `Avance físico: ${task.avance}%. Hito programado en cronograma general.`,
+        source: 'schedule',
+        raw: task,
+      });
+    });
+
+    // Filtrar y ordenar cronológicamente
+    return unified
+      .filter((item) => {
+        const matchesDate = !fecha || item.fecha === fecha;
+        const matchesType = tipo === 'ALL' || item.tipo === tipo;
+        const matchesResponsable =
+          responsable === 'ALL' ||
+          (item.responsable && item.responsable.toLowerCase().includes(responsable.toLowerCase()));
+        return matchesDate && matchesType && matchesResponsable;
+      })
+      .sort((a, b) => {
+        if (a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha);
+        return (a.horaInicio || '').localeCompare(b.horaInicio || '');
+      });
   },
 
   getInterviews() {
@@ -1204,6 +1479,7 @@ export const dataService = {
     const expenses = this.getExpenses();
     const applicants = this.getApplicants();
     const interviews = this.getInterviews();
+    const agendaActivities = this.getAgendaActivities();
 
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1219,6 +1495,12 @@ export const dataService = {
     const todayInterviews = interviews.filter(
       (i) => i.fecha === todayStr && i.estado !== 'Cancelada'
     ).length;
+
+    // Métricas de Agenda Operativa
+    const todayAgendaCount = agendaActivities.filter(
+      (a) => a.fecha === todayStr && a.estado !== 'Cancelada'
+    ).length;
+    const totalTodayCommitments = todayInterviews + todayAgendaCount;
 
     // Presupuestos y Gastos
     const totalBudget = projects.reduce((acc, p) => acc + (Number(p.presupuesto) || 0), 0);
@@ -1327,6 +1609,8 @@ export const dataService = {
       selectedApplicants,
       upcomingInterviews,
       todayInterviews,
+      todayAgendaCount,
+      totalTodayCommitments,
     };
   },
 

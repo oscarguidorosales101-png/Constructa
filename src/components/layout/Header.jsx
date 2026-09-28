@@ -43,14 +43,49 @@ const ROUTE_INFO = {
     title: 'Reportes y Estadísticas',
     description: 'Análisis detallado de rendimiento operativo, costos y movimientos',
   },
+  postulantes: {
+    title: 'Candidatos y Selección',
+    description: 'Gestión de postulaciones, perfiles laborales y estado de contratación',
+  },
+  entrevistas: {
+    title: 'Gestión de Entrevistas',
+    description: 'Coordinación de entrevistas laborales, evaluaciones y control de horarios',
+  },
+  agenda: {
+    title: 'Agenda Central de Actividades',
+    description: 'Reuniones de obra, visitas técnicas, entrevistas y compromisos integrados',
+  },
 };
 
 export const Header = ({ currentRoute, onToggleMobileMenu }) => {
   const { currentUser } = useConstructa();
-  const info = ROUTE_INFO[currentRoute] || {
+  
+  let routeMeta = ROUTE_INFO[currentRoute] || {
     title: 'CONSTRUCTA',
     description: 'Sistema de Gestión para Empresa Constructora',
   };
+
+  // Personalización del título del Dashboard según el rol del usuario conectado
+  if (currentRoute === 'dashboard') {
+    if (currentUser?.rol === 'Gerente de Construcción') {
+      routeMeta = {
+        title: 'Panel Operativo de Obras',
+        description: 'Supervisión de proyectos en ejecución, cuadrillas de campo, inventario y agenda operativa',
+      };
+    } else if (currentUser?.rol === 'RRHH / Reclutamiento') {
+      routeMeta = {
+        title: 'Panel de Talento y Selección',
+        description: 'Control de candidatos, citas de entrevistas laborales y nómina de personal',
+      };
+    } else {
+      routeMeta = {
+        title: 'Panel Principal Corporativo',
+        description: 'Resumen ejecutivo de obras, presupuestos autorizados, personal y almacén general',
+      };
+    }
+  }
+
+  const info = routeMeta;
 
   // Fecha actual en español corporativo
   const todayStr = new Date().toLocaleDateString('es-MX', {

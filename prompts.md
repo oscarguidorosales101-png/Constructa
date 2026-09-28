@@ -10,6 +10,7 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
 2. [Prompt 2: Solicitud de Diagnóstico y Resumen de Errores](#2-prompt-2--solicitud-de-diagnóstico-y-resumen-de-errores)
 3. [Prompt 3: Fase de Pulido Visual, Responsive y Experiencia de Usuario](#3-prompt-3--fase-de-pulido-visual-responsive-y-experiencia-de-usuario)
 4. [Prompt 4: Consolidación y Documentación Histórica en `prompts.md`](#4-prompt-4--consolidación-y-documentación-histórica)
+5. [Prompt 5: Ampliación Profesional del Sistema Existente (Roles, Migración de Entrevistas, Agenda y Disponibilidad)](#5-prompt-5--ampliación-profesional-del-sistema-existente)
 
 ---
 
@@ -141,14 +142,83 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
 
 ---
 
+4. [Prompt 4: Consolidación y Documentación Histórica en `prompts.md`](#4-prompt-4--consolidación-y-documentación-histórica)
+5. [Prompt 5: Ampliación Profesional del Sistema Existente (Roles, Migración de Entrevistas, Agenda y Disponibilidad)](#5-prompt-5--ampliación-profesional-del-sistema-existente)
+
+---
+
 ## 4. Prompt 4 — Consolidación y Documentación Histórica
 
-* **Fecha de emisión:** Actual.
+* **Fecha de emisión:** Intermedia.
 * **Instrucción textual del usuario:** *"quiero que metas el resumen de cada prompt de la parte importante en el md, no toques codigo. Solo mete la informacion en el archivo llamado prompts.md (que sea la informacion importante)"*.
 * **Restricciones:**
   * **No tocar código fuente** (`.jsx`, `.js`, `.css`, etc.).
   * Concentrar toda la información esencial, reglas y arquitectura en el archivo [`prompts.md`](file:///c:/Users/Foward/Desktop/ProyectoFinal-fronted/Constructa/prompts.md).
-* **Resultado:** Creación de este compendio maestro que centraliza los lineamientos de los cuatro prompts recibidos, sirviendo como guía de referencia del sistema CONSTRUCTA.
+* **Resultado:** Creación del compendio maestro que centraliza los lineamientos de los prompts recibidos.
+
+---
+
+## 5. Prompt 5 — Ampliación Profesional del Sistema Existente
+
+* **Fecha de emisión:** Fase de Ampliación y Maduración Arquitectónica.
+* **Premisa crítica:** **EXTENDER SIN ROMPER**. No reconstruir desde cero, no eliminar los 62 colaboradores, los 22 materiales ni sus imágenes 3D, no alterar presupuestos ni cálculos financieros. Reutilizar antes de duplicar, migrar antes de eliminar.
+
+### 5.1. Organización de Roles y Usuarios Autorizados
+* **Regla estricta:** Diferenciar claramente **Empleado** (registro laboral de campo) vs **Usuario** (persona autorizada para acceder al sistema). Cero creación de cuentas para los 60+ colaboradores de obra.
+* **Los 3 Roles y Cuentas Principales:**
+  1. **Administrador (`admin@constructa.com` / `admin123`):**
+     * Dirección General de Operaciones (Ing. Fernando Mendoza).
+     * Gestión ejecutiva global: Proyectos, Empleados, Almacén, Proveedores, Presupuestos, Gastos, Cronograma, Avance, Reportes y Agenda.
+     * Retiro de la administración directa de entrevistas tras la migración a RRHH.
+  2. **Gerente de Construcción (`gerente@constructa.com` / `gerente123`):**
+     * Gerente de Construcción y Operaciones (Ing. Carlos Mendoza Rivas).
+     * Gestión operativa: Proyectos en ejecución, Avance de obra, Cuadrillas y horarios, Materiales y stock crítico, Proveedores, Gastos de proyectos, Cronograma y Agenda operativa.
+     * Sin acceso a presupuestos financieros globales ni administración de usuarios/entrevistas. Puede participar como entrevistador técnico.
+  3. **RRHH / Reclutamiento (`rrhh@constructa.com` / `rrhh123`):**
+     * Coordinadora de Talento y Selección (Lic. Mariana Morales Solís).
+     * Gestión de talento: Candidatos (postulantes), procesos de selección, Entrevistas laborales, Agenda de citas, consulta de plantilla y conversión de candidatos seleccionados a empleados.
+     * Sin acceso a finanzas, compras, materiales ni cronogramas de obra.
+
+### 5.2. Migración de la Funcionalidad de Entrevistas (Pasos 1 al 8)
+1. **Paso 1:** Localización de la funcionalidad original en el sistema (`src/pages/Interviews/`).
+2. **Paso 2:** Creación y configuración del rol RRHH / Reclutamiento.
+3. **Paso 3:** Habilitación del acceso exclusivo de RRHH a Entrevistas y Candidatos.
+4. **Paso 4:** Reutilización y conexión de componentes existentes (`ScheduleInterviewModal`, `InterviewResultModal`, etc.).
+5. **Paso 5:** Verificación de capacidades de RRHH: programar, reprogramar, cancelar, registrar resultados y evaluar.
+6. **Paso 6:** Validación de que el Administrador y el resto del sistema continúan funcionando al 100%.
+7. **Paso 7:** Retiro de "Entrevistas" y "Candidatos" del menú y navegación del Administrador.
+8. **Paso 8:** Comprobación definitiva: Administrador ya no administra directamente entrevistas; RRHH sí las administra. Cero duplicidad entre ambos roles.
+
+### 5.3. Agenda Central Unificada (`#agenda`)
+* Calendario y agenda centralizada que consolida cuatro fuentes en una sola vista:
+  * **Entrevistas Laborales** (programadas por RRHH con candidato, hora y entrevistador).
+  * **Reuniones de Obra** (coordinación de contratistas, comités de obra).
+  * **Visitas Técnicas** (inspecciones estructurales, seguridad ambiental).
+  * **Hitos de Proyecto** (fechas clave sincronizadas con el cronograma).
+* Filtros paramétricos: `Todas`, `Entrevistas`, `Proyectos`, `Reuniones`, `Visitas`.
+* Vistas por línea de tiempo cronológica y tarjetas ejecutivas.
+* Registro de nuevas reuniones y visitas con validación de solapamiento de horarios.
+
+### 5.4. Control de Disponibilidad y Detección de Conflictos
+* Comprobación reactiva y cruzada antes de agendar o reprogramar cualquier entrevista o reunión.
+* Si el entrevistador (ej. Ing. Carlos Mendoza) tiene ya asignada una reunión a las 09:00, una entrevista a las 10:00 o una visita a las 11:00, el sistema bloquea el horario y muestra un mensaje claro y comprensible:
+  > *"Horario no disponible. El entrevistador ya tiene una actividad programada para este horario."*
+
+### 5.5. Flujo de Contratación: Candidato Seleccionado → Empleado
+* Cuando un candidato es dictaminado como favorable o seleccionado, se habilita la acción *"Contratar y Dar de Alta como Empleado"*.
+* Se precargan automáticamente sus datos (nombre, DNI, teléfono, correo, puesto solicitado) y se completan las condiciones laborales (fecha de ingreso, jornada, horario, proyecto asignado y salario).
+* Se da de alta en la nómina de personal (`employees`) sin alterar ni borrar a los 62 colaboradores iniciales, vinculando el ID en el expediente de selección.
+
+### 5.6. Dashboards Adaptativos por Rol
+* **Administrador:** Panel Corporativo con 8 KPIs, gráficos de balances y gastos, historial de operaciones y accesos rápidos globales.
+* **Gerente de Construcción:** Panel Operativo con 7 KPIs de campo, alertas de stock bajo, sección "Mi Agenda Operativa y Entrevistas Asignadas" y gráficos de avance físico.
+* **RRHH / Reclutamiento:** Panel de Talento con 6 KPIs de selección, widgets de "Próximas Citas de Entrevista" y "Candidatos en Proceso".
+
+### 5.7. Control de Acceso Paramétrico (401, 403, 404)
+* Implementación de [`src/utils/permissions.js`](file:///c:/Users/Foward/Desktop/ProyectoFinal-fronted/Constructa/src/utils/permissions.js) con matriz estricta por rol.
+* **401:** Acceso no autenticado a cualquier sección privada.
+* **403:** Usuario autenticado intentando acceder a una sección fuera de sus permisos (ej. Admin entrando a `#entrevistas`, Gerente entrando a `#presupuestos`, o RRHH entrando a `#materiales`).
+* **404:** Rutas inexistentes.
 
 ---
 
