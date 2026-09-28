@@ -134,7 +134,7 @@ export default function OrderReceptionModal({
             border: '1px solid rgba(56, 189, 248, 0.3)',
             borderRadius: 'var(--radius-sm)',
             padding: '10px 14px',
-            marginBottom: '18px',
+            marginBottom: '16px',
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
@@ -148,45 +148,95 @@ export default function OrderReceptionModal({
           </span>
         </div>
 
-        {/* Tabla Comparativa: Pedido vs Recibido (Requisito 11) */}
-        <div style={{ marginBottom: '20px' }}>
-          <label className="constructa-label">
-            Comparativa de Insumos: Cantidad Pedida vs Cantidad Realmente Recibida *
-          </label>
+        {/* Resumen Comparativo Visual: Solicitado vs Recibido vs Faltante (Requisito 18) */}
+        <div className="reception-comparison-grid">
+          <div className="constructa-card" style={{ padding: '12px 14px', borderLeft: '3px solid var(--color-gold)' }}>
+            <div style={{ fontSize: '0.74rem', color: 'var(--color-gold)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Total Solicitado
+            </div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>
+              {receivedItems.reduce((acc, it) => acc + (Number(it.cantidadPedida) || 0), 0)}{' '}
+              <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>unidades</span>
+            </div>
+          </div>
+
+          <div className="constructa-card" style={{ padding: '12px 14px', borderLeft: '3px solid var(--color-emerald)' }}>
+            <div style={{ fontSize: '0.74rem', color: 'var(--color-emerald)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Total Recibido
+            </div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '2px' }}>
+              {receivedItems.reduce((acc, it) => acc + (Number(it.cantidadRecibida) || 0), 0)}{' '}
+              <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>unidades</span>
+            </div>
+          </div>
 
           <div
+            className="constructa-card"
             style={{
-              background: 'rgba(0, 0, 0, 0.25)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-sm)',
-              overflowX: 'auto',
+              padding: '12px 14px',
+              borderLeft: `3px solid ${
+                receivedItems.some((it) => it.cantidadRecibida < it.cantidadPedida) ? 'var(--color-rose)' : 'var(--color-text-muted)'
+              }`,
             }}
           >
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div
+              style={{
+                fontSize: '0.74rem',
+                color: receivedItems.some((it) => it.cantidadRecibida < it.cantidadPedida) ? 'var(--color-rose)' : 'var(--color-text-muted)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+              }}
+            >
+              Total Faltante
+            </div>
+            <div
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                color: receivedItems.some((it) => it.cantidadRecibida < it.cantidadPedida) ? 'var(--color-rose)' : 'var(--color-text-muted)',
+                marginTop: '2px',
+              }}
+            >
+              {receivedItems.reduce((acc, it) => acc + Math.max(0, (Number(it.cantidadPedida) || 0) - (Number(it.cantidadRecibida) || 0)), 0)}{' '}
+              <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>unidades</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabla Comparativa: Solicitado vs Recibido vs Faltante (Requisito 18) */}
+        <div style={{ marginBottom: '20px' }}>
+          <label className="constructa-label">
+            Comparativa de Insumos: Cantidad Solicitada vs Cantidad Recibida vs Faltante *
+          </label>
+
+          <div className="constructa-table-container">
+            <table className="constructa-table" style={{ minWidth: '580px' }}>
               <thead>
-                <tr style={{ background: 'rgba(255, 255, 255, 0.03)', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: '10px 12px' }}>Material</th>
-                  <th style={{ padding: '10px 12px', width: '120px' }}>Cantidad Pedida</th>
-                  <th style={{ padding: '10px 12px', width: '150px' }}>Cantidad Recibida</th>
-                  <th style={{ padding: '10px 12px', width: '100px' }}>Unidad</th>
-                  <th style={{ padding: '10px 12px', width: '110px' }}>Estatus</th>
+                <tr>
+                  <th>Material / Insumo</th>
+                  <th style={{ width: '110px' }}>Solicitado</th>
+                  <th style={{ width: '130px' }}>Recibido</th>
+                  <th style={{ width: '110px' }}>Faltante</th>
+                  <th style={{ width: '120px' }}>Estado</th>
                 </tr>
               </thead>
               <tbody>
                 {receivedItems.map((it) => {
-                  const isItemPartial = it.cantidadRecibida < it.cantidadPedida;
-                  const isItemExact = it.cantidadRecibida === it.cantidadPedida;
-                  const isItemExcess = it.cantidadRecibida > it.cantidadPedida;
+                  const diff = it.cantidadPedida - it.cantidadRecibida;
+                  const isItemPartial = diff > 0;
+                  const isItemExact = diff === 0;
+                  const isItemExcess = diff < 0;
 
                   return (
-                    <tr key={it.materialId} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 500, color: '#ffffff' }}>
-                        {it.materialNombre}
+                    <tr key={it.materialId}>
+                      <td style={{ fontWeight: 500, color: '#ffffff' }}>
+                        <div>{it.materialNombre}</div>
+                        <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>Unidad: {it.unidad}</div>
                       </td>
-                      <td style={{ padding: '10px 12px', color: 'var(--color-text-secondary)' }}>
-                        {it.cantidadPedida}
+                      <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>
+                        {it.cantidadPedida} {it.unidad}
                       </td>
-                      <td style={{ padding: '10px 12px' }}>
+                      <td>
                         <input
                           type="number"
                           min="0"
@@ -195,6 +245,7 @@ export default function OrderReceptionModal({
                           style={{
                             padding: '6px 10px',
                             fontWeight: 700,
+                            maxWidth: '110px',
                             borderColor: isItemPartial ? 'var(--color-rose)' : isItemExact ? 'var(--color-emerald)' : 'var(--color-cyan)',
                           }}
                           value={it.cantidadRecibida}
@@ -202,24 +253,30 @@ export default function OrderReceptionModal({
                           required
                         />
                       </td>
-                      <td style={{ padding: '10px 12px', color: 'var(--color-text-muted)' }}>
-                        {it.unidad}
-                      </td>
-                      <td style={{ padding: '10px 12px' }}>
-                        {isItemExact && (
-                          <span style={{ color: 'var(--color-emerald)', fontSize: '0.8rem', fontWeight: 600 }}>
-                            Completa
+                      <td>
+                        {isItemPartial ? (
+                          <span style={{ color: 'var(--color-rose)', fontWeight: 600 }}>
+                            -{diff} {it.unidad}
                           </span>
+                        ) : isItemExcess ? (
+                          <span style={{ color: 'var(--color-cyan)', fontWeight: 600 }}>
+                            +{Math.abs(diff)} {it.unidad}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--color-emerald)', fontWeight: 500 }}>
+                            0 (Conforme)
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {isItemExact && (
+                          <Badge variant="success">Completa</Badge>
                         )}
                         {isItemPartial && (
-                          <span style={{ color: 'var(--color-rose)', fontSize: '0.8rem', fontWeight: 600 }}>
-                            Faltante (-{it.cantidadPedida - it.cantidadRecibida})
-                          </span>
+                          <Badge variant="warning">Parcial</Badge>
                         )}
                         {isItemExcess && (
-                          <span style={{ color: 'var(--color-cyan)', fontSize: '0.8rem', fontWeight: 600 }}>
-                            Exceso (+{it.cantidadRecibida - it.cantidadPedida})
-                          </span>
+                          <Badge variant="info">Excedente</Badge>
                         )}
                       </td>
                     </tr>
@@ -238,7 +295,7 @@ export default function OrderReceptionModal({
             </label>
           </div>
 
-          {/* Formulario rápido para añadir incidencia */}
+          {/* Formulario rápido para añadir incidencia adaptativo */}
           <div
             style={{
               padding: '12px',
@@ -246,14 +303,15 @@ export default function OrderReceptionModal({
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-sm)',
               marginBottom: '10px',
-              display: 'grid',
-              gridTemplateColumns: '150px 1fr 100px auto',
+              display: 'flex',
+              flexWrap: 'wrap',
               gap: '10px',
               alignItems: 'center',
             }}
           >
             <select
               className="constructa-input"
+              style={{ flex: '1 1 140px' }}
               value={newIncidentType}
               onChange={(e) => setNewIncidentType(e.target.value)}
             >
@@ -268,6 +326,7 @@ export default function OrderReceptionModal({
             <input
               type="text"
               className="constructa-input"
+              style={{ flex: '2 1 200px' }}
               placeholder="Descripción del incidente (ej. 2 sacos con rotura por maniobra)..."
               value={newIncidentDesc}
               onChange={(e) => setNewIncidentDesc(e.target.value)}
@@ -276,6 +335,7 @@ export default function OrderReceptionModal({
             <input
               type="number"
               className="constructa-input"
+              style={{ flex: '1 1 90px', maxWidth: '120px' }}
               placeholder="Cant. afect."
               value={newIncidentQty}
               onChange={(e) => setNewIncidentQty(e.target.value)}
@@ -337,8 +397,8 @@ export default function OrderReceptionModal({
           )}
         </div>
 
-        {/* Responsable de Bodega y Notas */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {/* Responsable de Bodega y Notas en cuadrícula responsive */}
+        <div className="form-grid-2">
           <div className="constructa-form-group">
             <label className="constructa-label">Responsable de Recepción en Obra *</label>
             <input

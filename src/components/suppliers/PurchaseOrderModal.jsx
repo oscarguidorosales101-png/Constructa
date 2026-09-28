@@ -232,7 +232,7 @@ export default function PurchaseOrderModal({
           <BackButton onClick={onClose} label="← Regresar" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="form-grid-2">
           {/* Proveedor */}
           <div className="constructa-form-group">
             <label className="constructa-label">Proveedor Seleccionado *</label>
@@ -301,7 +301,7 @@ export default function PurchaseOrderModal({
           </div>
 
           {/* Estado Inicial */}
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Estado de la Orden</label>
             <select
               name="estado"
@@ -340,29 +340,22 @@ export default function PurchaseOrderModal({
             </div>
           )}
 
-          <div
-            style={{
-              background: 'rgba(0, 0, 0, 0.25)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-sm)',
-              overflowX: 'auto',
-            }}
-          >
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+          <div className="constructa-table-container">
+            <table className="constructa-table" style={{ fontSize: '0.85rem' }}>
               <thead>
-                <tr style={{ background: 'rgba(255, 255, 255, 0.03)', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: '10px 12px' }}>Material</th>
-                  <th style={{ padding: '10px 12px', width: '100px' }}>Cantidad</th>
-                  <th style={{ padding: '10px 12px', width: '90px' }}>Unidad</th>
-                  <th style={{ padding: '10px 12px', width: '110px' }}>Precio U.</th>
-                  <th style={{ padding: '10px 12px', width: '110px' }}>Subtotal</th>
-                  <th style={{ padding: '10px 12px', width: '40px' }}></th>
+                <tr>
+                  <th style={{ minWidth: '180px' }}>Material</th>
+                  <th style={{ width: '90px' }}>Cantidad</th>
+                  <th style={{ width: '80px' }}>Unidad</th>
+                  <th style={{ width: '100px' }}>Precio U.</th>
+                  <th style={{ width: '110px' }}>Subtotal</th>
+                  <th style={{ width: '40px' }}></th>
                 </tr>
               </thead>
               <tbody>
                 {formData.materiales.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                    <td style={{ padding: '8px 12px' }}>
+                  <tr key={idx}>
+                    <td>
                       <select
                         className="constructa-input"
                         style={{ padding: '6px 8px', fontSize: '0.82rem' }}
@@ -376,7 +369,7 @@ export default function PurchaseOrderModal({
                         ))}
                       </select>
                     </td>
-                    <td style={{ padding: '8px 12px' }}>
+                    <td>
                       <input
                         type="number"
                         min="0.1"
@@ -387,10 +380,10 @@ export default function PurchaseOrderModal({
                         onChange={(e) => handleItemChange(idx, 'cantidad', e.target.value)}
                       />
                     </td>
-                    <td style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>
+                    <td style={{ color: 'var(--color-text-muted)' }}>
                       {item.unidad}
                     </td>
-                    <td style={{ padding: '8px 12px' }}>
+                    <td>
                       <input
                         type="number"
                         min="0"
@@ -401,10 +394,10 @@ export default function PurchaseOrderModal({
                         onChange={(e) => handleItemChange(idx, 'precioUnitario', e.target.value)}
                       />
                     </td>
-                    <td style={{ padding: '8px 12px', fontWeight: 600, color: '#ffffff' }}>
+                    <td style={{ fontWeight: 600, color: '#ffffff' }}>
                       ${Number(item.subtotal || 0).toLocaleString('es-MX')}
                     </td>
-                    <td style={{ padding: '8px 12px' }}>
+                    <td>
                       {formData.materiales.length > 1 && (
                         <button
                           type="button"
@@ -442,11 +435,11 @@ export default function PurchaseOrderModal({
               gap: '12px',
             }}
           >
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', flex: '1 1 200px' }}>
               * Se aplica tasa estándar de IVA (16%) para materiales de construcción fiscalmente deducibles.
             </div>
 
-            <div style={{ display: 'flex', gap: '20px', textAlign: 'right' }}>
+            <div style={{ display: 'flex', gap: '20px', textAlign: 'right', flexWrap: 'wrap', alignItems: 'center' }}>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Subtotal</span>
                 <span style={{ fontSize: '0.95rem', color: '#ffffff', fontWeight: 600 }}>

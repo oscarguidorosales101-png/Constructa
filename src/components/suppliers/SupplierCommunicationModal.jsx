@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
+import BackButton from '../common/BackButton';
 import { Phone, Mail, MessageSquare, Users, Copy, Check, Info } from 'lucide-react';
 
 export default function SupplierCommunicationModal({
@@ -98,6 +99,9 @@ export default function SupplierCommunicationModal({
       maxWidth="640px"
     >
       <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '14px' }}>
+          <BackButton onClick={onClose} label="← Regresar" />
+        </div>
         {/* Banner Informativo y Preparación de Contacto */}
         <div
           style={{
@@ -226,7 +230,7 @@ export default function SupplierCommunicationModal({
         </div>
 
         {/* Formulario de Registro de Bitácora */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="form-grid-2">
           <div className="constructa-form-group">
             <label className="constructa-label">Fecha del Contacto *</label>
             <input
@@ -280,7 +284,7 @@ export default function SupplierCommunicationModal({
             )}
           </div>
 
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Motivo de la Comunicación *</label>
             <input
               type="text"
@@ -293,7 +297,7 @@ export default function SupplierCommunicationModal({
             {errors.motivo && <span className="constructa-error-text">{errors.motivo}</span>}
           </div>
 
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Resultado Obtenido *</label>
             <select
               name="resultado"
@@ -313,7 +317,7 @@ export default function SupplierCommunicationModal({
             </select>
           </div>
 
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Observaciones y Acuerdos Registrados</label>
             <textarea
               name="observaciones"

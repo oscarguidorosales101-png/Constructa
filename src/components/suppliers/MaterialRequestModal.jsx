@@ -185,7 +185,7 @@ export default function MaterialRequestModal({
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="form-grid-2">
           {/* Proyecto */}
           <div className="constructa-form-group">
             <label className="constructa-label">Proyecto Destino / Frente de Obra</label>
@@ -220,7 +220,7 @@ export default function MaterialRequestModal({
           </div>
 
           {/* Material */}
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Material Requerido *</label>
             <select
               name="materialId"
@@ -296,7 +296,7 @@ export default function MaterialRequestModal({
           </div>
 
           {/* Proveedor Sugerido */}
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Proveedor Sugerido / Recomendado</label>
             <select
               name="proveedorSugeridoId"
@@ -314,7 +314,7 @@ export default function MaterialRequestModal({
           </div>
 
           {/* Observaciones */}
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Observaciones y Justificación de la Compra</label>
             <textarea
               name="observaciones"

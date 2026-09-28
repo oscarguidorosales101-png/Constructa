@@ -39,7 +39,11 @@ import {
   ExternalLink,
   ShieldCheck,
   Send,
-  Eye
+  Eye,
+  LayoutGrid,
+  Table as TableIcon,
+  Filter,
+  X
 } from 'lucide-react';
 
 export default function Suppliers() {
@@ -82,7 +86,10 @@ export default function Suppliers() {
   // Filtros y búsquedas
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('ALL');
+  const [selectedSupplierStatus, setSelectedSupplierStatus] = useState('ALL');
   const [selectedFilterStatus, setSelectedFilterStatus] = useState('ALL');
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Estados de Modales
   const [supplierModalOpen, setSupplierModalOpen] = useState(false);
@@ -156,10 +163,11 @@ export default function Suppliers() {
 
       const currentSpec = s.especialidad || s.categoria || 'General';
       const matchesSpec = selectedSpecialty === 'ALL' || currentSpec === selectedSpecialty;
+      const matchesStatus = selectedSupplierStatus === 'ALL' || s.estado === selectedSupplierStatus;
 
-      return matchesSearch && matchesSpec;
+      return matchesSearch && matchesSpec && matchesStatus;
     });
-  }, [data.suppliers, data.materials, searchTerm, selectedSpecialty]);
+  }, [data.suppliers, data.materials, searchTerm, selectedSpecialty, selectedSupplierStatus]);
 
   // Solicitudes filtradas
   const filteredRequests = useMemo(() => {
@@ -232,6 +240,17 @@ export default function Suppliers() {
       pendingRequests: requests.filter((r) => r.estado === 'Pendiente' || r.estado === 'En revisión').length,
     };
   }, [purchaseOrders, supplierInvoices, materialRequests]);
+
+  // Limpiar filtros activos
+  const handleClearDirectoryFilters = () => {
+    setSearchTerm('');
+    setSelectedSpecialty('ALL');
+    setSelectedSupplierStatus('ALL');
+  };
+
+  const hasDirectoryFilterActive = Boolean(
+    searchTerm.trim() || selectedSpecialty !== 'ALL' || selectedSupplierStatus !== 'ALL'
+  );
 
   // Handlers para Proveedores
   const handleOpenCreateSupplier = () => {
@@ -324,16 +343,30 @@ export default function Suppliers() {
   // =========================================================================
   return (
     <div className="constructa-page">
-      {/* Header Principal */}
+      {/* Header Principal con Título Claro (Requisito 2) */}
       <div className="constructa-page-header">
         <div>
-          <h1 className="constructa-page-title">Gestión de Abastecimiento & Proveedores</h1>
+          <h1 className="constructa-page-title">
+            {activeTab === 'directorio' ? 'Directorio de Proveedores' :
+             activeTab === 'solicitudes' ? 'Solicitudes de Material' :
+             activeTab === 'ordenes' ? 'Órdenes de Compra & Seguimiento' :
+             activeTab === 'recepcion' ? 'Recepción & Control de Calidad' :
+             'Facturas & Pagos a Proveedores'}
+          </h1>
           <p className="constructa-page-subtitle">
-            Control integral del ciclo de compras: solicitudes de obra, órdenes de compra, seguimiento logístico, recepción de materiales y validación de facturas.
+            {activeTab === 'directorio' 
+              ? 'Punto principal para consultar, evaluar y gestionar alianzas con proveedores comerciales y catálogo de insumos homologados.'
+              : activeTab === 'solicitudes'
+              ? 'Control de requerimientos de obra y gestión de reposición de materiales en frentes constructivos.'
+              : activeTab === 'ordenes'
+              ? 'Emisión de órdenes de compra, control presupuestal y seguimiento del ciclo de entrega.'
+              : activeTab === 'recepcion'
+              ? 'Validación física de existencias en almacén contra pedidos y registro de incidencias.'
+              : 'Validación contable con 3-Way Match y calendarización de pagos a proveedores.'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
           {activeTab === 'directorio' && (
             <Button variant="primary" icon={<Plus size={16} />} onClick={handleOpenCreateSupplier}>
               Nuevo Proveedor
@@ -357,54 +390,54 @@ export default function Suppliers() {
         </div>
       </div>
 
-      {/* KPI Grid de Abastecimiento (Datos reales de compras) */}
+      {/* KPI Grid de Abastecimiento (Datos reales y dimensiones compactas) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px', marginBottom: '22px' }}>
-        <div className="constructa-card" style={{ padding: '16px', cursor: 'pointer' }} onClick={() => setActiveTab('directorio')}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Proveedores Homologados</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => setActiveTab('directorio')}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Proveedores Homologados</div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 700, color: '#ffffff', marginTop: '3px' }}>
             {data.suppliers?.length || 0}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-gold)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-gold)', marginTop: '2px' }}>
             Alianzas comerciales activas
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px', cursor: 'pointer' }} onClick={() => setActiveTab('ordenes')}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Órdenes en Seguimiento</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-cyan)', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => setActiveTab('ordenes')}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Órdenes en Seguimiento</div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 700, color: 'var(--color-cyan)', marginTop: '3px' }}>
             {procurementStats.pendingOrders}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-cyan)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-cyan)', marginTop: '2px' }}>
             {procurementStats.inTransit} pedido(s) en camino
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px', cursor: 'pointer' }} onClick={() => setActiveTab('solicitudes')}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Solicitudes Pendientes</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-amber)', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => setActiveTab('solicitudes')}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Solicitudes Pendientes</div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 700, color: 'var(--color-amber)', marginTop: '3px' }}>
             {procurementStats.pendingRequests}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
             Requerimientos de obra
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px', cursor: 'pointer' }} onClick={() => setActiveTab('recepcion')}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Recepciones Parciales</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: procurementStats.partialDeliveries > 0 ? 'var(--color-rose)' : 'var(--color-emerald)', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => setActiveTab('recepcion')}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Recepciones Parciales</div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 700, color: procurementStats.partialDeliveries > 0 ? 'var(--color-rose)' : 'var(--color-emerald)', marginTop: '3px' }}>
             {procurementStats.partialDeliveries}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
             {procurementStats.partialDeliveries > 0 ? 'Con faltantes reportados' : 'Almacén al día'}
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px', cursor: 'pointer' }} onClick={() => setActiveTab('facturas')}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Pagos Programados</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => setActiveTab('facturas')}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Pagos Programados</div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '3px' }}>
             {procurementStats.scheduledPay}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-gold)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-gold)', marginTop: '2px' }}>
             Compromisos calendarizados
           </div>
         </div>
@@ -453,208 +486,485 @@ export default function Suppliers() {
         ))}
       </div>
 
-      {/* Barra de Filtros y Búsqueda */}
+      {/* Barra de Filtros y Búsqueda Adaptativa (Requisitos 5 y 6) */}
       <div className="constructa-card" style={{ padding: '14px 18px', marginBottom: '22px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', alignItems: 'center' }}>
-          <SearchInput
-            placeholder="Buscar por nombre, código, material, proyecto, folio..."
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Campo de Búsqueda controlado */}
+          <div style={{ flex: '1 1 280px', minWidth: '220px', maxWidth: '460px' }}>
+            <SearchInput
+              placeholder={
+                activeTab === 'directorio'
+                  ? 'Buscar por empresa, contacto, material, teléfono...'
+                  : 'Buscar por folio, proyecto, material...'
+              }
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
+          </div>
 
-          {activeTab === 'directorio' && (
-            <select
-              className="constructa-input"
-              value={selectedSpecialty}
-              onChange={(e) => setSelectedSpecialty(e.target.value)}
-            >
-              <option value="ALL">Todas las Especialidades</option>
-              {specialties.map((spec) => (
-                <option key={spec} value={spec}>{spec}</option>
-              ))}
-            </select>
-          )}
+          {/* Botón Filtros en móvil */}
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {activeTab === 'directorio' && (
+              <Button
+                size="sm"
+                variant="outline"
+                icon={<Filter size={14} />}
+                onClick={() => setShowMobileFilters((prev) => !prev)}
+                className="show-on-mobile"
+                style={{ display: 'none' }}
+              >
+                Filtros {hasDirectoryFilterActive ? '(Activos)' : ''}
+              </Button>
+            )}
 
-          {activeTab === 'solicitudes' && (
-            <select
-              className="constructa-input"
-              value={selectedFilterStatus}
-              onChange={(e) => setSelectedFilterStatus(e.target.value)}
+            {/* Controles de Filtros Desktop / Tablet */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
             >
-              <option value="ALL">Todos los Estados de Solicitud</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="En revisión">En revisión</option>
-              <option value="Aprobada">Aprobada</option>
-              <option value="Convertida en pedido">Convertida en pedido</option>
-              <option value="Rechazada">Rechazada</option>
-            </select>
-          )}
+              {activeTab === 'directorio' && (
+                <>
+                  <select
+                    className="constructa-input"
+                    style={{ width: 'auto', minWidth: '180px' }}
+                    value={selectedSpecialty}
+                    onChange={(e) => setSelectedSpecialty(e.target.value)}
+                  >
+                    <option value="ALL">Todas las Especialidades</option>
+                    {specialties.map((spec) => (
+                      <option key={spec} value={spec}>{spec}</option>
+                    ))}
+                  </select>
 
-          {activeTab === 'ordenes' && (
-            <select
-              className="constructa-input"
-              value={selectedFilterStatus}
-              onChange={(e) => setSelectedFilterStatus(e.target.value)}
-            >
-              <option value="ALL">Todos los Estados de Orden</option>
-              <option value="Borrador">Borrador</option>
-              <option value="Pendiente de aprobación">Pendiente de aprobación</option>
-              <option value="Aprobada">Aprobada</option>
-              <option value="Enviada al proveedor">Enviada al proveedor</option>
-              <option value="Confirmada">Confirmada</option>
-              <option value="Preparando pedido">Preparando pedido</option>
-              <option value="En camino">En camino</option>
-              <option value="Recibida parcialmente">Recibida parcialmente</option>
-              <option value="Entregada">Entregada</option>
-            </select>
-          )}
+                  <select
+                    className="constructa-input"
+                    style={{ width: 'auto', minWidth: '130px' }}
+                    value={selectedSupplierStatus}
+                    onChange={(e) => setSelectedSupplierStatus(e.target.value)}
+                  >
+                    <option value="ALL">Todos los Estados</option>
+                    <option value="Activo">Activo</option>
+                    <option value="En Evaluación">En Evaluación</option>
+                    <option value="Inactivo">Inactivo</option>
+                  </select>
 
-          {activeTab === 'facturas' && (
-            <select
-              className="constructa-input"
-              value={selectedFilterStatus}
-              onChange={(e) => setSelectedFilterStatus(e.target.value)}
-            >
-              <option value="ALL">Todos los Estados de Factura</option>
-              <option value="Pendiente de revisión">Pendiente de revisión</option>
-              <option value="En revisión">En revisión</option>
-              <option value="Aprobada">Aprobada</option>
-              <option value="Programada para pago">Programada para pago</option>
-              <option value="Pagada">Pagada</option>
-              <option value="Rechazada">Rechazada</option>
-            </select>
-          )}
+                  {hasDirectoryFilterActive && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={<X size={13} />}
+                      onClick={handleClearDirectoryFilters}
+                      title="Limpiar filtros"
+                    >
+                      Limpiar filtros
+                    </Button>
+                  )}
+
+                  {/* Toggle Tarjetas / Tabla (Requisito 2) */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      background: '#0e1420',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-medium)',
+                      padding: '2px',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className={`btn-icon ${viewMode === 'cards' ? 'active' : ''}`}
+                      style={{
+                        background: viewMode === 'cards' ? '#25334d' : 'transparent',
+                        color: viewMode === 'cards' ? '#ffffff' : 'var(--text-muted)',
+                        padding: '6px 8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                      }}
+                      onClick={() => setViewMode('cards')}
+                      title="Vista Tarjetas"
+                      aria-label="Vista de tarjetas"
+                    >
+                      <LayoutGrid size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn-icon ${viewMode === 'table' ? 'active' : ''}`}
+                      style={{
+                        background: viewMode === 'table' ? '#25334d' : 'transparent',
+                        color: viewMode === 'table' ? '#ffffff' : 'var(--text-muted)',
+                        padding: '6px 8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                      }}
+                      onClick={() => setViewMode('table')}
+                      title="Vista Tabla"
+                      aria-label="Vista de tabla"
+                    >
+                      <TableIcon size={15} />
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'solicitudes' && (
+                <select
+                  className="constructa-input"
+                  style={{ width: 'auto', minWidth: '180px' }}
+                  value={selectedFilterStatus}
+                  onChange={(e) => setSelectedFilterStatus(e.target.value)}
+                >
+                  <option value="ALL">Todos los Estados de Solicitud</option>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En revisión">En revisión</option>
+                  <option value="Aprobada">Aprobada</option>
+                  <option value="Convertida en pedido">Convertida en pedido</option>
+                  <option value="Rechazada">Rechazada</option>
+                </select>
+              )}
+
+              {activeTab === 'ordenes' && (
+                <select
+                  className="constructa-input"
+                  style={{ width: 'auto', minWidth: '180px' }}
+                  value={selectedFilterStatus}
+                  onChange={(e) => setSelectedFilterStatus(e.target.value)}
+                >
+                  <option value="ALL">Todos los Estados de Orden</option>
+                  <option value="Borrador">Borrador</option>
+                  <option value="Pendiente de aprobación">Pendiente de aprobación</option>
+                  <option value="Aprobada">Aprobada</option>
+                  <option value="Enviada al proveedor">Enviada al proveedor</option>
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Preparando pedido">Preparando pedido</option>
+                  <option value="En camino">En camino</option>
+                  <option value="Recibida parcialmente">Recibida parcialmente</option>
+                  <option value="Entregada">Entregada</option>
+                </select>
+              )}
+
+              {activeTab === 'facturas' && (
+                <select
+                  className="constructa-input"
+                  style={{ width: 'auto', minWidth: '180px' }}
+                  value={selectedFilterStatus}
+                  onChange={(e) => setSelectedFilterStatus(e.target.value)}
+                >
+                  <option value="ALL">Todos los Estados de Factura</option>
+                  <option value="Pendiente de revisión">Pendiente de revisión</option>
+                  <option value="En revisión">En revisión</option>
+                  <option value="Aprobada">Aprobada</option>
+                  <option value="Programada para pago">Programada para pago</option>
+                  <option value="Pagada">Pagada</option>
+                  <option value="Rechazada">Rechazada</option>
+                </select>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* PESTAÑA 1: DIRECTORIO DE PROVEEDORES                                      */}
+      {/* PESTAÑA 1: DIRECTORIO DE PROVEEDORES (Requisitos 2, 3, 4, 7, 9)          */}
       {/* ========================================================================= */}
       {activeTab === 'directorio' && (
         <div>
-          {filteredSuppliers.length === 0 ? (
+          {/* Estado vacío cuando no hay proveedores registrados o búsqueda sin resultados (Requisito 7) */}
+          {(data.suppliers || []).length === 0 ? (
             <EmptyState
-              isSearch={Boolean(searchTerm || selectedSpecialty !== 'ALL')}
-              title="No encontramos proveedores"
-              message="No se encontraron proveedores que coincidan con los criterios de búsqueda."
-              actionText="Limpiar filtros"
-              onAction={() => {
-                setSearchTerm('');
-                setSelectedSpecialty('ALL');
-              }}
+              title="No hay proveedores registrados."
+              message="Agrega tu primer proveedor comercial para vincular insumos, precios de mercado y órdenes de compra."
+              actionText="Nuevo Proveedor"
+              onAction={handleOpenCreateSupplier}
             />
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          ) : filteredSuppliers.length === 0 ? (
+            <EmptyState
+              isSearch={true}
+              title="No encontramos proveedores que coincidan con tu búsqueda."
+              message="Verifica los términos ingresados o limpia los filtros para ver todos los proveedores disponibles."
+              actionText="Limpiar filtros"
+              onAction={handleClearDirectoryFilters}
+            />
+          ) : viewMode === 'cards' ? (
+            /* Vista Cuadrícula con Dimensiones Consistentes (Requisitos 3 y 4) */
+            <div className="supplier-grid">
               {filteredSuppliers.map((sup) => {
-                const matCount = (data.materials || []).filter((m) => m.proveedorId === sup.id).length;
+                const suppliedMaterials = (data.materials || []).filter((m) => m.proveedorId === sup.id);
                 const activeOrdersCount = (purchaseOrders || []).filter(
                   (o) => o.proveedorId === sup.id && !['Entregada', 'Cancelada'].includes(o.estado)
                 ).length;
+                const topMaterials = suppliedMaterials.slice(0, 3);
+                const remainingMaterialsCount = suppliedMaterials.length - topMaterials.length;
 
                 return (
                   <div
                     key={sup.id}
-                    className="constructa-card"
-                    style={{
-                      padding: '20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px',
-                    }}
+                    className="constructa-card supplier-card"
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <h3
-                          style={{
-                            fontSize: '1.05rem',
-                            fontWeight: 600,
-                            color: '#ffffff',
-                            margin: 0,
-                            cursor: 'pointer',
-                          }}
-                          onClick={() => setSelectedSupplierId(sup.id)}
-                        >
-                          {sup.nombre || sup.nombreComercial}
-                        </h3>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--color-gold)', fontWeight: 500, marginTop: '2px' }}>
-                          {sup.especialidad || sup.categoria}
+                    {/* 1. Encabezado con Nombre (Truncado) y Estado */}
+                    <div>
+                      <div className="supplier-card-header">
+                        <div style={{ overflow: 'hidden' }}>
+                          <h3
+                            className="supplier-card-title"
+                            onClick={() => setSelectedSupplierId(sup.id)}
+                            title={sup.nombre || sup.nombreComercial}
+                          >
+                            {sup.nombre || sup.nombreComercial}
+                          </h3>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-gold)', fontWeight: 500, marginTop: '2px' }}>
+                            {sup.especialidad || sup.categoria || 'General'}
+                          </div>
                         </div>
+
+                        <Badge
+                          variant={
+                            sup.estado === 'Activo'
+                              ? 'success'
+                              : sup.estado === 'En Evaluación'
+                              ? 'warning'
+                              : 'neutral'
+                          }
+                        >
+                          {sup.estado}
+                        </Badge>
                       </div>
 
-                      <Badge variant={sup.estado === 'Activo' ? 'success' : 'neutral'}>
-                        {sup.estado}
-                      </Badge>
+                      {/* 2. Persona de Contacto */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '0.84rem', color: 'var(--color-text-secondary)', overflow: 'hidden' }}>
+                        <UserCheck size={14} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+                        <span className="text-truncate" title={sup.contacto}>
+                          <strong>Contacto:</strong> {sup.contacto || 'Sin contacto asignado'}
+                        </span>
+                      </div>
+
+                      {/* 3. Insumos Principales */}
+                      <div style={{ marginTop: '10px' }}>
+                        <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
+                          Insumos Suministrados:
+                        </span>
+                        <div className="supplier-materials-chips">
+                          {topMaterials.length > 0 ? (
+                            <>
+                              {topMaterials.map((m) => (
+                                <span key={m.id} className="supplier-chip" title={m.nombre}>
+                                  {m.nombre}
+                                </span>
+                              ))}
+                              {remainingMaterialsCount > 0 && (
+                                <span className="supplier-chip supplier-chip-more" title={`+${remainingMaterialsCount} insumos más`}>
+                                  +{remainingMaterialsCount} más
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                              Insumos bajo pedido o catálogo general
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
+                    {/* 4. Resumen de Contacto & Parámetros Logísticos */}
                     <div
                       style={{
                         background: 'rgba(0, 0, 0, 0.25)',
-                        padding: '12px 14px',
+                        padding: '10px 12px',
                         borderRadius: 'var(--radius-sm)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                        fontSize: '0.84rem',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr',
+                        gap: '6px',
+                        fontSize: '0.82rem',
                         color: 'var(--color-text-secondary)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <UserCheck size={14} style={{ color: 'var(--color-gold)' }} />
-                        <span><strong>Contacto:</strong> {sup.contacto}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <Phone size={13} style={{ color: 'var(--color-emerald)', flexShrink: 0 }} />
+                        <span className="text-truncate">{sup.telefono || 'Sin teléfono'}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Phone size={14} style={{ color: 'var(--color-emerald)' }} />
-                        <span><strong>Tel:</strong> {sup.telefono}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <Mail size={13} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
+                        <span className="text-truncate" title={sup.email}>{sup.email || 'Sin correo'}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <CreditCard size={14} style={{ color: 'var(--color-gold)' }} />
-                        <span><strong>Condición:</strong> {sup.condicionesPago || 'Crédito 30 días'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <CreditCard size={13} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+                        <span className="text-truncate">Pago: {sup.condicionesPago || 'Crédito 30 días'}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Truck size={14} style={{ color: 'var(--color-cyan)' }} />
-                        <span><strong>Entrega:</strong> {sup.tiempoEntregaEstimado || '48 a 72 hrs'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <Truck size={13} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
+                        <span className="text-truncate">Entrega: {sup.tiempoEntregaEstimado || '48 a 72 hrs'}</span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                        {matCount} insumos • <strong style={{ color: 'var(--color-gold)' }}>{activeOrdersCount} órdenes activas</strong>
+                    {/* 5. Acciones del Directorio (Prioridad a Ver Proveedor y Nuevo Pedido) */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingTop: '10px',
+                        borderTop: '1px solid var(--color-border)',
+                        marginTop: 'auto',
+                      }}
+                    >
+                      <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
+                        <strong style={{ color: activeOrdersCount > 0 ? 'var(--color-gold)' : 'var(--color-text-secondary)' }}>
+                          {activeOrdersCount} {activeOrdersCount === 1 ? 'orden activa' : 'órdenes activas'}
+                        </strong>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '6px' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <Button
                           size="sm"
-                          variant="secondary"
+                          variant="primary"
                           icon={<Eye size={13} />}
                           onClick={() => setSelectedSupplierId(sup.id)}
                         >
-                          Ver Ficha
+                          Ver Proveedor
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          icon={<Phone size={13} />}
-                          onClick={() => handleOpenComm(sup)}
-                        >
-                          Contactar
-                        </Button>
+                          icon={<ShoppingCart size={13} />}
+                          onClick={() => handleOpenCreateOrder(sup)}
+                          title="Nuevo pedido con este proveedor"
+                        />
                         <Button
                           size="sm"
                           variant="outline"
                           icon={<Edit size={13} />}
                           onClick={() => handleOpenEditSupplier(sup)}
+                          title="Editar ficha"
                         />
                         <Button
                           size="sm"
                           variant="danger"
                           icon={<Trash2 size={13} />}
                           onClick={() => handleDeleteSupplier(sup)}
+                          title="Eliminar proveedor"
                         />
                       </div>
                     </div>
                   </div>
                 );
               })}
+            </div>
+          ) : (
+            /* Vista Tabla en Contenedor Controlado (Requisito 2 y 12) */
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: '220px' }}>Proveedor / Razón Social</th>
+                    <th style={{ minWidth: '180px' }}>Contacto</th>
+                    <th style={{ minWidth: '160px' }}>Especialidad</th>
+                    <th style={{ minWidth: '160px' }}>Condiciones & Entrega</th>
+                    <th style={{ width: '100px' }}>Estado</th>
+                    <th style={{ width: '180px', textAlign: 'right' }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSuppliers.map((sup) => {
+                    const suppliedMaterials = (data.materials || []).filter((m) => m.proveedorId === sup.id);
+                    const activeOrdersCount = (purchaseOrders || []).filter(
+                      (o) => o.proveedorId === sup.id && !['Entregada', 'Cancelada'].includes(o.estado)
+                    ).length;
+
+                    return (
+                      <tr key={sup.id}>
+                        <td>
+                          <div
+                            style={{ fontWeight: 600, color: '#ffffff', cursor: 'pointer' }}
+                            onClick={() => setSelectedSupplierId(sup.id)}
+                            title={sup.nombre || sup.nombreComercial}
+                          >
+                            {sup.nombre || sup.nombreComercial}
+                          </div>
+                          {sup.rfc && (
+                            <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
+                              RFC: {sup.rfc}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <div style={{ color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+                            {sup.contacto || 'Sin contacto'}
+                          </div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                            {sup.telefono} {sup.email && `• ${sup.email}`}
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ color: 'var(--color-gold)', fontWeight: 500 }}>
+                            {sup.especialidad || sup.categoria || 'General'}
+                          </div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                            {suppliedMaterials.length} insumos catalogados
+                          </div>
+                        </td>
+                        <td>
+                          <div>{sup.condicionesPago || 'Crédito 30 días'}</div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                            {sup.tiempoEntregaEstimado || '48 a 72 hrs'}
+                          </div>
+                        </td>
+                        <td>
+                          <Badge
+                            variant={
+                              sup.estado === 'Activo'
+                                ? 'success'
+                                : sup.estado === 'En Evaluación'
+                                ? 'warning'
+                                : 'neutral'
+                            }
+                          >
+                            {sup.estado}
+                          </Badge>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              icon={<Eye size={13} />}
+                              onClick={() => setSelectedSupplierId(sup.id)}
+                            >
+                              Ver
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              icon={<ShoppingCart size={13} />}
+                              onClick={() => handleOpenCreateOrder(sup)}
+                              title="Nuevo pedido"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              icon={<Edit size={13} />}
+                              onClick={() => handleOpenEditSupplier(sup)}
+                              title="Editar"
+                            />
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              icon={<Trash2 size={13} />}
+                              onClick={() => handleDeleteSupplier(sup)}
+                              title="Eliminar"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

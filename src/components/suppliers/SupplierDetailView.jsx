@@ -56,6 +56,10 @@ export default function SupplierDetailView({
     return purchaseOrders.filter((o) => o.proveedorId === supplierId);
   }, [purchaseOrders, supplierId]);
 
+  const deliveredOrders = useMemo(() => {
+    return supplierOrders.filter((o) => o.recepcion || o.estado === 'Entregada' || o.estado === 'Recibida parcialmente');
+  }, [supplierOrders]);
+
   const supplierInvoicesList = useMemo(() => {
     return supplierInvoices.filter((f) => f.proveedorId === supplierId);
   }, [supplierInvoices, supplierId]);
@@ -82,10 +86,17 @@ export default function SupplierDetailView({
     return list;
   }, [supplierOrders]);
 
-  // Historial de entregas
-  const deliveredOrders = useMemo(() => {
-    return supplierOrders.filter((o) => o.recepcion || o.estado === 'Entregada' || o.estado === 'Recibida parcialmente');
+  const inTransitCount = useMemo(() => {
+    return supplierOrders.filter((o) => o.estado === 'En camino').length;
   }, [supplierOrders]);
+
+  const scheduledPayments = useMemo(() => {
+    return supplierInvoicesList.filter((f) => f.estado === 'Programada para pago');
+  }, [supplierInvoicesList]);
+
+  const paidInvoices = useMemo(() => {
+    return supplierInvoicesList.filter((f) => f.estado === 'Pagada');
+  }, [supplierInvoicesList]);
 
   if (!supplier) {
     return (
@@ -103,11 +114,11 @@ export default function SupplierDetailView({
 
   return (
     <div className="constructa-page" style={{ paddingBottom: '3rem' }}>
-      {/* Barra de Navegación Superior con Botón Regresar (Requisitos 30 y 33) */}
+      {/* Barra de Navegación Superior con Botón Regresar (Requisito 20) */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-        <BackButton onClick={onBack} label="← Regresar a Proveedores" />
+        <BackButton onClick={onBack} label="← Regresar al Directorio" />
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <Button
             size="sm"
             variant="secondary"
@@ -135,176 +146,206 @@ export default function SupplierDetailView({
         </div>
       </div>
 
-      {/* Ficha Principal de Perfil del Proveedor (Requisitos 1 y 24) */}
-      <div
-        className="constructa-card"
-        style={{
-          padding: '24px',
-          marginBottom: '24px',
-          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(17, 23, 36, 0.95) 100%)',
-          borderLeft: '4px solid var(--color-gold)',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+      {/* Secciones Visualmente Separadas: Información General vs Contacto & Logística (Requisito 10) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+        {/* Sección 1: Información del Proveedor */}
+        <div
+          className="constructa-card"
+          style={{
+            padding: '20px',
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.04) 0%, rgba(17, 23, 36, 0.95) 100%)',
+            borderLeft: '4px solid var(--color-gold)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
-                {supplier.nombre || supplier.nombreComercial}
-              </h1>
-              <Badge variant={supplier.estado === 'Activo' ? 'success' : 'neutral'}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+              <div style={{ overflow: 'hidden' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--color-gold)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Información del Proveedor
+                </span>
+                <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#ffffff', margin: '4px 0 0 0' }}>
+                  {supplier.nombre || supplier.nombreComercial}
+                </h1>
+                <div style={{ fontSize: '0.84rem', color: 'var(--color-gold)', fontWeight: 500, marginTop: '2px' }}>
+                  {supplier.especialidad || supplier.categoria} {supplier.rfc && `• RFC: ${supplier.rfc}`}
+                </div>
+              </div>
+
+              <Badge variant={supplier.estado === 'Activo' ? 'success' : supplier.estado === 'En Evaluación' ? 'warning' : 'neutral'}>
                 {supplier.estado}
               </Badge>
             </div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--color-gold)', fontWeight: 600, marginTop: '4px' }}>
-              {supplier.especialidad || supplier.categoria} {supplier.rfc && `• RFC: ${supplier.rfc}`}
+
+            <div style={{ marginTop: '16px', fontSize: '0.84rem', color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div>
+                <span style={{ color: 'var(--color-text-muted)' }}>Identificación Fiscal:</span>{' '}
+                <strong style={{ color: '#ffffff' }}>{supplier.rfc || supplier.cif || 'No registrada'}</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--color-text-muted)' }}>Categoría Especializada:</span>{' '}
+                <strong style={{ color: '#ffffff' }}>{supplier.especialidad || supplier.categoria || 'General'}</strong>
+              </div>
+              {supplier.observaciones && (
+                <div style={{ marginTop: '4px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', fontStyle: 'italic', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                  "{supplier.observaciones}"
+                </div>
+              )}
             </div>
           </div>
 
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'block' }}>Saldo Pendiente por Pagar</span>
-            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--color-gold)' }}>
+          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Saldo Pendiente:</span>
+            <strong style={{ fontSize: '1.25rem', color: 'var(--color-gold)' }}>
               ${Number(summary?.montoPendiente || 0).toLocaleString('es-MX')}
-            </div>
+            </strong>
           </div>
         </div>
 
-        {/* Rejilla de Parámetros Comerciales y Contacto */}
+        {/* Sección 2: Contacto y Parámetros Comerciales */}
         <div
+          className="constructa-card"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '14px',
-            marginTop: '20px',
-            paddingTop: '16px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-            fontSize: '0.86rem',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <UserCheck size={16} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
-            <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', display: 'block' }}>Contacto Comercial</span>
-              <strong style={{ color: '#ffffff' }}>{supplier.contacto || 'Sin contacto'}</strong>
+          <div>
+            <span style={{ fontSize: '0.74rem', color: 'var(--color-cyan)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Contacto & Logística Comercial
+            </span>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '12px',
+                marginTop: '12px',
+                fontSize: '0.83rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <UserCheck size={15} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+                <div style={{ overflow: 'hidden' }}>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Contacto</span>
+                  <strong style={{ color: '#ffffff' }} className="text-truncate">{supplier.contacto || 'Sin contacto'}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Phone size={15} style={{ color: 'var(--color-emerald)', flexShrink: 0 }} />
+                <div style={{ overflow: 'hidden' }}>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Teléfono</span>
+                  <strong style={{ color: '#ffffff' }} className="text-truncate">{supplier.telefono || 'Sin teléfono'}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Mail size={15} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
+                <div style={{ overflow: 'hidden' }}>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Correo</span>
+                  <strong style={{ color: '#ffffff' }} className="text-truncate" title={supplier.email}>{supplier.email || 'Sin correo'}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <MapPin size={15} style={{ color: 'var(--color-rose)', flexShrink: 0 }} />
+                <div style={{ overflow: 'hidden' }}>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Ubicación</span>
+                  <strong style={{ color: '#ffffff' }} className="text-truncate" title={supplier.direccion}>{supplier.direccion || 'No especificada'}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <CreditCard size={15} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+                <div>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Condición de Pago</span>
+                  <strong style={{ color: '#ffffff' }}>{supplier.condicionesPago || 'Crédito 30 días'}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Truck size={15} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
+                <div>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Tiempo de Entrega</span>
+                  <strong style={{ color: '#ffffff' }}>{supplier.tiempoEntregaEstimado || '48 a 72 hrs'}</strong>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Phone size={16} style={{ color: 'var(--color-emerald)', flexShrink: 0 }} />
-            <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', display: 'block' }}>Teléfono</span>
-              <strong style={{ color: '#ffffff' }}>{supplier.telefono || 'Sin teléfono'}</strong>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Mail size={16} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
-            <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', display: 'block' }}>Correo</span>
-              <strong style={{ color: '#ffffff', wordBreak: 'break-all' }}>{supplier.email || 'Sin correo'}</strong>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <MapPin size={16} style={{ color: 'var(--color-rose)', flexShrink: 0 }} />
-            <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', display: 'block' }}>Dirección / Logística</span>
-              <strong style={{ color: '#ffffff' }}>{supplier.direccion || 'No especificada'}</strong>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <CreditCard size={16} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
-            <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', display: 'block' }}>Condiciones de Pago</span>
-              <strong style={{ color: '#ffffff' }}>{supplier.condicionesPago || 'Crédito 30 días'}</strong>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Truck size={16} style={{ color: 'var(--color-emerald)', flexShrink: 0 }} />
-            <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', display: 'block' }}>Tiempo de Entrega</span>
-              <strong style={{ color: '#ffffff' }}>{supplier.tiempoEntregaEstimado || '48 a 72 horas'}</strong>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Clock size={16} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
-            <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', display: 'block' }}>Horario de Atención</span>
-              <strong style={{ color: '#ffffff' }}>{supplier.horarioAtencion || 'Lunes a Viernes 08:00 - 18:00'}</strong>
-            </div>
+          <div style={{ marginTop: '16px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+            <Clock size={13} style={{ color: 'var(--color-gold)' }} />
+            <span>Horario: {supplier.horarioAtencion || 'Lunes a Viernes 08:00 - 18:00'}</span>
           </div>
         </div>
-
-        {supplier.observaciones && (
-          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', fontSize: '0.84rem', color: 'var(--color-text-secondary)' }}>
-            <strong>Observaciones y Acuerdos:</strong> {supplier.observaciones}
-          </div>
-        )}
       </div>
 
-      {/* Resumen Financiero Dinámico del Proveedor (Requisito 24) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '24px' }}>
-        <div className="constructa-card" style={{ padding: '16px' }}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Pedidos Pendientes</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '4px' }}>
+      {/* Resumen Compacto del Proveedor con KPIs Pequeños y Consistentes (Requisito 11) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '22px' }}>
+        <div className="constructa-card" style={{ padding: '12px 14px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Pedidos Pendientes</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '2px' }}>
             {summary?.pedidosPendientesCount || 0}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-            ${Number(summary?.pedidosPendientesMonto || 0).toLocaleString('es-MX')} en tránsito
+          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+            ${Number(summary?.pedidosPendientesMonto || 0).toLocaleString('es-MX')} pendientes
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px' }}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Pedidos Entregados</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>
-            {summary?.pedidosEntregadosCount || 0}
+        <div className="constructa-card" style={{ padding: '12px 14px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Pedidos en Camino</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-cyan)', marginTop: '2px' }}>
+            {inTransitCount}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-            ${Number(summary?.pedidosEntregadosMonto || 0).toLocaleString('es-MX')} recibidos
+          <div style={{ fontSize: '0.72rem', color: 'var(--color-cyan)', marginTop: '2px' }}>
+            En tránsito hacia obra
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px' }}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Facturas por Pagar</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-rose)', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '12px 14px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Facturas Pendientes</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-rose)', marginTop: '2px' }}>
             {summary?.facturasPendientesCount || 0}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
             ${Number(summary?.facturasPendientesMonto || 0).toLocaleString('es-MX')} por liquidar
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px' }}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Pagos Programados</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-sky)', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '12px 14px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Pagos Programados</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-sky)', marginTop: '2px' }}>
             {summary?.pagosProgramadosCount || 0}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
             ${Number(summary?.pagosProgramadosMonto || 0).toLocaleString('es-MX')} calendarizados
           </div>
         </div>
 
-        <div className="constructa-card" style={{ padding: '16px' }}>
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Pagos Realizados</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>
+        <div className="constructa-card" style={{ padding: '12px 14px' }}>
+          <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Pagos Realizados</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '2px' }}>
             {summary?.pagosRealizadosCount || 0}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
             ${Number(summary?.pagosRealizadosMonto || 0).toLocaleString('es-MX')} liquidados
           </div>
         </div>
       </div>
 
-      {/* Pestañas de Historiales del Proveedor */}
+      {/* Pestañas de Historiales del Proveedor (Requisitos 10 y 12) */}
       <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', borderBottom: '1px solid var(--color-border)', paddingBottom: '8px', marginBottom: '20px' }}>
         {[
           { key: 'pedidos', label: `Historial de Pedidos (${supplierOrders.length})` },
           { key: 'entregas', label: `Entregas y Recepciones (${deliveredOrders.length})` },
-          { key: 'incidencias', label: `Incidencias (${allIncidents.length})` },
-          { key: 'pagos', label: `Facturas y Pagos (${supplierInvoicesList.length})` },
+          { key: 'facturas', label: `Facturas (${supplierInvoicesList.length})` },
+          { key: 'pagos', label: `Pagos & Liquidaciones (${scheduledPayments.length + paidInvoices.length})` },
           { key: 'materiales', label: `Insumos Homologados (${supplierMaterials.length})` },
+          { key: 'incidencias', label: `Incidencias (${allIncidents.length})` },
           { key: 'comunicaciones', label: `Bitácora de Contactos (${supplierComms.length})` },
         ].map((tab) => (
           <button
@@ -329,7 +370,7 @@ export default function SupplierDetailView({
         ))}
       </div>
 
-      {/* Contenido de la Pestaña Activa */}
+      {/* Contenido de la Pestaña Activa con Tablas en Contenedores Controlados (Requisito 12) */}
       {/* 1. PEDIDOS */}
       {activeTab === 'pedidos' && (
         <div>
@@ -341,63 +382,69 @@ export default function SupplierDetailView({
               onAction={() => onOpenOrder(supplier)}
             />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {supplierOrders.map((ord) => (
-                <div
-                  key={ord.id}
-                  className="constructa-card"
-                  style={{
-                    padding: '16px 20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <strong style={{ color: '#ffffff', fontSize: '0.98rem' }}>{ord.numeroOrden}</strong>
-                      <Badge
-                        variant={
-                          ord.estado === 'Entregada'
-                            ? 'success'
-                            : ord.estado === 'Recibida parcialmente'
-                            ? 'warning'
-                            : ord.estado === 'En camino'
-                            ? 'info'
-                            : 'neutral'
-                        }
-                      >
-                        {ord.estado}
-                      </Badge>
-                    </div>
-                    <div style={{ fontSize: '0.84rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                      Proyecto: <strong>{ord.proyectoNombre}</strong> • {ord.materiales?.length || 0} insumos
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                      Emitida: {ord.fechaCreacion} • Entrega prevista: {ord.fechaPrometida || ord.fechaSolicitada}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Importe</span>
-                      <strong style={{ color: 'var(--color-gold)', fontSize: '1.05rem' }}>
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Folio Orden</th>
+                    <th>Proyecto</th>
+                    <th>Insumos</th>
+                    <th>Fecha Emisión</th>
+                    <th>Entrega Prevista</th>
+                    <th style={{ textAlign: 'right' }}>Importe Total</th>
+                    <th>Estado</th>
+                    <th style={{ textAlign: 'right' }}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supplierOrders.map((ord) => (
+                    <tr key={ord.id}>
+                      <td>
+                        <strong style={{ color: '#ffffff' }}>{ord.numeroOrden}</strong>
+                      </td>
+                      <td style={{ color: 'var(--color-text-secondary)' }}>
+                        {ord.proyectoNombre}
+                      </td>
+                      <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', maxWidth: '240px' }} className="text-truncate">
+                        {(ord.materiales || []).map((m) => `${m.materialNombre} (${m.cantidad})`).join(', ')}
+                      </td>
+                      <td>{ord.fechaCreacion}</td>
+                      <td>
+                        <span style={{ color: 'var(--color-gold)', fontWeight: 500 }}>
+                          {ord.fechaPrometida || ord.fechaSolicitada}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-gold)' }}>
                         ${Number(ord.total || 0).toLocaleString('es-MX')}
-                      </strong>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => onOpenOrderTracking(ord)}
-                    >
-                      Ver Seguimiento
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td>
+                        <Badge
+                          variant={
+                            ord.estado === 'Entregada'
+                              ? 'success'
+                              : ord.estado === 'Recibida parcialmente'
+                              ? 'warning'
+                              : ord.estado === 'En camino'
+                              ? 'info'
+                              : 'neutral'
+                          }
+                        >
+                          {ord.estado}
+                        </Badge>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => onOpenOrderTracking(ord)}
+                        >
+                          Seguimiento
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -412,47 +459,222 @@ export default function SupplierDetailView({
               message="No existen recepciones de mercancía asentadas para este proveedor."
             />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {deliveredOrders.map((ord) => (
-                <div key={ord.id} className="constructa-card" style={{ padding: '16px 20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <div>
-                      <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
-                        Recepción Orden {ord.numeroOrden}
-                      </strong>
-                      <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', marginLeft: '8px' }}>
-                        {ord.proyectoNombre}
-                      </span>
-                    </div>
-                    <Badge variant={ord.recepcion?.estadoRecepcion === 'Parcial' ? 'warning' : 'success'}>
-                      Recepción {ord.recepcion?.estadoRecepcion || 'Completa'}
-                    </Badge>
-                  </div>
-
-                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-                    Fecha de recepción en obra: <strong>{ord.recepcion?.fechaRecepcion || ord.fechaRealEntrega}</strong> • Recibió: {ord.recepcion?.responsable || 'Almacén'}
-                  </div>
-
-                  {ord.recepcion?.itemsRecibidos && (
-                    <div style={{ background: 'rgba(0, 0, 0, 0.25)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem' }}>
-                      {ord.recepcion.itemsRecibidos.map((it, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
-                          <span>{it.materialNombre}</span>
-                          <strong>
-                            {it.cantidadRecibida} de {it.cantidadPedida} {it.unidad}
-                          </strong>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Orden de Compra</th>
+                    <th>Proyecto</th>
+                    <th>Fecha de Recepción</th>
+                    <th>Responsable Almacén</th>
+                    <th>Insumos Recibidos</th>
+                    <th>Estado Recepción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deliveredOrders.map((ord) => (
+                    <tr key={ord.id}>
+                      <td>
+                        <strong style={{ color: '#ffffff' }}>{ord.numeroOrden}</strong>
+                      </td>
+                      <td>{ord.proyectoNombre}</td>
+                      <td>{ord.recepcion?.fechaRecepcion || ord.fechaRealEntrega || 'En tránsito'}</td>
+                      <td>{ord.recepcion?.responsable || 'Almacén Central'}</td>
+                      <td style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                        {ord.recepcion?.itemsRecibidos?.map((it) => `${it.materialNombre} (${it.cantidadRecibida}/${it.cantidadPedida})`).join(', ') || 'Pendiente'}
+                      </td>
+                      <td>
+                        <Badge variant={ord.recepcion?.estadoRecepcion === 'Parcial' ? 'warning' : 'success'}>
+                          {ord.recepcion?.estadoRecepcion || 'Entregada'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       )}
 
-      {/* 3. INCIDENCIAS */}
+      {/* 3. FACTURAS (Requisito 10) */}
+      {activeTab === 'facturas' && (
+        <div>
+          {supplierInvoicesList.length === 0 ? (
+            <EmptyState
+              title="Sin facturas registradas"
+              message="No se han registrado facturas ni comprobantes fiscales para este proveedor."
+            />
+          ) : (
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Folio Factura</th>
+                    <th>Orden Referencia</th>
+                    <th>Proyecto</th>
+                    <th>Fecha Emisión</th>
+                    <th>Fecha Vencimiento</th>
+                    <th style={{ textAlign: 'right' }}>Total Facturado</th>
+                    <th>Estado</th>
+                    <th style={{ textAlign: 'right' }}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supplierInvoicesList.map((fac) => (
+                    <tr key={fac.id}>
+                      <td>
+                        <strong style={{ color: '#ffffff' }}>{fac.numero}</strong>
+                      </td>
+                      <td>{fac.ordenNumero}</td>
+                      <td>{fac.proyectoNombre}</td>
+                      <td>{fac.fechaEmision}</td>
+                      <td>
+                        <span style={{ color: fac.estado !== 'Pagada' && fac.fechaVencimiento < new Date().toISOString().split('T')[0] ? 'var(--color-rose)' : 'inherit' }}>
+                          {fac.fechaVencimiento}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-gold)' }}>
+                        ${Number(fac.total || 0).toLocaleString('es-MX')}
+                      </td>
+                      <td>
+                        <Badge
+                          variant={
+                            fac.estado === 'Pagada'
+                              ? 'success'
+                              : fac.estado === 'Programada para pago'
+                              ? 'info'
+                              : fac.estado === 'En revisión'
+                              ? 'warning'
+                              : 'neutral'
+                          }
+                        >
+                          {fac.estado}
+                        </Badge>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => onOpenInvoiceModal(fac)}
+                        >
+                          Detalle
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 4. PAGOS & LIQUIDACIONES (Requisito 10 y 19) */}
+      {activeTab === 'pagos' && (
+        <div>
+          {supplierInvoicesList.length === 0 ? (
+            <EmptyState
+              title="Sin movimientos de pago"
+              message="No existen pagos calendarizados ni transacciones registradas con este proveedor."
+            />
+          ) : (
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Factura</th>
+                    <th>Orden</th>
+                    <th>Método Previsto / Utilizado</th>
+                    <th>Fecha Programada</th>
+                    <th style={{ textAlign: 'right' }}>Monto a Liquidar</th>
+                    <th>Estado de Pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supplierInvoicesList.map((fac) => (
+                    <tr key={fac.id}>
+                      <td>
+                        <strong style={{ color: '#ffffff' }}>{fac.numero}</strong>
+                      </td>
+                      <td>{fac.ordenNumero}</td>
+                      <td>{fac.metodoPago || 'Transferencia SPEI'}</td>
+                      <td>{fac.fechaProgramadaPago || fac.fechaVencimiento || 'Inmediato'}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: fac.estado === 'Pagada' ? 'var(--color-emerald)' : 'var(--color-gold)' }}>
+                        ${Number(fac.total || 0).toLocaleString('es-MX')}
+                      </td>
+                      <td>
+                        <Badge
+                          variant={
+                            fac.estado === 'Pagada'
+                              ? 'success'
+                              : fac.estado === 'Programada para pago'
+                              ? 'info'
+                              : 'warning'
+                          }
+                        >
+                          {fac.estado === 'Pagada' ? 'Liquidada' : fac.estado === 'Programada para pago' ? 'Programada' : 'Pendiente'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 5. MATERIALES */}
+      {activeTab === 'materiales' && (
+        <div>
+          {supplierMaterials.length === 0 ? (
+            <EmptyState
+              title="Sin insumos vinculados"
+              message="No hay materiales en el catálogo asociados a este proveedor."
+            />
+          ) : (
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nombre del Insumo</th>
+                    <th>Stock en Almacén</th>
+                    <th>Stock Mínimo</th>
+                    <th style={{ textAlign: 'right' }}>Precio Unitario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supplierMaterials.map((mat) => {
+                    const currentStock = mat.stockActual ?? mat.stock ?? 0;
+                    const minStock = mat.stockMinimo || 0;
+                    const isLow = currentStock <= minStock;
+
+                    return (
+                      <tr key={mat.id}>
+                        <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{mat.codigo || mat.id}</td>
+                        <td style={{ fontWeight: 500, color: '#ffffff' }}>{mat.nombre}</td>
+                        <td>
+                          <span style={{ color: isLow ? 'var(--color-rose)' : 'var(--color-emerald)', fontWeight: 600 }}>
+                            {currentStock} {mat.unidad}
+                          </span>
+                        </td>
+                        <td style={{ color: 'var(--color-text-muted)' }}>{minStock} {mat.unidad}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-gold)' }}>
+                          ${Number(mat.precioUnitario || 0).toLocaleString('es-MX')}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 6. INCIDENCIAS */}
       {activeTab === 'incidencias' && (
         <div>
           {allIncidents.length === 0 ? (
@@ -473,154 +695,43 @@ export default function SupplierDetailView({
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {allIncidents.map((inc, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    padding: '12px 16px',
-                    background: 'rgba(239, 68, 68, 0.06)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    borderRadius: 'var(--radius-sm)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <AlertTriangle size={18} style={{ color: 'var(--color-rose)' }} />
-                    <div>
-                      <strong style={{ color: 'var(--color-rose)', textTransform: 'capitalize', fontSize: '0.88rem' }}>
-                        {inc.tipo.replace('_', ' ')}
-                      </strong>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-                        {inc.descripcion} {inc.cantidadAfectada > 0 && `(${inc.cantidadAfectada} unidades)`}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                    <div>Orden: {inc.numeroOrden}</div>
-                    <div>Fecha: {inc.fechaRecepcion || 'N/A'}</div>
-                  </div>
-                </div>
-              ))}
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Tipo de Incidencia</th>
+                    <th>Descripción Detallada</th>
+                    <th>Cantidad Afectada</th>
+                    <th>Orden Referencia</th>
+                    <th>Fecha de Reporte</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allIncidents.map((inc, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <span style={{ color: 'var(--color-rose)', fontWeight: 600, textTransform: 'capitalize' }}>
+                          {inc.tipo?.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--color-text-secondary)' }}>{inc.descripcion}</td>
+                      <td>
+                        <strong style={{ color: 'var(--color-rose)' }}>
+                          {inc.cantidadAfectada > 0 ? `${inc.cantidadAfectada} unidades` : 'No cuantificada'}
+                        </strong>
+                      </td>
+                      <td>{inc.numeroOrden} ({inc.proyectoNombre})</td>
+                      <td>{inc.fechaRecepcion || 'N/A'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       )}
 
-      {/* 4. FACTURAS Y PAGOS */}
-      {activeTab === 'pagos' && (
-        <div>
-          {supplierInvoicesList.length === 0 ? (
-            <EmptyState
-              title="Sin facturas registradas"
-              message="No se han registrado facturas ni comprobantes fiscales para este proveedor."
-            />
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {supplierInvoicesList.map((fac) => (
-                <div
-                  key={fac.id}
-                  className="constructa-card"
-                  style={{
-                    padding: '16px 20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <strong style={{ color: '#ffffff', fontSize: '0.98rem' }}>{fac.numero}</strong>
-                      <Badge
-                        variant={
-                          fac.estado === 'Pagada'
-                            ? 'success'
-                            : fac.estado === 'Programada para pago'
-                            ? 'info'
-                            : fac.estado === 'En revisión'
-                            ? 'warning'
-                            : 'neutral'
-                        }
-                      >
-                        {fac.estado}
-                      </Badge>
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                      Orden Ref: <strong>{fac.ordenNumero}</strong> • Proyecto: {fac.proyectoNombre}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                      Emisión: {fac.fechaEmision} • Vencimiento: {fac.fechaVencimiento} {fac.fechaProgramadaPago && `• Prog. Pago: ${fac.fechaProgramadaPago}`}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Monto Total</span>
-                      <strong style={{ color: 'var(--color-gold)', fontSize: '1.05rem' }}>
-                        ${Number(fac.total || 0).toLocaleString('es-MX')}
-                      </strong>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => onOpenInvoiceModal(fac)}
-                    >
-                      Detalle Factura
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 5. MATERIALES */}
-      {activeTab === 'materiales' && (
-        <div>
-          {supplierMaterials.length === 0 ? (
-            <EmptyState
-              title="Sin insumos vinculados"
-              message="No hay materiales en el catálogo asociados a este proveedor."
-            />
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-              {supplierMaterials.map((mat) => (
-                <div key={mat.id} className="constructa-card" style={{ padding: '16px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 600 }}>
-                    {mat.codigo || mat.id}
-                  </div>
-                  <h4 style={{ margin: '4px 0 8px 0', fontSize: '0.95rem', color: '#ffffff' }}>
-                    {mat.nombre}
-                  </h4>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', marginTop: '10px' }}>
-                    <span style={{ color: 'var(--color-text-muted)' }}>Stock Disponible:</span>
-                    <strong style={{ color: (mat.stockActual ?? mat.stock) <= mat.stockMinimo ? 'var(--color-rose)' : '#ffffff' }}>
-                      {mat.stockActual ?? mat.stock} {mat.unidad}
-                    </strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', marginTop: '4px' }}>
-                    <span style={{ color: 'var(--color-text-muted)' }}>Precio Unitario:</span>
-                    <strong style={{ color: 'var(--color-gold)' }}>
-                      ${Number(mat.precioUnitario || 0).toLocaleString('es-MX')}
-                    </strong>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 6. COMUNICACIONES */}
+      {/* 7. COMUNICACIONES */}
       {activeTab === 'comunicaciones' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '14px' }}>
@@ -642,41 +753,52 @@ export default function SupplierDetailView({
               onAction={() => onOpenCommunication(supplier)}
             />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {supplierComms.map((com) => (
-                <div key={com.id} className="constructa-card" style={{ padding: '14px 18px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="constructa-table-container">
+              <table className="constructa-table">
+                <thead>
+                  <tr>
+                    <th>Fecha & Hora</th>
+                    <th>Medio</th>
+                    <th>Motivo del Enlace</th>
+                    <th>Persona Atendió</th>
+                    <th>Registrado Por</th>
+                    <th>Resultado / Acuerdo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supplierComms.map((com) => (
+                    <tr key={com.id}>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        <div>{com.fecha}</div>
+                        <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>{com.hora}</div>
+                      </td>
+                      <td>
                         <Badge variant="gold">{com.medio}</Badge>
-                        <strong style={{ color: '#ffffff', fontSize: '0.9rem' }}>{com.motivo}</strong>
+                      </td>
+                      <td>
+                        <strong style={{ color: '#ffffff' }}>{com.motivo}</strong>
                         {com.ordenNumero && (
-                          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                            • Ref: {com.ordenNumero}
-                          </span>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
+                            Ref: {com.ordenNumero}
+                          </div>
                         )}
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                        Atendió: <strong style={{ color: '#ffffff' }}>{com.personaContactada}</strong> • Registró: {com.registradoPor}
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-emerald)', marginTop: '2px', fontWeight: 500 }}>
-                        Resultado: {com.resultado}
-                      </div>
-                    </div>
-
-                    <div style={{ textAlign: 'right', fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
-                      <div>{com.fecha}</div>
-                      <div>{com.hora}</div>
-                    </div>
-                  </div>
-
-                  {com.observaciones && (
-                    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.04)', fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-                      <em>"{com.observaciones}"</em>
-                    </div>
-                  )}
-                </div>
-              ))}
+                      </td>
+                      <td>{com.personaContactada}</td>
+                      <td>{com.registradoPor}</td>
+                      <td>
+                        <span style={{ color: 'var(--color-emerald)', fontWeight: 500 }}>
+                          {com.resultado}
+                        </span>
+                        {com.observaciones && (
+                          <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                            "{com.observaciones}"
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
+import BackButton from '../common/BackButton';
 
 const SPECIALTIES = [
   'Cementos y Hormigones',
@@ -111,8 +112,12 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
       maxWidth="640px"
     >
       <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+        <div style={{ marginBottom: '14px' }}>
+          <BackButton onClick={onClose} label="← Regresar" />
+        </div>
+
+        <div className="form-grid-2">
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Razón Social / Proveedor *</label>
             <input
               type="text"
@@ -260,7 +265,7 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
             </select>
           </div>
             
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Dirección / Centro Logístico</label>
             <input
               type="text"
@@ -272,7 +277,7 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
             />
           </div>
 
-          <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+          <div className="constructa-form-group form-full-width">
             <label className="constructa-label">Observaciones y Convenios Especiales</label>
             <textarea
               name="observaciones"

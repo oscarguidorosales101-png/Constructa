@@ -12,6 +12,7 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
 4. [Prompt 4: Consolidación y Documentación Histórica en `prompts.md`](#4-prompt-4--consolidación-y-documentación-histórica)
 5. [Prompt 5: Ampliación Profesional del Sistema Existente (Roles, Migración de Entrevistas, Agenda y Disponibilidad)](#5-prompt-5--ampliación-profesional-del-sistema-existente)
 6. [Prompt 6: Ampliación Controlada — Proveedores, Compras, Pagos y Navegación](#6-prompt-6--ampliación-controlada--proveedores-compras-pagos-y-navegación)
+7. [Prompt 7: Ajuste Profesional — Directorio de Proveedores y Dimensiones de Interfaz](#7-prompt-7--ajuste-profesional--directorio-de-proveedores-y-dimensiones-de-interfaz)
 
 ---
 
@@ -381,6 +382,56 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
   * *Compromiso de Compra* (órdenes de compra emitidas).
   * *Gasto Registrado* (factura recepcionada e imputada).
   * *Pago Realizado* (desembolso financiero procesado).
+
+---
+
+## 7. Prompt 7 — Ajuste Profesional: Directorio de Proveedores y Dimensiones de Interfaz
+
+* **Fecha de emisión:** Fase de Estabilización y Dimensionamiento Empresarial.
+* **Premisa fundamental:** **Ajuste visual y responsive específico sobre el módulo de Proveedores y abastecimiento**. No modificar la lógica de negocio salvo correcciones visuales o de interacción, no eliminar datos, no reconstruir desde cero, no romper el sidebar ni la navegación global.
+
+### 7.1. Identificación y Reestructuración del Directorio
+* **Nombre Oficial:** La vista principal se identifica claramente como **"Directorio de Proveedores"**.
+* **Estructura visual estandarizada:**
+  * **Encabezado:** Título dinámico por pestaña, descripción institucional y botón de acción principal (`Nuevo Proveedor`, `Nueva Solicitud`, `Emitir Orden`, `Registrar Factura`).
+  * **Barra de Búsqueda y Filtros:** Búsqueda en vivo (empresa, contacto, material suministrado, teléfono, correo), desplegables adaptativos de especialidad y estado, botón `Limpiar filtros` y botón móvil `Filtros`.
+  * **Selector de Presentación:** Alternancia fluida entre **Vista de Tarjetas** (`LayoutGrid`) y **Vista de Tabla** (`TableIcon`).
+
+### 7.2. Tarjetas Uniformes y Control de Desbordamiento
+* **Jerarquía fija por tarjeta:**
+  1. Razón Social (truncamiento con tooltip nativo).
+  2. Persona de Contacto con icono corporativo.
+  3. Insumos principales suministrados (máximo 3 chips + badge `+N más`).
+  4. Resumen compacto de contacto (teléfono, email, pago y plazo de entrega).
+  5. Barra de acciones con prioridad absoluta a `Ver Proveedor` (botón primario) y acciones complementarias (`Nuevo pedido`, `Editar`, `Eliminar`).
+* **Prevención de desproporción:** Reglas CSS estrictas (`min-height`, `max-height`, `.text-truncate`, `word-break: break-word`) que impiden que textos extensos o listas de materiales ensanchen o deformen la cuadrícula.
+
+### 7.3. Detalle 360° del Proveedor en Secciones Separadas
+* **División en Paneles Específicos:** Reemplazo de la tarjeta gigante por paneles modulares:
+  * Panel 1: *Información General del Proveedor* (razón social, especialidad, RFC, estado, saldo pendiente).
+  * Panel 2: *Contacto & Logística Comercial* (representante, teléfono, correo, dirección, condiciones de pago, tiempo de entrega y horario de atención).
+* **Resumen KPI Compacto:** 5 tarjetas métricas balanceadas de altura controlada: *Pedidos Pendientes*, *Pedidos en Camino*, *Facturas Pendientes*, *Pagos Programados* y *Pagos Realizados*.
+* **7 Pestañas de Historial:** *Pedidos*, *Entregas y Recepciones*, *Facturas*, *Pagos & Liquidaciones*, *Insumos Homologados*, *Incidencias* y *Bitácora de Contactos*. Todas las tablas integradas en `.constructa-table-container` para scroll horizontal puramente local.
+
+### 7.4. Formularios y Modales Adaptativos
+* **Cuadrícula Responsive (`.form-grid-2`):**
+  * Escritorio: 2 columnas balanceadas.
+  * Tablet: Reorganización fluida.
+  * Móvil (< 640px): 1 columna natural sin compresión de inputs.
+  * Campos extensos (dirección, observaciones, total): Ocupan ancho completo con `.form-full-width`.
+* **Modales Controlados:** Dimensiones máximas restringidas (`max-width: 640px - 780px`), altura máxima del 90vh, scroll interno suave y botones de acción siempre visibles y accesibles.
+* **Seguimiento Logístico:** Flujo de estados con stepper adaptable (`Solicitud → Aprobación → Enviado → Confirmación → Preparando → En camino → Recibido`).
+* **Recepción Comparativa:** Grid de 3 tarjetas con balance evidente: **Total Solicitado** vs **Total Recibido** vs **Total Faltante**.
+
+### 7.5. Estados Vacíos Formales
+* Sin proveedores registrados: *"No hay proveedores registrados."*
+* Búsqueda sin coincidencias: *"No encontramos proveedores que coincidan con tu búsqueda."* (Cero errores técnicos o códigos 404 para búsquedas vacías).
+
+### 7.6. Verificación Responsive Multi-Dispositivo
+* Validación sin desbordamiento horizontal en el cuerpo de la página (`body`) en resoluciones:
+  * Escritorio amplio / Laptop (1366px y 1024px)
+  * Tablet (768px)
+  * Móvil (480px, 390px, 360px)
 
 ---
 

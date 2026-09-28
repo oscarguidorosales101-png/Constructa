@@ -256,7 +256,7 @@ export default function SupplierInvoiceModal({
         </div>
 
         {/* Pestañas de Navegación del Modal */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--color-border)', paddingBottom: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--color-border)', paddingBottom: '10px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => setActiveTab('datos')}
@@ -301,7 +301,7 @@ export default function SupplierInvoiceModal({
 
         {activeTab === 'datos' ? (
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="form-grid-2">
               {/* Número de Factura */}
               <div className="constructa-form-group">
                 <label className="constructa-label">Folio / Número de Factura *</label>
@@ -445,7 +445,7 @@ export default function SupplierInvoiceModal({
                 />
               </div>
 
-              <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+              <div className="constructa-form-group form-full-width">
                 <div
                   style={{
                     padding: '12px 16px',
@@ -455,6 +455,8 @@ export default function SupplierInvoiceModal({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '10px',
                   }}
                 >
                   <span style={{ fontSize: '0.9rem', color: 'var(--color-gold)', fontWeight: 600 }}>
@@ -466,7 +468,7 @@ export default function SupplierInvoiceModal({
                 </div>
               </div>
 
-              <div className="constructa-form-group" style={{ gridColumn: 'span 2' }}>
+              <div className="constructa-form-group form-full-width">
                 <label className="constructa-label">Observaciones y Notas Contables</label>
                 <textarea
                   className="constructa-input"

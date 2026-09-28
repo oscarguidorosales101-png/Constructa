@@ -21,11 +21,11 @@ import {
 const TRACKING_STAGES = [
   { key: 'Solicitud', label: 'Solicitud', icon: FileCheck },
   { key: 'Aprobada', label: 'Aprobación', icon: ShieldCheck },
-  { key: 'Enviada al proveedor', label: 'Orden Enviada', icon: Send },
-  { key: 'Confirmada', label: 'Confirmada', icon: CheckCircle2 },
+  { key: 'Enviada al proveedor', label: 'Enviado', icon: Send },
+  { key: 'Confirmada', label: 'Confirmación', icon: CheckCircle2 },
   { key: 'Preparando pedido', label: 'Preparando', icon: Package },
   { key: 'En camino', label: 'En Camino', icon: Truck },
-  { key: 'Entregada', label: 'Recibida', icon: CheckCircle2 },
+  { key: 'Entregada', label: 'Recibido', icon: CheckCircle2 },
 ];
 
 export default function OrderTrackingModal({
@@ -178,25 +178,17 @@ export default function OrderTrackingModal({
           </div>
         )}
 
-        {/* Línea de Seguimiento Visual Clara (Requisito 7) */}
-        <div style={{ marginBottom: '28px' }}>
-          <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '14px', textTransform: 'uppercase' }}>
+        {/* Línea de Seguimiento Visual Adaptativa (Requisito 17) */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase' }}>
             Línea de Proceso del Pedido
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${TRACKING_STAGES.length}, 1fr)`,
-              gap: '6px',
-              position: 'relative',
-            }}
-          >
+          <div className="tracking-stepper">
             {TRACKING_STAGES.map((st, idx) => {
               const IconComp = st.icon;
               const isPast = idx < currentStageIndex;
               const isCurrent = idx === currentStageIndex;
-              const isFuture = idx > currentStageIndex;
 
               return (
                 <div
@@ -252,7 +244,7 @@ export default function OrderTrackingModal({
                         : 'var(--color-text-muted)',
                     }}
                   >
-                    {st.label}
+                    {idx + 1}. {st.label}
                   </span>
                 </div>
               );
@@ -321,7 +313,7 @@ export default function OrderTrackingModal({
             <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-gold)' }}>
               Registrar Modificación de Fecha Prometida
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px' }}>
+            <div className="form-grid-2">
               <input
                 type="date"
                 className="constructa-input"
@@ -332,7 +324,7 @@ export default function OrderTrackingModal({
               <input
                 type="text"
                 className="constructa-input"
-                placeholder="Motivo del cambio (ej. Ajuste de transporte pesado, reprogramación del proveedor...)"
+                placeholder="Motivo del cambio (ej. Ajuste de transporte, reprogramación...)"
                 value={dateReason}
                 onChange={(e) => setDateReason(e.target.value)}
                 required
