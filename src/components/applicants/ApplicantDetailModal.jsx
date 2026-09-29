@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   AlertCircle,
   FileText,
+  FileCheck,
   Building2
 } from 'lucide-react';
 
@@ -187,6 +188,7 @@ export default function ApplicantDetailModal({
             { id: 'curriculum', label: 'Currículum y Perfil', icon: <FileText size={14} /> },
             { id: 'experience', label: `Experiencia Laboral (${applicant.experiencias?.length || 0})`, icon: <Briefcase size={14} /> },
             { id: 'education', label: 'Formación y Habilidades', icon: <GraduationCap size={14} /> },
+            { id: 'documents', label: `Documentos (${applicant.documentos?.length || 1})`, icon: <FileCheck size={14} /> },
             { id: 'history', label: 'Bitácora del Proceso', icon: <History size={14} /> },
           ].map(tab => (
             <button
@@ -497,6 +499,107 @@ export default function ApplicantDetailModal({
                     ))
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: DOCUMENTOS Y EXPEDIENTE DIGITAL */}
+          {activeTab === 'documents' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-gold)', margin: 0 }}>
+                  Expediente de Documentación Digital
+                </h4>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                  {applicant.documentos?.length || 1} archivo(s) registrado(s)
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {(!applicant.documentos || applicant.documentos.length === 0) ? (
+                  <div
+                    style={{
+                      padding: '14px 18px',
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-sm)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '12px',
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <FileText size={22} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>
+                          CV_{applicant.nombre?.replace(/\s+/g, '_') || 'Candidato'}.pdf
+                        </div>
+                        <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', marginTop: '2px' }}>
+                          Currículum Vitae Principal • 245.0 KB • {applicant.fechaPostulacion || 'Reciente'}
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.82rem',
+                        color: 'var(--color-emerald)',
+                        background: 'rgba(16, 185, 129, 0.08)',
+                        padding: '4px 10px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid rgba(16, 185, 129, 0.2)'
+                      }}
+                    >
+                      <CheckCircle2 size={14} /> Expediente Base Digital
+                    </span>
+                  </div>
+                ) : (
+                  applicant.documentos.map((doc, idx) => (
+                    <div
+                      key={doc.id || idx}
+                      style={{
+                        padding: '14px 18px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-sm)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '12px',
+                        flexWrap: 'wrap'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <FileText size={22} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>
+                            {doc.nombre}
+                          </div>
+                          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', marginTop: '2px' }}>
+                            {doc.categoria || 'Documento Oficial'} • {doc.tamanio || 'PDF'} • {doc.fecha || applicant.fechaPostulacion}
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.78rem',
+                          color: 'var(--color-emerald)',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                          fontWeight: 600
+                        }}
+                      >
+                        {doc.tipo || 'PDF'}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

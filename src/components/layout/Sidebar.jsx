@@ -14,6 +14,7 @@ import {
   BarChart3,
   LogOut,
   AlertTriangle,
+  Globe,
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import { hasPermission } from '../../utils/permissions.js';
@@ -144,6 +145,18 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
             </button>
           );
         })}
+
+        <div style={{ padding: '8px 0 0 0', borderTop: '1px solid var(--color-border)', marginTop: '8px' }}>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => handleItemClick('inicio')}
+            style={{ color: 'var(--color-gold)' }}
+          >
+            <Globe size={18} />
+            <span>Ver Sitio Público</span>
+          </button>
+        </div>
       </nav>
 
       {/* Footer Profile & Logout */}

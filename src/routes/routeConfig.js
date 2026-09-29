@@ -17,6 +17,8 @@ import Status401 from '../pages/Status/Status401';
 import Status403 from '../pages/Status/Status403';
 import Status404 from '../pages/Status/Status404';
 
+import PublicLanding from '../pages/Public/PublicLanding';
+
 export const PRIVATE_MODULES = [
   'dashboard',
   'proyectos',
@@ -34,6 +36,7 @@ export const PRIVATE_MODULES = [
 ];
 
 export const PUBLIC_ROUTES = [
+  'inicio',
   'login',
   '401',
   '403',
@@ -41,6 +44,13 @@ export const PUBLIC_ROUTES = [
 ];
 
 export const routeConfig = {
+  // Sitio Público Institucional
+  inicio: {
+    path: 'inicio',
+    label: 'Inicio',
+    component: PublicLanding,
+    isPrivate: false,
+  },
   // Rutas Privadas
   dashboard: {
     path: 'dashboard',

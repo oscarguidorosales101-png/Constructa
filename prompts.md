@@ -13,6 +13,7 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
 5. [Prompt 5: Ampliación Profesional del Sistema Existente (Roles, Migración de Entrevistas, Agenda y Disponibilidad)](#5-prompt-5--ampliación-profesional-del-sistema-existente)
 6. [Prompt 6: Ampliación Controlada — Proveedores, Compras, Pagos y Navegación](#6-prompt-6--ampliación-controlada--proveedores-compras-pagos-y-navegación)
 7. [Prompt 7: Ajuste Profesional — Directorio de Proveedores y Dimensiones de Interfaz](#7-prompt-7--ajuste-profesional--directorio-de-proveedores-y-dimensiones-de-interfaz)
+8. [Prompt 8: Prompt Maestro Unificado — Integración del Sitio Público, Área Privada, Autenticación, RRHH, Reclutamiento y Experiencia Empresarial](#8-prompt-8--prompt-maestro-unificado)
 
 ---
 
@@ -432,6 +433,60 @@ Este documento recopila de forma estructurada, detallada y cronológica la infor
   * Escritorio amplio / Laptop (1366px y 1024px)
   * Tablet (768px)
   * Móvil (480px, 390px, 360px)
+
+---
+
+## 8. Prompt 8 — Prompt Maestro Unificado: Integración del Sitio Público, Área Privada, Autenticación, RRHH, Reclutamiento y Experiencia Empresarial
+
+* **Fecha de emisión:** Fase de Integración y Expansión Global.
+* **Premisa fundamental:** **NO RECONSTRUIR CONSTRUCTA DESDE CERO**. Conservar la base funcional, datos de los 62 colaboradores, 22 materiales con renders 3D, proyectos, proveedores y finanzas. Ampliar el ecosistema conectando una experiencia pública de alto nivel con el área privada de gestión.
+
+### 8.1. Dos Experiencias Conectadas pero Separadas
+1. **Experiencia Pública (Sitio Oficial Corporativo):**
+   * **Inicio:** Hero corporativo, propuesta de valor, métricas destacadas y CTAs hacia proyectos y bolsa de trabajo.
+   * **Empresa y Filosofía:** Historia, Misión, Visión, 6 Valores rectores y acreditaciones (ISO 9001, ISO 14001, LEED, ESR).
+   * **Especialidades:** 6 líneas de negocio (Edificación Vertical, Corporativo, Naves Industriales, Obra Civil, Reingeniería y Gestión EPC).
+   * **Logros y Métricas:** Cifras verificables de impacto (145+ obras, 850k m², 18 años, 62 colaboradores, 99.4% calidad).
+   * **Video Institucional:** Integración del video HTML5 existente en `public/video/` con controles nativos y fallback empresarial.
+   * **Proyectos Públicos:** Reutilización de los proyectos reales del sistema, con búsqueda, filtros por estado, avance físico, presupuestos y modal de ficha técnica completa.
+   * **Galería Fotográfica:** Registro visual de frentes de obra con selector por categoría y lightbox interactivo responsive.
+   * **Trabaja con Nosotros (Bolsa de Empleo):** Convocatorias laborales estructuradas con estados (*Abierta*, *En evaluación*, *Concluida*), acordeón de requisitos/beneficios y banner para candidaturas espontáneas.
+   * **Formulario de Postulación Pública:** Proceso sin necesidad de cuenta interna, multi-paso (datos personales, experiencia, formación, habilidades y subida de CV/documentos).
+   * **Contacto:** Teléfonos, conmutadores, correos de operaciones/ventas/reclutamiento, WhatsApp directo, formulario validado y mapa embebido.
+   * **Footer:** Identidad legal, enlaces rápidos, acceso al sistema y créditos.
+
+2. **Experiencia Privada (Sistema Interno):**
+   * Dashboard, Proyectos, Empleados, Materiales, Proveedores, Presupuestos, Gastos, Cronograma, Avance, Reportes, RRHH (Candidatos y Entrevistas).
+
+### 8.2. Información Centralizada y Preparación White-Label
+* Toda la información institucional, valores, especialidades, vacantes, estadísticas y video centralizados en `src/config/companyConfig.js`.
+* Capacidad de migrar o vender el sistema a otra constructora modificando únicamente este archivo de configuración.
+
+### 8.3. Flujo Único de Reclutamiento y Trazabilidad
+```text
+Postulación pública (sin login)
+       ↓
+Candidato registrado en RRHH (#postulantes)
+       ↓
+Expediente y Currículum Vitae unificado (con documentos adjuntos)
+       ↓
+Programación de Entrevista (módulo de entrevistas)
+       ↓
+Selección y Alta como Empleado (preservando datos y trazabilidad)
+```
+
+### 8.4. Autenticación, Roles y Seguridad en Enrutamiento
+* **Mantenimiento estricto de los 3 roles corporativos:**
+  1. `Administrator` (Acceso total)
+  2. `Gerente de Construcción` (Operaciones, proyectos, cuadrillas, almacén, cronograma)
+  3. `RRHH / Reclutamiento` (Personal, candidatos, entrevistas, agenda)
+* **Separación de roles y cuentas:** Ni los candidatos ni los empleados registrados en el catálogo son automáticamente usuarios del sistema.
+* **Control de acceso y estados HTTP:**
+  * Acceso privado sin autenticación: Estado **401** (Sesión no iniciada) con enlace a Login.
+  * Acceso a ruta no autorizada por rol: Estado **403** (Acceso no autorizado) con retorno al Dashboard.
+  * Ruta inexistente: Estado **404** (Página no encontrada) con retorno a la raíz.
+* **Botón visible de acceso:** `Iniciar Sesión` en cabecera pública y pie de página; botón `← Volver al Sitio Público` en pantalla de Login; y `Ver Sitio Público` en la barra lateral del sistema privado.
+* **Cierre de sesión seguro:** Modal de confirmación, limpieza de credenciales y redirección protegida.
 
 ---
 

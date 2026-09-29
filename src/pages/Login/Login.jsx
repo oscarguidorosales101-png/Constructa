@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HardHat, Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { HardHat, Lock, Mail, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import Button from '../../components/common/Button.jsx';
 import ToastContainer from '../../components/common/ToastContainer.jsx';
@@ -58,6 +58,29 @@ export const Login = ({ onLoginSuccess }) => {
       <div className="login-glow-bg" />
 
       <div className="login-card" style={{ maxWidth: '480px', width: '95%' }}>
+        {/* Navigation back to public portal */}
+        <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'flex-start' }}>
+          <a
+            href="#inicio"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: 'var(--color-gold)',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              padding: '4px 8px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(245, 158, 11, 0.08)',
+              border: '1px solid rgba(245, 158, 11, 0.2)',
+              transition: 'background 0.2s ease'
+            }}
+          >
+            <ArrowLeft size={14} /> Volver al Sitio Público
+          </a>
+        </div>
+
         <div className="login-brand">
           <div className="login-logo-box">
             <HardHat size={30} />

@@ -25,10 +25,11 @@ export const AppRoutes = () => {
   // Sincronización bidireccional con el hash de la URL
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '').toLowerCase();
+      const rawHash = window.location.hash.replace('#', '');
+      const hash = rawHash.split('?')[0].toLowerCase();
       
       if (!hash) {
-        setActiveView(currentUser ? 'dashboard' : 'login');
+        setActiveView(currentUser ? 'dashboard' : 'inicio');
         return;
       }
 
@@ -47,21 +48,33 @@ export const AppRoutes = () => {
   // Mantener actualizado el hash cuando cambia activeView programáticamente
   useEffect(() => {
     if (activeView) {
-      if (window.location.hash.replace('#', '') !== activeView) {
+      const currentHash = window.location.hash.replace('#', '').split('?')[0].toLowerCase();
+      if (currentHash !== activeView) {
         window.location.hash = activeView;
       }
     }
   }, [activeView]);
 
   // Resolución de la vista actual
-  const currentKey = activeView || (currentUser ? 'dashboard' : 'login');
+  const currentKey = activeView || (currentUser ? 'dashboard' : 'inicio');
   const currentRoute = routeConfig[currentKey];
+
+  // Caso: Sitio Público Institucional
+  if (currentKey === 'inicio') {
+    const PublicLandingComponent = routeConfig.inicio.component;
+    return (
+      <>
+        <PublicLandingComponent />
+        <ToastContainer />
+      </>
+    );
+  }
 
   // Caso: Ruta inexistente (404)
   if (!currentRoute) {
     return (
       <>
-        <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'login')} />
+        <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'inicio')} />
         <ToastContainer />
       </>
     );
@@ -80,7 +93,7 @@ export const AppRoutes = () => {
   if (currentKey === '403') {
     return (
       <>
-        <Status403 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'login')} />
+        <Status403 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'inicio')} />
         <ToastContainer />
       </>
     );
@@ -89,7 +102,7 @@ export const AppRoutes = () => {
   if (currentKey === '404') {
     return (
       <>
-        <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'login')} />
+        <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'inicio')} />
         <ToastContainer />
       </>
     );
