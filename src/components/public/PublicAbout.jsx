@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Building2,
   ShieldCheck,
@@ -13,11 +13,14 @@ import {
   Target,
   History,
   ArrowRight,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import COMPANY_CONFIG from '../../config/companyConfig';
 
 export default function PublicAbout({ onNavigateSection }) {
+  const [imgError, setImgError] = useState(false);
+
   const getIcon = (name) => {
     switch (name) {
       case 'ShieldCheck': return <ShieldCheck size={20} />;
@@ -49,76 +52,105 @@ export default function PublicAbout({ onNavigateSection }) {
           </p>
         </div>
 
-        {/* Bloque 1: Historia y Quiénes Somos */}
-        <div className="public-about-story-card">
-          <div className="public-story-header">
-            <div className="public-story-badge">
-              <History size={18} />
-              <span>Nuestra Historia desde {COMPANY_CONFIG.identity.foundedYear}</span>
+        {/* Bloque 1: Composición Editorial Historia (Texto + Imagen Arquitectónica) */}
+        <div className="public-about-editorial-grid">
+          <div className="public-about-story-card">
+            <div className="public-story-header">
+              <div className="public-story-badge">
+                <History size={17} />
+                <span>Nuestra Historia desde {COMPANY_CONFIG.identity.foundedYear}</span>
+              </div>
+              <span className="public-story-stat">
+                +{COMPANY_CONFIG.identity.yearsOfExperience} Años de Rigor Técnico
+              </span>
             </div>
-            <span className="public-story-stat">
-              +{COMPANY_CONFIG.identity.yearsOfExperience} Años de Rigor Técnico
-            </span>
+
+            <h3 className="public-story-heading">
+              Casi dos décadas de excelencia estructural y compromiso corporativo
+            </h3>
+
+            <p className="public-story-text">
+              {COMPANY_CONFIG.philosophy.history}
+            </p>
+
+            <div className="public-story-highlights">
+              <div className="public-story-highlight-pill">
+                <CheckCircle2 size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                <span>+140 desarrollos emblemáticos entregados</span>
+              </div>
+              <div className="public-story-highlight-pill">
+                <CheckCircle2 size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                <span>+850,000 m² construidos con precisión</span>
+              </div>
+              <div className="public-story-highlight-pill">
+                <CheckCircle2 size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                <span>Cero siniestros graves en obra</span>
+              </div>
+            </div>
           </div>
-          <p className="public-story-text">
-            {COMPANY_CONFIG.philosophy.history}
-          </p>
-          <div className="public-story-highlights">
-            <div className="public-story-highlight-pill">
-              <CheckCircle2 size={15} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
-              <span>+140 desarrollos emblemáticos entregados</span>
-            </div>
-            <div className="public-story-highlight-pill">
-              <CheckCircle2 size={15} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
-              <span>+850,000 m² construidos con precisión</span>
-            </div>
-            <div className="public-story-highlight-pill">
-              <CheckCircle2 size={15} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
-              <span>Cero siniestros graves en obra</span>
+
+          <div className="public-about-image-card">
+            {!imgError ? (
+              <img
+                src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1000&q=80"
+                alt="Ingeniería y Supervisión CONSTRUCTA"
+                className="public-about-hero-img"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="public-about-fallback-box">
+                <Building2 size={48} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                <span>Dirección Técnica y Supervisión de Obra</span>
+              </div>
+            )}
+            <div className="public-about-img-caption">
+              <Sparkles size={14} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+              <span>Garantía de Calidad y Cumplimiento Normativo ISO 9001</span>
             </div>
           </div>
         </div>
 
-        {/* Bloque 2: Misión y Visión en Paneles Paralelos */}
+        {/* Bloque 2: Misión y Visión en Paneles Diferenciados */}
         <div className="public-about-mission-vision-grid">
           {/* Misión */}
-          <div className="feature-card public-mission-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div className="public-mission-card">
+            <div className="public-mission-header">
               <div className="public-card-icon-box amber">
                 <Target size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+              <h3 className="public-mission-title">
                 Misión Institucional
               </h3>
             </div>
-            <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary, #94a3b8)', lineHeight: 1.65, margin: 0 }}>
+            <p className="public-mission-text">
               {COMPANY_CONFIG.philosophy.mission}
             </p>
           </div>
 
           {/* Visión */}
-          <div className="feature-card public-vision-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div className="public-vision-card">
+            <div className="public-mission-header">
               <div className="public-card-icon-box cyan">
                 <Compass size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+              <h3 className="public-mission-title">
                 Visión de Futuro
               </h3>
             </div>
-            <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary, #94a3b8)', lineHeight: 1.65, margin: 0 }}>
+            <p className="public-mission-text">
               {COMPANY_CONFIG.philosophy.vision}
             </p>
           </div>
         </div>
 
         {/* Bloque 3: Valores Fundamentales */}
-        <div style={{ marginBottom: '3.5rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h3 style={{ fontSize: '1.45rem', fontWeight: 700, color: '#ffffff', margin: '0 0 0.5rem 0' }}>
-              Los 6 Pilares Éticos y Operativos
+        <div className="public-about-values-section">
+          <div className="section-header" style={{ marginBottom: '2.5rem' }}>
+            <span className="section-tag">Cultura Operativa</span>
+            <h3 className="section-title" style={{ fontSize: '1.85rem' }}>
+              Los 6 Pilares Éticos y Técnicos
             </h3>
-            <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary, #94a3b8)', margin: 0 }}>
+            <p className="section-description">
               Principios inquebrantables aplicados en cada metro cúbico colado y en cada decisión ejecutiva.
             </p>
           </div>
@@ -138,15 +170,15 @@ export default function PublicAbout({ onNavigateSection }) {
 
         {/* Bloque 4: Certificaciones y Homologaciones */}
         <div className="public-certifications-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          <div className="public-cert-header">
             <Award size={26} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
             <div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+              <h4 className="public-cert-main-title">
                 Certificaciones Internacionales y Acreditaciones de Calidad
               </h4>
-              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary, #94a3b8)' }}>
+              <p className="public-cert-main-desc">
                 Avales oficiales que garantizan nuestro rigor operativo, ambiental y laboral
-              </span>
+              </p>
             </div>
           </div>
 
@@ -160,31 +192,6 @@ export default function PublicAbout({ onNavigateSection }) {
                 <div className="public-cert-entity">{cert.entity}</div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Bloque 5: Acciones Relacionadas / Continuidad */}
-        <div className="public-section-bottom-cta">
-          <div className="public-bottom-cta-text">
-            <h4>¿Deseas conocer más sobre nuestras líneas de ejecución?</h4>
-            <p>Descubre las especialidades y tecnologías constructivas que aplicamos en cada frente de obra.</p>
-          </div>
-          <div className="public-bottom-cta-actions">
-            <button
-              type="button"
-              className="constructa-btn constructa-btn-primary"
-              onClick={() => onNavigateSection?.('especialidades')}
-            >
-              <span>Ver Especialidades</span>
-              <ArrowRight size={15} />
-            </button>
-            <button
-              type="button"
-              className="constructa-btn constructa-btn-outline"
-              onClick={() => onNavigateSection?.('proyectos')}
-            >
-              <span>Explorar Obras</span>
-            </button>
           </div>
         </div>
       </div>

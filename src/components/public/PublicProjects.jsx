@@ -130,7 +130,7 @@ export default function PublicProjects({ onNavigateSection }) {
             </p>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => {
                 setFilterStatus('Todos');
                 setSearchTerm('');
@@ -225,7 +225,7 @@ export default function PublicProjects({ onNavigateSection }) {
           <div className="public-bottom-cta-actions">
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               onClick={() => onNavigateSection?.('contacto')}
             >
               <span>Consultar u Obra Similar</span>
@@ -233,7 +233,7 @@ export default function PublicProjects({ onNavigateSection }) {
             </button>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => onNavigateSection?.('galeria')}
             >
               <span>Ver Galería de Obras</span>

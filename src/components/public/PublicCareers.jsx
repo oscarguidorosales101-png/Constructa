@@ -167,7 +167,7 @@ export default function PublicCareers({ onNavigateSection }) {
             </p>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => {
                 setFilterArea('Todas');
                 setSearchTerm('');
@@ -303,7 +303,7 @@ export default function PublicCareers({ onNavigateSection }) {
                         </p>
                         <button
                           type="button"
-                          className={`constructa-btn constructa-btn-primary ${isClosed ? 'disabled' : ''}`}
+                          className={`btn btn-primary ${isClosed ? 'disabled' : ''}`}
                           disabled={isClosed}
                           onClick={() => handleOpenApplication(vacancy)}
                         >
@@ -332,7 +332,7 @@ export default function PublicCareers({ onNavigateSection }) {
           </div>
           <button
             type="button"
-            className="constructa-btn constructa-btn-outline"
+            className="btn btn-outline"
             onClick={() => handleOpenApplication({
               id: 'VAC-GRAL',
               puesto: 'Candidatura General / Cartera de Talento',
@@ -354,7 +354,7 @@ export default function PublicCareers({ onNavigateSection }) {
           <div className="public-bottom-cta-actions">
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               onClick={() => onNavigateSection?.('proyectos')}
             >
               <span>Ver Portafolio de Obras</span>
@@ -362,7 +362,7 @@ export default function PublicCareers({ onNavigateSection }) {
             </button>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => onNavigateSection?.('contacto')}
             >
               <span>Contactar a Recursos Humanos</span>

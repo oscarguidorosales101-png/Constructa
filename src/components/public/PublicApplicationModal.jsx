@@ -420,7 +420,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
             <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
               <button
                 type="button"
-                className="constructa-btn constructa-btn-primary"
+                className="btn btn-primary"
                 onClick={handleResetAndClose}
               >
                 Finalizar y regresar al sitio
@@ -429,15 +429,15 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            {/* Stepper Progresivo */}
+            {/* Stepper Progresivo de 6 Pasos */}
             <div className="public-steps-nav">
               {[
-                { num: 1, label: 'Datos Personales' },
-                { num: 2, label: 'Perfil' },
-                { num: 3, label: 'Experiencia' },
-                { num: 4, label: 'Formación & Habilidades' },
-                { num: 5, label: 'Documentos' },
-                { num: 6, label: 'Revisión' }
+                { num: 1, label: 'Datos Personales', code: '01' },
+                { num: 2, label: 'Perfil', code: '02' },
+                { num: 3, label: 'Experiencia', code: '03' },
+                { num: 4, label: 'Formación', code: '04' },
+                { num: 5, label: 'Documentos', code: '05' },
+                { num: 6, label: 'Revisión', code: '06' }
               ].map((step) => (
                 <div
                   key={step.num}
@@ -447,9 +447,11 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       setCurrentStep(step.num);
                     }
                   }}
+                  role="button"
+                  tabIndex={0}
                 >
                   <div className="public-step-number">
-                    {currentStep > step.num ? <CheckCircle2 size={13} /> : step.num}
+                    {currentStep > step.num ? <CheckCircle2 size={14} /> : step.code}
                   </div>
                   <span className="public-step-name">{step.label}</span>
                 </div>
@@ -639,7 +641,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                     <button
                       type="button"
                       onClick={addExperience}
-                      className="constructa-btn constructa-btn-outline constructa-btn-sm"
+                      className="btn btn-outline btn-sm"
                       style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
                       <Plus size={14} /> Agregar otra
@@ -739,7 +741,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       <button
                         type="button"
                         onClick={addEducation}
-                        className="constructa-btn constructa-btn-outline constructa-btn-sm"
+                        className="btn btn-outline btn-sm"
                         style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
                         <Plus size={14} /> Agregar estudio
@@ -813,7 +815,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       <button
                         type="button"
                         onClick={addSkill}
-                        className="constructa-btn constructa-btn-outline"
+                        className="btn btn-outline"
                         style={{ padding: '0 16px' }}
                       >
                         Agregar
@@ -850,7 +852,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       <button
                         type="button"
                         onClick={addCertification}
-                        className="constructa-btn constructa-btn-outline constructa-btn-sm"
+                        className="btn btn-outline btn-sm"
                         style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
                         <Plus size={14} /> Agregar
@@ -914,13 +916,13 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                           <Upload size={26} />
                         </div>
                         <h4 style={{ margin: '8px 0 4px 0', fontSize: '1rem', color: '#ffffff' }}>
-                          Adjunta tu Currículum Vitae y Documentos
+                          Arrastra tus documentos aquí o haz clic para seleccionar
                         </h4>
                         <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted, #94a3b8)' }}>
-                          Formatos aceptados: PDF, JPG, PNG, DOCX (Máx. 15MB por archivo).
+                          Formatos aceptados: PDF, JPG, JPEG, PNG, DOCX (Máx. 15MB por archivo).
                         </p>
-                        <span className="constructa-btn constructa-btn-outline constructa-btn-sm" style={{ marginTop: '10px', pointerEvents: 'none' }}>
-                          Examinar archivos en tu equipo
+                        <span className="btn btn-outline btn-sm" style={{ marginTop: '12px', pointerEvents: 'none' }}>
+                          Seleccionar archivos de tu equipo
                         </span>
                       </label>
                     </div>
@@ -971,39 +973,183 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
               {currentStep === 6 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div className="public-review-summary-box">
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem', color: 'var(--accent-amber, #f59e0b)' }}>
-                      Revisión de Postulación
-                    </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '0.86rem' }}>
-                      <div>
-                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Candidato:</span>
-                        <strong>{formData.nombre}</strong>
+                    {/* Header Datos Personales */}
+                    <div className="public-review-section">
+                      <div className="public-review-section-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <User size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                          <h4 className="public-review-title">1. Datos Personales</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className="public-btn-edit-step"
+                          onClick={() => setCurrentStep(1)}
+                        >
+                          Editar
+                        </button>
                       </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Identificación:</span>
-                        <strong>{formData.dni}</strong>
+                      <div className="public-review-grid">
+                        <div>
+                          <span className="public-review-k">Candidato:</span>
+                          <span className="public-review-v">{formData.nombre || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Identificación / DNI:</span>
+                          <span className="public-review-v">{formData.dni || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Correo Electrónico:</span>
+                          <span className="public-review-v">{formData.email || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Teléfono:</span>
+                          <span className="public-review-v">{formData.telefono || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Ubicación:</span>
+                          <span className="public-review-v">{formData.ubicacion || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Disponibilidad:</span>
+                          <span className="public-review-v" style={{ color: 'var(--accent-emerald, #10b981)' }}>
+                            {formData.disponibilidad}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Vacante solicitada:</span>
-                        <strong style={{ color: 'var(--accent-amber, #f59e0b)' }}>{formData.puestoSolicitado}</strong>
+                    </div>
+
+                    {/* Header Perfil */}
+                    <div className="public-review-section">
+                      <div className="public-review-section-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Briefcase size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                          <h4 className="public-review-title">2. Perfil Profesional</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className="public-btn-edit-step"
+                          onClick={() => setCurrentStep(2)}
+                        >
+                          Editar
+                        </button>
                       </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Contacto:</span>
-                        <span>{formData.email} • {formData.telefono}</span>
+                      <div className="public-review-grid">
+                        <div>
+                          <span className="public-review-k">Puesto Solicitado:</span>
+                          <span className="public-review-v" style={{ color: 'var(--accent-amber, #f59e0b)', fontWeight: 600 }}>
+                            {formData.puestoSolicitado}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Profesión / Especialidad:</span>
+                          <span className="public-review-v">{formData.profesion}</span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Experiencia Total:</span>
+                          <span className="public-review-v">{formData.experienciaAnios}</span>
+                        </div>
+                        <div>
+                          <span className="public-review-k">Jornada:</span>
+                          <span className="public-review-v">{formData.tipoJornada}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Ubicación:</span>
-                        <span>{formData.ubicacion}</span>
+                      {formData.perfilProfesional && (
+                        <div style={{ marginTop: '8px', fontSize: '0.84rem', color: 'var(--text-secondary, #94a3b8)', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '6px' }}>
+                          "{formData.perfilProfesional}"
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Header Experiencia */}
+                    <div className="public-review-section">
+                      <div className="public-review-section-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Briefcase size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                          <h4 className="public-review-title">3. Experiencia Laboral ({formData.experiencias.filter(e => e.puesto || e.empresa).length})</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className="public-btn-edit-step"
+                          onClick={() => setCurrentStep(3)}
+                        >
+                          Editar
+                        </button>
                       </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Disponibilidad:</span>
-                        <span style={{ color: 'var(--accent-emerald, #10b981)' }}>{formData.disponibilidad}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {formData.experiencias.filter(e => e.puesto || e.empresa).length === 0 ? (
+                          <span style={{ fontSize: '0.84rem', color: 'var(--text-muted, #94a3b8)' }}>No se especificaron experiencias adicionales.</span>
+                        ) : (
+                          formData.experiencias.filter(e => e.puesto || e.empresa).map((exp, idx) => (
+                            <div key={idx} style={{ fontSize: '0.84rem', color: 'var(--text-secondary, #94a3b8)' }}>
+                              <strong style={{ color: '#ffffff' }}>{exp.puesto}</strong> en {exp.empresa} {exp.fechaInicio ? `(${exp.fechaInicio} - ${exp.fechaFin || 'Actual'})` : ''}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Header Formación y Habilidades */}
+                    <div className="public-review-section">
+                      <div className="public-review-section-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <GraduationCap size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                          <h4 className="public-review-title">4. Formación y Habilidades</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className="public-btn-edit-step"
+                          onClick={() => setCurrentStep(4)}
+                        >
+                          Editar
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                        {formData.habilidades.map((h, idx) => (
+                          <span key={idx} className="public-skill-tag" style={{ fontSize: '0.78rem', padding: '3px 8px' }}>
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+                      {formData.formacion.filter(f => f.titulo).map((f, idx) => (
+                        <div key={idx} style={{ fontSize: '0.84rem', color: 'var(--text-secondary, #94a3b8)' }}>
+                          <strong style={{ color: '#ffffff' }}>{f.titulo}</strong> — {f.institucion} {f.anio ? `(${f.anio})` : ''}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Header Documentos */}
+                    <div className="public-review-section" style={{ borderBottom: 'none' }}>
+                      <div className="public-review-section-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FileText size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                          <h4 className="public-review-title">5. Documentos Anexados ({formData.documentos.length})</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className="public-btn-edit-step"
+                          onClick={() => setCurrentStep(5)}
+                        >
+                          Editar
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {formData.documentos.length === 0 ? (
+                          <span style={{ fontSize: '0.84rem', color: 'var(--text-muted, #94a3b8)' }}>
+                            Se generará y vinculará la ficha curricular automáticamente.
+                          </span>
+                        ) : (
+                          formData.documentos.map((d) => (
+                            <div key={d.id} className="public-attached-doc-row" style={{ padding: '6px 12px', fontSize: '0.82rem' }}>
+                              <span>{d.nombre} ({d.tamanio})</span>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
 
                   <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '12px 16px', borderRadius: '8px', fontSize: '0.84rem', color: 'var(--text-secondary, #94a3b8)', lineHeight: '1.55' }}>
-                    Al enviar esta solicitud, tus datos y expediente curricular único serán remitidos al departamento de Recursos Humanos de CONSTRUCTA para su evaluación en los procesos de selección activos.
+                    Al confirmar y enviar esta solicitud, tus datos y expediente curricular único se remitirán directamente a la gerencia de Recursos Humanos de CONSTRUCTA para su evaluación técnica en los procesos de selección activos.
                   </div>
                 </div>
               )}
@@ -1015,7 +1161,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                 {currentStep > 1 && (
                   <button
                     type="button"
-                    className="constructa-btn constructa-btn-outline"
+                    className="btn btn-outline"
                     onClick={handlePrev}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
@@ -1027,7 +1173,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
-                  className="constructa-btn constructa-btn-outline"
+                  className="btn btn-outline"
                   onClick={handleResetAndClose}
                 >
                   Cancelar
@@ -1036,7 +1182,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                 {currentStep < 6 ? (
                   <button
                     type="button"
-                    className="constructa-btn constructa-btn-primary"
+                    className="btn btn-primary"
                     onClick={handleNext}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
@@ -1045,7 +1191,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                 ) : (
                   <button
                     type="submit"
-                    className="constructa-btn constructa-btn-primary"
+                    className="btn btn-primary"
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <Send size={15} /> Confirmar y Enviar Postulación

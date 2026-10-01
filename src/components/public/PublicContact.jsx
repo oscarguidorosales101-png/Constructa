@@ -101,7 +101,7 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                   <p className="public-contact-item-v">
                     <a href={`tel:${contact.phone.replace(/[^0-9+]/g, '')}`}>{contact.phone}</a>
                     <br />
-                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Línea directa: {contact.phoneAlt}</span>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted, #94a3b8)' }}>Línea directa: {contact.phoneAlt}</span>
                   </p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                   <p className="public-contact-item-v">
                     {contact.businessHours}
                     <br />
-                    <span style={{ fontSize: '0.8rem', color: 'var(--color-gold)' }}>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--accent-amber, #f59e0b)', fontWeight: 600 }}>
                       {contact.emergencyHours}
                     </span>
                   </p>
@@ -144,37 +144,42 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
             {/* Direct WhatsApp Callout */}
             {contact.whatsapp && (
               <div className="public-whatsapp-box">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MessageSquare size={18} style={{ color: '#25D366' }} />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>Atención Ejecutiva WhatsApp</span>
+                <div className="public-whatsapp-info">
+                  <div className="public-whatsapp-icon">
+                    <MessageSquare size={20} />
+                  </div>
+                  <div>
+                    <h5 className="public-whatsapp-title">Atención Inmediata por WhatsApp</h5>
+                    <p className="public-whatsapp-sub">Respuesta directa de nuestro equipo técnico comercial</p>
+                  </div>
                 </div>
                 <a
                   href={`https://wa.me/${contact.whatsappClean}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="public-btn public-btn-outline"
-                  style={{ fontSize: '0.82rem', padding: '6px 12px', borderColor: '#25D366', color: '#25D366' }}
+                  className="btn btn-outline public-btn-wa"
                 >
-                  Abrir chat <ExternalLink size={12} />
+                  <span>Iniciar Conversación</span>
+                  <ExternalLink size={14} />
                 </a>
               </div>
             )}
           </div>
 
-          {/* Form & Map Column */}
+          {/* Form Column */}
           <div className="public-contact-form-card">
             {isSent ? (
               <div className="public-form-sent-state">
                 <div className="public-sent-icon-circle">
-                  <CheckCircle2 size={40} />
+                  <CheckCircle2 size={44} />
                 </div>
                 <h3 className="public-sent-title">Mensaje enviado exitosamente</h3>
                 <p className="public-sent-desc">
-                  Hemos recibido tu consulta técnica o solicitud comercial. Un asesor de ingeniería se pondrá en contacto contigo en un plazo menor a 24 horas hábiles.
+                  Hemos recibido tu consulta técnica o solicitud comercial. Un asesor de ingeniería de CONSTRUCTA se pondrá en contacto contigo en un plazo menor a 24 horas hábiles.
                 </p>
                 <button
                   type="button"
-                  className="public-btn public-btn-outline"
+                  className="btn btn-outline"
                   onClick={() => {
                     setIsSent(false);
                     setFormData({
@@ -198,11 +203,11 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
 
                 <div className="public-form-field">
                   <label className="public-form-label">
-                    Nombre o Empresa <span style={{ color: 'var(--color-danger)' }}>*</span>
+                    Nombre o Razón Social <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="Ej. Ing. Rodrigo Salazar / Grupo Inmobiliario"
+                    placeholder="Ej. Ing. Rodrigo Salazar / Grupo Inmobiliario del Norte"
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                     className={`public-form-input ${errors.nombre ? 'has-error' : ''}`}
@@ -213,7 +218,7 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                 <div className="public-form-grid-2">
                   <div className="public-form-field">
                     <label className="public-form-label">
-                      Correo Electrónico <span style={{ color: 'var(--color-danger)' }}>*</span>
+                      Correo Electrónico <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                     </label>
                     <input
                       type="email"
@@ -256,11 +261,11 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
 
                 <div className="public-form-field">
                   <label className="public-form-label">
-                    Descripción del Requerimiento <span style={{ color: 'var(--color-danger)' }}>*</span>
+                    Descripción del Proyecto o Requerimiento <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                   </label>
                   <textarea
                     rows={4}
-                    placeholder="Detalles del proyecto, ubicación estimada, superficie en metros cuadrados, plazos deseados..."
+                    placeholder="Detalles del proyecto, ubicación estimada, superficie en metros cuadrados, plazos de ejecución requeridos..."
                     value={formData.mensaje}
                     onChange={(e) => setFormData({ ...formData, mensaje: e.target.value })}
                     className={`public-form-textarea ${errors.mensaje ? 'has-error' : ''}`}
@@ -268,8 +273,9 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                   {errors.mensaje && <span className="public-form-error">{errors.mensaje}</span>}
                 </div>
 
-                <button type="submit" className="public-btn public-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  <Send size={15} /> Enviar Mensaje a Operaciones
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.85rem 1.5rem', fontSize: '0.95rem' }}>
+                  <Send size={16} />
+                  <span>Enviar Mensaje a Operaciones</span>
                 </button>
               </form>
             )}
@@ -279,6 +285,10 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
         {/* Google Maps Embed / Location Frame */}
         {contact.googleMapsEmbedUrl && (
           <div className="public-map-wrapper">
+            <div className="public-map-header">
+              <MapPin size={18} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+              <h4>Ubicación Georreferenciada de la Sede Central</h4>
+            </div>
             <iframe
               title="Ubicación de Oficinas Centrales"
               src={contact.googleMapsEmbedUrl}
@@ -288,30 +298,6 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
             />
           </div>
         )}
-
-        {/* Barra de Continuidad Institucional */}
-        <div className="public-module-continuity-bar">
-          <div className="public-module-continuity-text">
-            <h4>¿Deseas explorar nuestras obras ejecutadas o unirte al equipo?</h4>
-            <p>Conoce nuestro portafolio de proyectos concluidos o postúlate a las vacantes abiertas.</p>
-          </div>
-          <div className="public-module-continuity-actions">
-            <button
-              type="button"
-              className="public-btn public-btn-outline"
-              onClick={() => onNavigateSection ? onNavigateSection('proyectos') : (window.location.hash = 'proyectos')}
-            >
-              Ver Portafolio de Obras
-            </button>
-            <button
-              type="button"
-              className="public-btn public-btn-primary"
-              onClick={() => onNavigateSection ? onNavigateSection('trabaja-con-nosotros') : (window.location.hash = 'trabaja-con-nosotros')}
-            >
-              Bolsa de Empleo
-            </button>
-          </div>
-        </div>
       </div>
     </section>
   );

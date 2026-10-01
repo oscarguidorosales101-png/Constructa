@@ -21,8 +21,7 @@ import {
   Image as ImageIcon, 
   Briefcase, 
   PhoneCall, 
-  Home,
-  Compass
+  Home
 } from 'lucide-react';
 
 const MODULES_MAP = {
@@ -146,36 +145,6 @@ export default function PublicLanding({ config = COMPANY_CONFIG, initialModule =
         currentUser={currentUser}
         onGoToDashboard={handleGoToDashboard}
       />
-
-      {/* Subnavegador Rápido de Módulos (Solo visible en módulos secundarios o para alternar rápidamente) */}
-      {activeModule !== 'inicio' && (
-        <aside className="public-subnav-strip" aria-label="Navegación secundaria de módulos">
-          <div className="public-container public-subnav-container">
-            <div className="public-subnav-label">
-              <Compass size={14} style={{ color: 'var(--color-gold, #f59e0b)' }} />
-              <span>Explorar Secciones:</span>
-            </div>
-            <div className="public-subnav-pills">
-              {Object.values(MODULES_MAP).map((mod) => {
-                const Icon = mod.icon;
-                const isActive = activeModule === mod.id;
-                return (
-                  <button
-                    key={mod.id}
-                    type="button"
-                    onClick={() => handleNavigateSection(mod.id)}
-                    className={`public-subnav-pill ${isActive ? 'active' : ''}`}
-                    title={`Ver ${mod.label}`}
-                  >
-                    <Icon size={13} />
-                    <span>{mod.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </aside>
-      )}
 
       {/* Contenedor Principal con Transición Suave y Aislada */}
       <main id="main-corporate-content" className="public-site-main">

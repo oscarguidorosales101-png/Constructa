@@ -70,7 +70,7 @@ export default function PublicVideo({ onNavigateSection }) {
                 </p>
                 <button
                   type="button"
-                  className="constructa-btn constructa-btn-primary"
+                  className="btn btn-primary"
                   onClick={() => onNavigateSection?.('proyectos')}
                   style={{ marginTop: '14px' }}
                 >
@@ -109,7 +109,7 @@ export default function PublicVideo({ onNavigateSection }) {
             <div className="public-video-footer-cta">
               <button
                 type="button"
-                className="constructa-btn constructa-btn-outline"
+                className="btn btn-outline"
                 style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => onNavigateSection?.('trabaja-con-nosotros')}
               >
@@ -129,7 +129,7 @@ export default function PublicVideo({ onNavigateSection }) {
           <div className="public-bottom-cta-actions">
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               onClick={() => onNavigateSection?.('proyectos')}
             >
               <span>Ver Portafolio de Obras</span>
@@ -137,7 +137,7 @@ export default function PublicVideo({ onNavigateSection }) {
             </button>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => onNavigateSection?.('galeria')}
             >
               <span>Ver Galería Fotográfica</span>

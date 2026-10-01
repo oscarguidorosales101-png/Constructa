@@ -75,7 +75,7 @@ export default function PublicStats({ onNavigateSection }) {
           <div className="public-bottom-cta-actions">
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               onClick={() => onNavigateSection?.('empresa')}
             >
               <span>Conocer Nuestra Empresa</span>
@@ -83,7 +83,7 @@ export default function PublicStats({ onNavigateSection }) {
             </button>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => onNavigateSection?.('trabaja-con-nosotros')}
             >
               <span>Ver Oportunidades Laborales</span>

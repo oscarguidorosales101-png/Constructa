@@ -72,7 +72,7 @@ export default function PublicHeader({
             {currentUser ? (
               <button
                 type="button"
-                className="constructa-btn constructa-btn-primary constructa-btn-sm"
+                className="btn btn-primary btn-sm"
                 onClick={onGoToDashboard}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
               >
@@ -82,7 +82,7 @@ export default function PublicHeader({
             ) : (
               <button
                 type="button"
-                className="constructa-btn constructa-btn-primary constructa-btn-sm"
+                className="btn btn-primary btn-sm"
                 onClick={onGoToLogin}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
               >
@@ -106,16 +106,16 @@ export default function PublicHeader({
 
       {/* Menú Móvil Desplegable */}
       <div className={`public-mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--accent-amber, #f59e0b)', fontWeight: 700, textTransform: 'uppercase' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--accent-amber, #f59e0b)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Navegación Institucional
           </span>
           <button
             type="button"
             onClick={() => setMobileMenuOpen(false)}
-            style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', padding: '4px' }}
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
@@ -123,7 +123,7 @@ export default function PublicHeader({
           <button
             key={item.id}
             type="button"
-            className="mobile-nav-link"
+            className={`mobile-nav-link ${activeSection === item.id ? 'active' : ''}`}
             onClick={() => handleNavClick(item.id)}
           >
             <span>{item.label}</span>
@@ -135,7 +135,7 @@ export default function PublicHeader({
           {currentUser ? (
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               style={{ width: '100%', justifyContent: 'center' }}
               onClick={() => {
                 setMobileMenuOpen(false);
@@ -148,7 +148,7 @@ export default function PublicHeader({
           ) : (
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               style={{ width: '100%', justifyContent: 'center' }}
               onClick={() => {
                 setMobileMenuOpen(false);

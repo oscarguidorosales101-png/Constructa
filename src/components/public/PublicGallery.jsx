@@ -119,7 +119,7 @@ export default function PublicGallery({ onNavigateSection }) {
           <div className="public-bottom-cta-actions">
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               onClick={() => onNavigateSection?.('proyectos')}
             >
               <span>Ver Portafolio de Obras</span>
@@ -127,7 +127,7 @@ export default function PublicGallery({ onNavigateSection }) {
             </button>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => onNavigateSection?.('contacto')}
             >
               <span>Consultar Obra Similar</span>

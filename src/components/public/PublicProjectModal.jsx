@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Building2, Calendar, MapPin, User, DollarSign, Activity, CheckCircle2, ArrowRight } from 'lucide-react';
 
-export default function PublicProjectModal({ project, isOpen, onClose }) {
+export default function PublicProjectModal({ project, isOpen, onClose, onNavigateContact }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -9,6 +11,7 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+      setImgFailed(false);
     }
     return () => {
       document.body.style.overflow = '';
@@ -41,28 +44,21 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
 
   const statusStyle = getStatusColor(project.estado);
 
-  // Fallback high-res architectural images based on project
-  const projectImages = [
-    'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1200&q=80'
-  ];
-
-  const primaryImage = project.imagen || projectImages[0];
+  const fallbackImage = 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=1200&q=80';
+  const primaryImage = (!imgFailed && project.imagen) ? project.imagen : fallbackImage;
 
   return (
     <div className="constructa-modal-overlay" onClick={onClose}>
       <div 
         className="constructa-modal public-project-modal" 
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '840px', width: '95%', maxHeight: '92vh', overflowY: 'auto' }}
+        style={{ maxWidth: '820px', width: '95%', maxHeight: '92vh', overflowY: 'auto' }}
       >
         {/* Header */}
         <div className="modal-header">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ color: 'var(--color-gold)', fontSize: '0.82rem', fontWeight: 700, letterSpacing: '0.5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span style={{ color: 'var(--accent-amber, #f59e0b)', fontSize: '0.82rem', fontWeight: 700, letterSpacing: '0.5px' }}>
                 {project.codigo}
               </span>
               <span 
@@ -79,21 +75,23 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
                 {project.estado}
               </span>
             </div>
-            <h3 className="modal-title" style={{ fontSize: '1.25rem' }}>{project.nombre}</h3>
+            <h3 className="modal-title" style={{ fontSize: '1.35rem', margin: 0 }}>
+              {project.nombre}
+            </h3>
           </div>
           <button 
             type="button" 
             className="btn-icon" 
             onClick={onClose} 
             aria-label="Cerrar detalle de proyecto"
-            style={{ color: 'var(--color-text-muted)' }}
+            style={{ color: 'var(--text-muted, #94a3b8)' }}
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '24px' }}>
           {/* Main Visual */}
           <div className="public-modal-hero-img-wrap">
             <img 
@@ -101,10 +99,11 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
               alt={project.nombre} 
               className="public-modal-hero-img"
               loading="lazy"
+              onError={() => setImgFailed(true)}
             />
             <div className="public-modal-hero-gradient">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fff', fontSize: '0.85rem' }}>
-                <MapPin size={16} style={{ color: 'var(--color-gold)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fff', fontSize: '0.88rem', fontWeight: 500 }}>
+                <MapPin size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
                 <span>{project.ubicacion}</span>
               </div>
             </div>
@@ -113,11 +112,13 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
           {/* Quick Metrics Strip */}
           <div className="public-project-metrics-grid">
             <div className="public-metric-box">
-              <span className="public-metric-lbl">Avance Físico</span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <strong style={{ fontSize: '1.2rem', color: 'var(--color-gold)' }}>{project.avance}%</strong>
+              <span className="public-metric-lbl">Avance Físico de Obra</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', margin: '4px 0' }}>
+                <strong style={{ fontSize: '1.4rem', color: 'var(--accent-amber, #f59e0b)' }}>
+                  {project.avance}%
+                </strong>
               </div>
-              <div className="public-project-progress-track" style={{ marginTop: '6px' }}>
+              <div className="public-project-progress-track">
                 <div 
                   className="public-project-progress-fill" 
                   style={{ width: `${project.avance}%` }}
@@ -127,27 +128,31 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
 
             <div className="public-metric-box">
               <span className="public-metric-lbl">Presupuesto Asignado</span>
-              <strong style={{ fontSize: '1.1rem', color: '#fff' }}>
+              <strong style={{ fontSize: '1.25rem', color: '#ffffff', display: 'block', margin: '4px 0' }}>
                 {formatCurrency(project.presupuesto)}
               </strong>
-              <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>Costo base de contrato</span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted, #94a3b8)' }}>
+                Costo base contratado
+              </span>
             </div>
 
             <div className="public-metric-box">
               <span className="public-metric-lbl">Plazo Programado</span>
-              <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary, #94a3b8)', fontWeight: 600, margin: '4px 0' }}>
                 {project.fechaInicio} ➔ {project.fechaFinEstimada || project.fechaFin}
               </div>
-              <span style={{ fontSize: '0.74rem', color: 'var(--color-emerald)', fontWeight: 600 }}>Cronograma Vigente</span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--accent-emerald, #10b981)', fontWeight: 600 }}>
+                Cronograma de Ejecución Vigente
+              </span>
             </div>
           </div>
 
           {/* Project Details Description */}
           <div className="public-project-info-block">
-            <h4 style={{ fontSize: '0.95rem', color: 'var(--color-gold)', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <h4 style={{ fontSize: '0.95rem', color: 'var(--accent-amber, #f59e0b)', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Descripción Técnica del Desarrollo
             </h4>
-            <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
+            <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-secondary, #94a3b8)', lineHeight: '1.7' }}>
               {project.descripcion || 'Obra civil de alta especificación ejecutada bajo supervisión y estándares normativos rigurosos.'}
             </p>
           </div>
@@ -160,7 +165,7 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
                 <span className="public-meta-v">{project.cliente}</span>
               </div>
               <div className="public-meta-col">
-                <span className="public-meta-k">Responsable de Proyecto / Residencia:</span>
+                <span className="public-meta-k">Responsable de Residencia:</span>
                 <span className="public-meta-v">{project.responsable}</span>
               </div>
             </div>
@@ -171,25 +176,29 @@ export default function PublicProjectModal({ project, isOpen, onClose }) {
               </div>
               <div className="public-meta-col">
                 <span className="public-meta-k">Control de Calidad:</span>
-                <span className="public-meta-v" style={{ color: 'var(--color-emerald)' }}>Supervisión y Ensayos de Laboratorio Acreditados</span>
+                <span className="public-meta-v" style={{ color: 'var(--accent-emerald, #10b981)' }}>
+                  Supervisión y Ensayos de Laboratorio Acreditados
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <a 
-            href="#contacto" 
-            onClick={onClose}
-            className="public-btn public-btn-outline" 
-            style={{ fontSize: '0.85rem' }}
+        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px' }}>
+          <button 
+            type="button"
+            onClick={() => {
+              if (onNavigateContact) onNavigateContact();
+              else onClose();
+            }}
+            className="btn btn-outline btn-sm" 
           >
             Consultar obra similar
-          </a>
+          </button>
           <button 
             type="button" 
-            className="public-btn public-btn-primary" 
+            className="btn btn-primary btn-sm" 
             onClick={onClose}
           >
             Cerrar detalle

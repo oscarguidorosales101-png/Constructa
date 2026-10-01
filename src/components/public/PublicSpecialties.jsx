@@ -117,7 +117,7 @@ export default function PublicSpecialties({ onNavigateSection }) {
           <div className="public-bottom-cta-actions">
             <button
               type="button"
-              className="constructa-btn constructa-btn-primary"
+              className="btn btn-primary"
               onClick={() => onNavigateSection?.('contacto')}
             >
               <span>Solicitar Asesoría o Cotización</span>
@@ -125,7 +125,7 @@ export default function PublicSpecialties({ onNavigateSection }) {
             </button>
             <button
               type="button"
-              className="constructa-btn constructa-btn-outline"
+              className="btn btn-outline"
               onClick={() => onNavigateSection?.('proyectos')}
             >
               <span>Ver Portafolio de Obras</span>
