@@ -72,104 +72,68 @@ export const AppRoutes = () => {
     'contacto',
   ].includes(currentKey) || (!currentUser && currentKey === 'proyectos');
 
+  // Resolución del contenido según la ruta
+  let content = null;
+
   if (isPublicSection) {
     const PublicLandingComponent = routeConfig.inicio.component;
     const initialSection = (!currentUser && currentKey === 'proyectos') ? 'proyectos' : currentKey;
-    return (
-      <>
-        <PublicLandingComponent initialModule={initialSection} />
-        <ToastContainer />
-      </>
-    );
-  }
-
-  // Caso: Registro y Verificación de Cliente
-  if (currentKey === 'registro' || currentKey === 'registro-cliente') {
+    content = <PublicLandingComponent initialModule={initialSection} />;
+  } else if (currentKey === 'registro' || currentKey === 'registro-cliente') {
     const RegisterComponent = routeConfig.registro.component;
-    return (
-      <>
-        <RegisterComponent onNavigate={navigate} />
-        <ToastContainer />
-      </>
-    );
-  }
-
-  // Caso: Ruta inexistente (404)
-  if (!currentRoute) {
+    content = <RegisterComponent onNavigate={navigate} />;
+  } else if (!currentRoute) {
     const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
-    return (
-      <>
-        <Status404 onBackToHome={() => navigate(homeTarget)} />
-        <ToastContainer />
-      </>
-    );
-  }
-
-  // Caso: Rutas públicas de error y estado explícito
-  if (currentKey === '401') {
-    return (
-      <>
-        <Status401 onLogin={() => navigate('login')} />
-        <ToastContainer />
-      </>
-    );
-  }
-
-  if (currentKey === '403') {
+    content = <Status404 onBackToHome={() => navigate(homeTarget)} />;
+  } else if (currentKey === '401') {
+    content = <Status401 onLogin={() => navigate('login')} />;
+  } else if (currentKey === '403') {
     const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
-    return (
-      <>
-        <Status403 onBackToHome={() => navigate(homeTarget)} />
-        <ToastContainer />
-      </>
-    );
-  }
-
-  if (currentKey === '404') {
+    content = <Status403 onBackToHome={() => navigate(homeTarget)} />;
+  } else if (currentKey === '404') {
     const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
-    return (
-      <>
-        <Status404 onBackToHome={() => navigate(homeTarget)} />
-        <ToastContainer />
-      </>
-    );
-  }
-
-  // Caso: Inicio de sesión (Login)
-  if (currentKey === 'login') {
+    content = <Status404 onBackToHome={() => navigate(homeTarget)} />;
+  } else if (currentKey === 'login') {
     if (currentUser) {
-      // Si ya está autenticado y entra a login, se le muestra su espacio correspondiente
       const targetRouteKey = currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
       const TargetComponent = routeConfig[targetRouteKey].component;
-      return (
+      content = (
         <PrivateRoutes route={routeConfig[targetRouteKey]}>
           <TargetComponent onNavigate={navigate} />
         </PrivateRoutes>
       );
-    }
-    return (
-      <>
+    } else {
+      content = (
         <Login onLoginSuccess={() => navigate(currentUser?.rol === 'Cliente' ? 'portal-cliente' : 'dashboard')} />
-        <ToastContainer />
-      </>
-    );
-  }
-
-  // Caso: Rutas Privadas del Sistema CONSTRUCTA
-  if (currentRoute.isPrivate) {
+      );
+    }
+  } else if (currentRoute.isPrivate) {
     const Component = currentRoute.component;
-    return (
+    content = (
       <PrivateRoutes route={currentRoute}>
         <Component onNavigate={navigate} />
       </PrivateRoutes>
     );
+  } else {
+    content = <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'login')} />;
   }
 
-  // Fallback por defecto
   return (
     <>
-      <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'login')} />
+      {content}
       <ToastContainer />
+      <ConfirmModal
+        isOpen={Boolean(confirmState?.isOpen)}
+        title={confirmState?.title || '¿Cerrar sesión?'}
+        message={confirmState?.message || '¿Estás seguro de que deseas cerrar tu sesión?'}
+        confirmText={confirmState?.confirmText || 'Confirmar'}
+        cancelText={confirmState?.cancelText || 'Cancelar'}
+        variant={confirmState?.confirmVariant || (confirmState?.isDestructive ? 'danger' : 'primary')}
+        confirmVariant={confirmState?.confirmVariant || (confirmState?.isDestructive ? 'danger' : 'primary')}
+        isDestructive={Boolean(confirmState?.isDestructive)}
+        onConfirm={confirmState?.onConfirm}
+        onClose={closeConfirm}
+      />
     </>
   );
 };

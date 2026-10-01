@@ -1,5 +1,5 @@
 import storageService from './storageService.js';
-import db from '../data/db.json';
+import db from '../data/db.json' with { type: 'json' };
 
 const KEYS = {
   INITIALIZED: 'constructa_db_init_v3',
@@ -23,6 +23,7 @@ const KEYS = {
   CLIENT_REQUESTS: 'solicitudes_clientes',
   CLIENT_MEETINGS: 'reuniones_clientes',
   CLIENT_MESSAGES: 'mensajes_clientes',
+  CLIENT_CONVERSATIONS: 'conversaciones_clientes',
 };
 
 // Usuarios del sistema con acceso autorizado por rol
@@ -34,6 +35,7 @@ export const SYSTEM_USERS = [
     email: 'admin@constructa.com',
     usuario: 'admin',
     clave: 'admin',
+    aliases: ['admin123'],
     rol: 'Administrador',
     avatar: 'FM',
     descripcion: 'Control general del sistema, configuración corporativa, finanzas y supervisión global.',
@@ -42,9 +44,11 @@ export const SYSTEM_USERS = [
     id: 'USR-002',
     nombre: 'Ing. Carlos Mendoza Rivas',
     cargo: 'Gerente de Construcción y Operaciones',
-    email: 'gerente@constructa.com',
-    usuario: 'gerente',
-    clave: 'gerente123',
+    email: 'gerencia@constructa.com',
+    aliasEmail: 'gerente@constructa.com',
+    usuario: 'gerencia',
+    clave: 'Gerencia2026!',
+    aliases: ['gerente123', 'gerente'],
     rol: 'Gerente de Construcción',
     avatar: 'CM',
     descripcion: 'Supervisión de obras, cuadrillas de personal, avance físico, control de almacén y agenda operativa.',
@@ -55,7 +59,8 @@ export const SYSTEM_USERS = [
     cargo: 'Coordinadora de Talento y Selección',
     email: 'rrhh@constructa.com',
     usuario: 'rrhh',
-    clave: 'rrhh123',
+    clave: 'RRHH2026!',
+    aliases: ['rrhh123'],
     rol: 'RRHH / Reclutamiento',
     avatar: 'MM',
     descripcion: 'Gestión de candidatos, programación de entrevistas laborales, agenda de citas y contratación.',
@@ -167,7 +172,8 @@ export const DEFAULT_CLIENTS = [
     ciudad: 'Ciudad de México',
     pais: 'México',
     usuario: 'cliente',
-    clave: 'cliente123',
+    clave: 'Cliente2026!',
+    aliases: ['cliente123', 'cliente'],
     rol: 'Cliente',
     avatar: 'RG',
     estadoVerificacion: 'Verificada',
@@ -293,6 +299,77 @@ export const DEFAULT_CLIENT_MESSAGES = [
     texto: 'Perfecto Ingeniero, confirmada la fecha. Llevaré los planos originales de instalaciones que me entregó el proyectista.',
     fecha: '2026-03-27 14:15',
     leido: true
+  }
+];
+
+export const DEFAULT_CLIENT_CONVERSATIONS = [
+  {
+    id: 'CONV-001',
+    clienteId: 'CLI-001',
+    clienteNombre: 'Lic. Roberto Garza Sada',
+    clienteEmail: 'cliente@constructa.com',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    solicitudId: 'SOL-001',
+    asunto: 'Avance de obra y revisión técnica terraza Nivel 18',
+    responsable: 'Ing. Carlos Mendoza Rivas',
+    responsableRol: 'Gerente de Construcción',
+    estado: 'Abierta',
+    fechaCreacion: '2026-03-27',
+    ultimaActualizacion: '2026-03-27 14:15',
+    noLeidosCliente: 0,
+    noLeidosAdmin: 0,
+    mensajes: [
+      {
+        id: 'MSG-001',
+        remitente: 'Ing. Carlos Mendoza Rivas',
+        remitenteRol: 'Gerente de Construcción',
+        remitenteTipo: 'equipo',
+        contenido: 'Estimado Lic. Garza, hemos revisado el croquis de la terraza del Nivel 18. Programamos la inspección técnica para el próximo martes a las 10:00 hrs.',
+        fecha: '2026-03-27',
+        hora: '12:30',
+        estado: 'Leído'
+      },
+      {
+        id: 'MSG-002',
+        remitente: 'Lic. Roberto Garza Sada',
+        remitenteRol: 'Cliente',
+        remitenteTipo: 'cliente',
+        contenido: 'Perfecto Ingeniero, confirmada la fecha. Llevaré los planos originales de instalaciones que me entregó el proyectista.',
+        fecha: '2026-03-27',
+        hora: '14:15',
+        estado: 'Leído'
+      }
+    ]
+  },
+  {
+    id: 'CONV-002',
+    clienteId: 'CLI-001',
+    clienteNombre: 'Lic. Roberto Garza Sada',
+    clienteEmail: 'cliente@constructa.com',
+    proyectoId: null,
+    proyectoNombre: 'Residencia Familiar en Bosques de las Lomas',
+    solicitudId: 'SOL-002',
+    asunto: 'Evaluación presupuestal y cálculo geotécnico inicial',
+    responsable: 'Ing. Fernando Mendoza',
+    responsableRol: 'Administrador',
+    estado: 'Abierta',
+    fechaCreacion: '2026-03-29',
+    ultimaActualizacion: '2026-03-29 10:30',
+    noLeidosCliente: 0,
+    noLeidosAdmin: 1,
+    mensajes: [
+      {
+        id: 'MSG-003',
+        remitente: 'Lic. Roberto Garza Sada',
+        remitenteRol: 'Cliente',
+        remitenteTipo: 'cliente',
+        contenido: 'Estimada Administración, adjunté los archivos topográficos de Bosques de las Lomas en la solicitud SOL-002. Quisiera consultar el avance preliminar de cotización esta semana.',
+        fecha: '2026-03-29',
+        hora: '10:30',
+        estado: 'Enviado'
+      }
+    ]
   }
 ];
 
@@ -815,6 +892,7 @@ export const dataService = {
       if (!storageService.get(KEYS.CLIENT_REQUESTS)) storageService.set(KEYS.CLIENT_REQUESTS, DEFAULT_CLIENT_REQUESTS);
       if (!storageService.get(KEYS.CLIENT_MEETINGS)) storageService.set(KEYS.CLIENT_MEETINGS, DEFAULT_CLIENT_MEETINGS);
       if (!storageService.get(KEYS.CLIENT_MESSAGES)) storageService.set(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
+      if (!storageService.get(KEYS.CLIENT_CONVERSATIONS)) storageService.set(KEYS.CLIENT_CONVERSATIONS, DEFAULT_CLIENT_CONVERSATIONS);
     }
   },
 
@@ -839,6 +917,7 @@ export const dataService = {
     storageService.set(KEYS.CLIENT_REQUESTS, DEFAULT_CLIENT_REQUESTS);
     storageService.set(KEYS.CLIENT_MEETINGS, DEFAULT_CLIENT_MEETINGS);
     storageService.set(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
+    storageService.set(KEYS.CLIENT_CONVERSATIONS, DEFAULT_CLIENT_CONVERSATIONS);
     storageService.set(KEYS.INITIALIZED, true);
   },
 
@@ -863,11 +942,24 @@ export const dataService = {
 
     // 1. Buscar coincidencia en la lista de usuarios del sistema (Admin, Gerente, RRHH)
     const matchedUser = SYSTEM_USERS.find(
-      (u) => u.email.toLowerCase() === cleanId || u.usuario.toLowerCase() === cleanId
+      (u) =>
+        u.email.toLowerCase() === cleanId ||
+        u.usuario.toLowerCase() === cleanId ||
+        (u.aliasEmail && u.aliasEmail.toLowerCase() === cleanId)
     );
 
     if (matchedUser) {
-      const validPasswords = [matchedUser.clave, `${matchedUser.usuario}123`, 'admin123', 'admin'];
+      const validPasswords = [
+        matchedUser.clave,
+        ...(matchedUser.aliases || []),
+        `${matchedUser.usuario}123`,
+        'admin123',
+        'admin',
+        'gerente123',
+        'Gerencia2026!',
+        'rrhh123',
+        'RRHH2026!'
+      ];
       if (validPasswords.includes(cleanPass)) {
         const sessionData = {
           usuario: matchedUser,
@@ -886,7 +978,13 @@ export const dataService = {
     );
 
     if (matchedClient) {
-      const validPasswords = [matchedClient.clave, 'cliente123', 'cliente'];
+      const validPasswords = [
+        matchedClient.clave,
+        ...(matchedClient.aliases || []),
+        'cliente123',
+        'Cliente2026!',
+        'cliente'
+      ];
       if (validPasswords.includes(cleanPass)) {
         if (matchedClient.estadoVerificacion === 'Bloqueada') {
           return {
@@ -963,8 +1061,14 @@ export const dataService = {
     const list = storageService.get(KEYS.PROJECTS, db.projects || []);
     return list.map((p) => {
       const endDate = p.fechaFinEstimada || p.fechaFin || '';
+      let img = p.imagen;
+      if (!img) {
+        if (p.id === 'PRJ-001') img = '/imgs/proyectos/torre_altavista.jpg';
+        else if (p.id === 'PRJ-004') img = '/imgs/proyectos/residencia_lomas.jpg';
+      }
       return {
         ...p,
+        imagen: img || null,
         fechaFin: endDate,
         fechaFinEstimada: endDate,
         presupuesto: Number(p.presupuesto) || 0,
@@ -3501,6 +3605,201 @@ export const dataService = {
     const updated = [...list, newMsg];
     storageService.set(KEYS.CLIENT_MESSAGES, updated);
     return newMsg;
+  },
+
+  // ----------------------------------------------------
+  // CONVERSACIONES Y MENSAJERÍA BIDIRECCIONAL PERSISTENTE
+  // ----------------------------------------------------
+  getClientConversations(filter = {}) {
+    const all = storageService.get(KEYS.CLIENT_CONVERSATIONS, DEFAULT_CLIENT_CONVERSATIONS);
+    let result = [...all];
+    if (filter.clienteId) {
+      result = result.filter((c) => c.clienteId === filter.clienteId);
+    }
+    if (filter.clienteEmail) {
+      result = result.filter((c) => c.clienteEmail?.toLowerCase() === filter.clienteEmail.toLowerCase());
+    }
+    if (filter.proyectoId) {
+      result = result.filter((c) => c.proyectoId === filter.proyectoId);
+    }
+    return result.sort((a, b) => (b.ultimaActualizacion || '').localeCompare(a.ultimaActualizacion || ''));
+  },
+
+  getClientConversation(id) {
+    const all = this.getClientConversations();
+    return all.find((c) => c.id === id) || null;
+  },
+
+  createClientConversation(data) {
+    const list = this.getClientConversations();
+    const newId = generateNextId(list, 'CONV');
+    const now = new Date();
+    const fechaStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const fullDateStr = `${fechaStr} ${timeStr}`;
+
+    const isClient = data.remitenteTipo === 'cliente' || data.remitenteRol === 'Cliente';
+    const firstMessage = {
+      id: 'MSG-' + Date.now().toString().slice(-6),
+      remitente: data.remitenteNombre || data.remitente || 'Usuario',
+      remitenteRol: data.remitenteRol || (isClient ? 'Cliente' : 'Administrador'),
+      remitenteTipo: isClient ? 'cliente' : 'equipo',
+      contenido: data.primerMensaje || data.contenido || 'Consulta iniciada.',
+      fecha: fechaStr,
+      hora: timeStr,
+      estado: 'Enviado',
+      archivoAdjunto: data.archivoAdjunto || null,
+    };
+
+    const newConv = {
+      id: newId,
+      clienteId: data.clienteId || 'CLI-001',
+      clienteNombre: data.clienteNombre || 'Cliente',
+      clienteEmail: data.clienteEmail || 'cliente@constructa.com',
+      proyectoId: data.proyectoId || null,
+      proyectoNombre: data.proyectoNombre || 'Consulta General / Sin Proyecto Asignado',
+      solicitudId: data.solicitudId || null,
+      asunto: data.asunto || 'Consulta General',
+      responsable: data.responsable || 'Ing. Fernando Mendoza',
+      responsableRol: data.responsableRol || 'Administrador',
+      estado: 'Abierta',
+      fechaCreacion: fechaStr,
+      ultimaActualizacion: fullDateStr,
+      noLeidosCliente: isClient ? 0 : 1,
+      noLeidosAdmin: isClient ? 1 : 0,
+      mensajes: [firstMessage],
+    };
+
+    const updated = [newConv, ...list];
+    storageService.set(KEYS.CLIENT_CONVERSATIONS, updated);
+    this.addHistoryEntry(
+      'Mesa de Ayuda',
+      `Nueva conversación iniciada: ${newConv.asunto} (${newConv.clienteNombre})`,
+      newConv.proyectoNombre
+    );
+    return newConv;
+  },
+
+  sendConversationMessage(convId, messageData) {
+    const list = this.getClientConversations();
+    const idx = list.findIndex((c) => c.id === convId);
+    if (idx === -1) return null;
+
+    const conv = list[idx];
+    const now = new Date();
+    const fechaStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const fullDateStr = `${fechaStr} ${timeStr}`;
+
+    const isClient = messageData.remitenteTipo === 'cliente' || messageData.remitenteRol === 'Cliente';
+    const newMsg = {
+      id: 'MSG-' + Date.now().toString().slice(-6),
+      remitente: messageData.remitente || (isClient ? conv.clienteNombre : 'Equipo CONSTRUCTA'),
+      remitenteRol: messageData.remitenteRol || (isClient ? 'Cliente' : 'Administrador'),
+      remitenteTipo: isClient ? 'cliente' : 'equipo',
+      contenido: messageData.contenido || messageData.texto || '',
+      fecha: fechaStr,
+      hora: timeStr,
+      estado: 'Enviado',
+      archivoAdjunto: messageData.archivoAdjunto || null,
+    };
+
+    const updatedConv = {
+      ...conv,
+      ultimaActualizacion: fullDateStr,
+      noLeidosCliente: isClient ? conv.noLeidosCliente : (conv.noLeidosCliente || 0) + 1,
+      noLeidosAdmin: isClient ? (conv.noLeidosAdmin || 0) + 1 : conv.noLeidosAdmin,
+      mensajes: [...conv.mensajes, newMsg],
+    };
+
+    list[idx] = updatedConv;
+    storageService.set(KEYS.CLIENT_CONVERSATIONS, list);
+
+    // Si es respuesta del equipo, generar notificación al cliente
+    if (!isClient) {
+      const clients = this.getClients();
+      const clientIdx = clients.findIndex((c) => c.id === conv.clienteId || c.email?.toLowerCase() === conv.clienteEmail?.toLowerCase());
+      if (clientIdx !== -1) {
+        const client = clients[clientIdx];
+        const newNotif = {
+          id: 'NOT-' + Date.now().toString().slice(-6),
+          fecha: fechaStr,
+          leida: false,
+          titulo: `Nueva respuesta en: ${conv.asunto}`,
+          mensaje: `${newMsg.remitente} ha respondido a tu consulta sobre ${conv.proyectoNombre}.`,
+          conversacionId: convId,
+        };
+        clients[clientIdx] = {
+          ...client,
+          notificaciones: [newNotif, ...(client.notificaciones || [])],
+        };
+        storageService.set(KEYS.CLIENTS, clients);
+      }
+    }
+
+    this.addHistoryEntry(
+      'Mensaje Mesa de Ayuda',
+      `Mensaje en ${conv.asunto} de ${newMsg.remitente} (${newMsg.remitenteRol})`,
+      conv.proyectoNombre
+    );
+
+    return { conv: updatedConv, mensaje: newMsg };
+  },
+
+  markConversationAsRead(convId, userRole = 'Cliente') {
+    const list = this.getClientConversations();
+    const idx = list.findIndex((c) => c.id === convId);
+    if (idx === -1) return null;
+
+    const conv = list[idx];
+    const isClient = userRole === 'Cliente';
+
+    const updatedMessages = conv.mensajes.map((m) => {
+      if (isClient && m.remitenteTipo === 'equipo') {
+        return { ...m, estado: 'Leído' };
+      }
+      if (!isClient && m.remitenteTipo === 'cliente') {
+        return { ...m, estado: 'Leído' };
+      }
+      return m;
+    });
+
+    const updatedConv = {
+      ...conv,
+      mensajes: updatedMessages,
+      noLeidosCliente: isClient ? 0 : conv.noLeidosCliente,
+      noLeidosAdmin: !isClient ? 0 : conv.noLeidosAdmin,
+    };
+
+    list[idx] = updatedConv;
+    storageService.set(KEYS.CLIENT_CONVERSATIONS, list);
+    return updatedConv;
+  },
+
+  updateConversation(convId, updates) {
+    const list = this.getClientConversations();
+    const idx = list.findIndex((c) => c.id === convId);
+    if (idx === -1) return null;
+    const updated = {
+      ...list[idx],
+      ...updates,
+      ultimaActualizacion: new Date().toISOString(),
+    };
+    list[idx] = updated;
+    storageService.set(KEYS.CLIENT_CONVERSATIONS, list);
+    return updated;
+  },
+
+  getUnreadMessagesCount(userRole = 'Cliente', clientEmail = null) {
+    const all = this.getClientConversations();
+    if (userRole === 'Cliente') {
+      const myConvs = clientEmail
+        ? all.filter((c) => c.clienteEmail?.toLowerCase() === clientEmail.toLowerCase())
+        : all;
+      return myConvs.reduce((acc, c) => acc + (c.noLeidosCliente || 0), 0);
+    }
+    // Administrador o Gerente de Construcción
+    return all.reduce((acc, c) => acc + (c.noLeidosAdmin || 0), 0);
   },
 };
 

@@ -44,7 +44,7 @@ export default function PublicProjectModal({ project, isOpen, onClose, onNavigat
 
   const statusStyle = getStatusColor(project.estado);
 
-  const fallbackImage = 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=1200&q=80';
+  const fallbackImage = '/imgs/proyectos/torre_altavista.jpg';
   const primaryImage = (!imgFailed && project.imagen) ? project.imagen : fallbackImage;
 
   return (

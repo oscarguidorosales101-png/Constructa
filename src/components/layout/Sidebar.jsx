@@ -21,7 +21,7 @@ import { useConstructa } from '../../context/ConstructaContext.jsx';
 import { hasPermission } from '../../utils/permissions.js';
 
 export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
-  const { currentUser, metrics, requestConfirm, logout, setActiveView, clientRequests } = useConstructa();
+  const { currentUser, metrics, requestConfirm, logout, setActiveView, clientRequests, unreadMessagesCount } = useConstructa();
   const navigate = onNavigate || setActiveView;
 
   const handleLogoutClick = () => {
@@ -39,14 +39,26 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
   };
 
   const pendingRequestsCount = (clientRequests || []).filter((r) => r.estado !== 'Aprobada').length;
+  const unreadMsgAdmin = typeof unreadMessagesCount === 'number' ? unreadMessagesCount : 0;
+
+  const getRequestsBadge = () => {
+    if (unreadMsgAdmin > 0) {
+      return `Mensajes · ${unreadMsgAdmin}`;
+    }
+    if (pendingRequestsCount > 0) {
+      return `${pendingRequestsCount}`;
+    }
+    return null;
+  };
 
   const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     {
       id: 'solicitudes-clientes',
-      label: 'Solicitudes Clientes',
+      label: 'Solicitudes y Soporte',
       icon: Inbox,
-      badge: pendingRequestsCount > 0 ? `${pendingRequestsCount}` : null,
+      badge: getRequestsBadge(),
+      warningBadge: unreadMsgAdmin > 0 ? null : null,
     },
     {
       id: 'proyectos',

@@ -181,10 +181,16 @@ export default function PublicHero({ onNavigateSection }) {
                 <div className="hero-showcase-image-box">
                   {!imgError ? (
                     <img
-                      src="https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=1200&q=80"
+                      src="/imgs/proyectos/torre_altavista.jpg"
                       alt="Obra Insignia CONSTRUCTA"
                       className="hero-showcase-image"
-                      onError={() => setImgError(true)}
+                      onError={(e) => {
+                        if (e.target.src.includes('/imgs/proyectos/torre_altavista.jpg')) {
+                          e.target.src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80';
+                        } else {
+                          setImgError(true);
+                        }
+                      }}
                     />
                   ) : (
                     <div className="hero-showcase-fallback">

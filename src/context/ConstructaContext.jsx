@@ -54,6 +54,7 @@ export const ConstructaProvider = ({ children }) => {
   const [clientRequests, setClientRequests] = useState(() => dataService.getClientRequests());
   const [clientMeetings, setClientMeetings] = useState(() => dataService.getClientMeetings());
   const [clientMessages, setClientMessages] = useState(() => dataService.getClientMessages());
+  const [conversations, setConversations] = useState(() => dataService.getClientConversations());
 
   // 4. Métricas Interconectadas Dinámicas
   const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
@@ -75,6 +76,7 @@ export const ConstructaProvider = ({ children }) => {
     setClientRequests(dataService.getClientRequests());
     setClientMeetings(dataService.getClientMeetings());
     setClientMessages(dataService.getClientMessages());
+    setConversations(dataService.getClientConversations());
   }, []);
 
   // 5. Sistema de Notificaciones Flotantes (Toasts)
@@ -715,6 +717,54 @@ export const ConstructaProvider = ({ children }) => {
     }
   };
 
+  // ----------------------------------------------------
+  // GESTIÓN DE CONVERSACIONES Y MESA DE AYUDA PERSISTENTE
+  // ----------------------------------------------------
+  const createConversation = (data) => {
+    const newConv = dataService.createClientConversation(data);
+    setConversations(dataService.getClientConversations());
+    refreshMetrics();
+    showAlert(`Conversación "${newConv.asunto}" iniciada correctamente.`, 'exito');
+    return newConv;
+  };
+
+  const sendMessageToConversation = (convId, messageData) => {
+    const res = dataService.sendConversationMessage(convId, messageData);
+    if (res) {
+      setConversations(dataService.getClientConversations());
+      refreshMetrics();
+      showAlert('Mensaje enviado con éxito.', 'exito');
+      return res;
+    }
+    showAlert('Error al enviar el mensaje a la conversación.', 'error');
+    return null;
+  };
+
+  const updateConversation = (convId, updates) => {
+    const updated = dataService.updateConversation(convId, updates);
+    if (updated) {
+      setConversations(dataService.getClientConversations());
+      refreshMetrics();
+      showAlert('Conversación actualizada.', 'info');
+    }
+    return updated;
+  };
+
+  const markConversationRead = (convId) => {
+    const userRole = currentUser?.rol || 'Cliente';
+    const updated = dataService.markConversationAsRead(convId, userRole);
+    if (updated) {
+      setConversations(dataService.getClientConversations());
+    }
+    return updated;
+  };
+
+  const unreadMessagesCount = useMemo(() => {
+    const userRole = currentUser?.rol || 'Cliente';
+    const clientEmail = currentUser?.email || null;
+    return dataService.getUnreadMessagesCount(userRole, clientEmail);
+  }, [conversations, currentUser]);
+
   // Restablecer datos a la semilla inicial de db.json y compras
   const resetDemoData = () => {
     dataService.resetAllData();
@@ -737,6 +787,7 @@ export const ConstructaProvider = ({ children }) => {
     setClientRequests(dataService.getClientRequests());
     setClientMeetings(dataService.getClientMeetings());
     setClientMessages(dataService.getClientMessages());
+    setConversations(dataService.getClientConversations());
     refreshMetrics();
     showAlert('Los datos del sistema han sido restaurados a sus valores predeterminados.', 'info');
   };
@@ -861,6 +912,12 @@ export const ConstructaProvider = ({ children }) => {
         clientRequests,
         clientMeetings,
         clientMessages,
+        conversations,
+        createConversation,
+        sendMessageToConversation,
+        markConversationRead,
+        updateConversation,
+        unreadMessagesCount,
         registerClient,
         verifyClientAccount,
         updateClientProfile,

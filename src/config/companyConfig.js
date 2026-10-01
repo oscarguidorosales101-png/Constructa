@@ -166,7 +166,7 @@ export const COMPANY_CONFIG = {
       description: 'Torres departamentales de 15 a 35 niveles con cimentaciones profundas, sótanos estructurados, acabados de primer nivel y amenidades integradas.',
       features: ['Estructuras sismo-resistentes', 'Acústica de vanguardia', 'Eficiencia lumínica y térmica'],
       icon: 'Building2',
-      image: 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=1000&q=80',
+      image: '/imgs/proyectos/torre_altavista.jpg',
     },
     {
       id: 'esp-corporativo',
@@ -240,7 +240,7 @@ export const COMPANY_CONFIG = {
       location: 'Distrito Metropolitano, CDMX',
       description: 'Losa postensada de alta resistencia y fachada ventilada con vistas panorámicas.',
       aspectRatio: '16/9',
-      image: 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=1200&q=80',
+      image: '/imgs/proyectos/torre_altavista.jpg',
     },
     {
       id: 'gal-2',

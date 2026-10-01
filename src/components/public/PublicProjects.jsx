@@ -30,9 +30,9 @@ export default function PublicProjects({ onNavigateSection }) {
 
   // Image bank for projects
   const sampleImages = [
-    'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=800&q=80',
+    '/imgs/proyectos/torre_altavista.jpg',
     'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+    '/imgs/proyectos/residencia_lomas.jpg',
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
     'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80',
     'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80'
@@ -158,6 +158,10 @@ export default function PublicProjects({ onNavigateSection }) {
                       alt={project.nombre}
                       className="public-proj-card-img"
                       loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/imgs/proyectos/torre_altavista.jpg';
+                      }}
                     />
                     <div className="public-proj-card-overlay">
                       <span className={`public-proj-badge ${getStatusBadgeClass(project.estado)}`}>
