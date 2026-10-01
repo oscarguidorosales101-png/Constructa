@@ -29,7 +29,8 @@ export const AppRoutes = () => {
       const hash = rawHash.split('?')[0].toLowerCase();
       
       if (!hash) {
-        setActiveView(currentUser ? 'dashboard' : 'inicio');
+        const defaultView = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
+        setActiveView(defaultView);
         return;
       }
 
@@ -56,7 +57,7 @@ export const AppRoutes = () => {
   }, [activeView]);
 
   // Resolución de la vista actual
-  const currentKey = activeView || (currentUser ? 'dashboard' : 'inicio');
+  const currentKey = activeView || (currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio');
   const currentRoute = routeConfig[currentKey];
 
   // Caso: Sitio Público Institucional (con soporte para navegación modular)
@@ -82,11 +83,23 @@ export const AppRoutes = () => {
     );
   }
 
-  // Caso: Ruta inexistente (404)
-  if (!currentRoute) {
+  // Caso: Registro y Verificación de Cliente
+  if (currentKey === 'registro' || currentKey === 'registro-cliente') {
+    const RegisterComponent = routeConfig.registro.component;
     return (
       <>
-        <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'inicio')} />
+        <RegisterComponent onNavigate={navigate} />
+        <ToastContainer />
+      </>
+    );
+  }
+
+  // Caso: Ruta inexistente (404)
+  if (!currentRoute) {
+    const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
+    return (
+      <>
+        <Status404 onBackToHome={() => navigate(homeTarget)} />
         <ToastContainer />
       </>
     );
@@ -103,18 +116,20 @@ export const AppRoutes = () => {
   }
 
   if (currentKey === '403') {
+    const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
     return (
       <>
-        <Status403 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'inicio')} />
+        <Status403 onBackToHome={() => navigate(homeTarget)} />
         <ToastContainer />
       </>
     );
   }
 
   if (currentKey === '404') {
+    const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
     return (
       <>
-        <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'inicio')} />
+        <Status404 onBackToHome={() => navigate(homeTarget)} />
         <ToastContainer />
       </>
     );
@@ -123,17 +138,18 @@ export const AppRoutes = () => {
   // Caso: Inicio de sesión (Login)
   if (currentKey === 'login') {
     if (currentUser) {
-      // Si ya está autenticado y entra a login, se le muestra el dashboard
-      const DashboardComponent = routeConfig.dashboard.component;
+      // Si ya está autenticado y entra a login, se le muestra su espacio correspondiente
+      const targetRouteKey = currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
+      const TargetComponent = routeConfig[targetRouteKey].component;
       return (
-        <PrivateRoutes route={routeConfig.dashboard}>
-          <DashboardComponent onNavigate={navigate} />
+        <PrivateRoutes route={routeConfig[targetRouteKey]}>
+          <TargetComponent onNavigate={navigate} />
         </PrivateRoutes>
       );
     }
     return (
       <>
-        <Login onLoginSuccess={() => navigate('dashboard')} />
+        <Login onLoginSuccess={() => navigate(currentUser?.rol === 'Cliente' ? 'portal-cliente' : 'dashboard')} />
         <ToastContainer />
       </>
     );

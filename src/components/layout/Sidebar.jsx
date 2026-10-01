@@ -15,12 +15,13 @@ import {
   LogOut,
   AlertTriangle,
   Globe,
+  Inbox,
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import { hasPermission } from '../../utils/permissions.js';
 
 export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
-  const { currentUser, metrics, requestConfirm, logout, setActiveView } = useConstructa();
+  const { currentUser, metrics, requestConfirm, logout, setActiveView, clientRequests } = useConstructa();
   const navigate = onNavigate || setActiveView;
 
   const handleLogoutClick = () => {
@@ -37,8 +38,16 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
     });
   };
 
+  const pendingRequestsCount = (clientRequests || []).filter((r) => r.estado !== 'Aprobada').length;
+
   const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    {
+      id: 'solicitudes-clientes',
+      label: 'Solicitudes Clientes',
+      icon: Inbox,
+      badge: pendingRequestsCount > 0 ? `${pendingRequestsCount}` : null,
+    },
     {
       id: 'proyectos',
       label: 'Proyectos',

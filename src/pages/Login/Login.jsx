@@ -33,8 +33,12 @@ export const Login = ({ onLoginSuccess }) => {
     setTimeout(() => {
       const res = login(identifier, password);
       setIsSubmitting(false);
-      if (res.ok && onLoginSuccess) {
-        onLoginSuccess();
+      if (res.ok) {
+        if (res.usuario.rol === 'Cliente') {
+          window.location.hash = 'portal-cliente';
+        } else if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       }
     }, 300);
   };
@@ -47,8 +51,12 @@ export const Login = ({ onLoginSuccess }) => {
     setTimeout(() => {
       const res = login(email, pass);
       setIsSubmitting(false);
-      if (res.ok && onLoginSuccess) {
-        onLoginSuccess();
+      if (res.ok) {
+        if (res.usuario.rol === 'Cliente') {
+          window.location.hash = 'portal-cliente';
+        } else if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       }
     }, 200);
   };
@@ -163,6 +171,23 @@ export const Login = ({ onLoginSuccess }) => {
               {isSubmitting ? 'Iniciando sesión...' : 'Ingresar al Sistema'}
             </Button>
           </div>
+
+          <div style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.84rem', color: '#94a3b8' }}>
+            ¿Desea solicitar una cotización o dar seguimiento a su proyecto?{' '}
+            <a
+              href="#registro"
+              style={{
+                color: 'var(--color-gold)',
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              Crear cuenta de Cliente &rarr;
+            </a>
+          </div>
         </form>
 
         <div className="login-demo-box" style={{ marginTop: '1.5rem' }}>
@@ -253,6 +278,35 @@ export const Login = ({ onLoginSuccess }) => {
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 600 }}>
                 Entrar &rarr;
+              </span>
+            </button>
+
+            {/* 4. Cliente (Cuenta Externa) */}
+            <button
+              type="button"
+              className="btn-outline btn-sm"
+              onClick={() => handleQuickLogin('cliente@constructa.com', 'cliente123')}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                textAlign: 'left',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(245, 158, 11, 0.06)',
+                borderColor: 'rgba(245, 158, 11, 0.35)',
+              }}
+            >
+              <div>
+                <strong style={{ color: '#ffffff', display: 'block', fontSize: '0.82rem' }}>
+                  Cliente (Cuenta Externa de Obra)
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: '#f59e0b' }}>
+                  cliente@constructa.com (Lic. Roberto Garza Sada)
+                </span>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 700 }}>
+                Entrar al Portal &rarr;
               </span>
             </button>
           </div>

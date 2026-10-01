@@ -201,6 +201,35 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                   Describe tu proyecto o requerimiento constructivo y te responderemos a la brevedad.
                 </p>
 
+                <div
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.08)',
+                    border: '1px solid rgba(245, 158, 11, 0.25)',
+                    borderRadius: '8px',
+                    padding: '0.85rem 1rem',
+                    marginBottom: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div style={{ fontSize: '0.82rem', color: '#cbd5e1' }}>
+                    <strong style={{ color: '#f59e0b', display: 'block', marginBottom: '2px' }}>
+                      ¿Desea cotización formal o subir planos preliminares?
+                    </strong>
+                    Cree una cuenta de Cliente para seguimiento técnico y expediente digital.
+                  </div>
+                  <a
+                    href="#registro"
+                    className="btn btn-outline btn-sm"
+                    style={{ textDecoration: 'none', color: '#f59e0b', borderColor: '#f59e0b', whiteSpace: 'nowrap' }}
+                  >
+                    Portal Clientes &rarr;
+                  </a>
+                </div>
+
                 <div className="public-form-field">
                   <label className="public-form-label">
                     Nombre o Razón Social <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>

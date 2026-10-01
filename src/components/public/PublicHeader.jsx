@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HardHat, LogIn, Menu, X, ArrowRight, UserCheck } from 'lucide-react';
+import { HardHat, LogIn, Menu, X, ArrowRight, UserCheck, Briefcase } from 'lucide-react';
 import COMPANY_CONFIG from '../../config/companyConfig';
 
 export default function PublicHeader({
@@ -77,18 +77,32 @@ export default function PublicHeader({
                 style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
               >
                 <UserCheck size={15} />
-                <span>Panel Privado ({currentUser.nombre.split(' ')[0]})</span>
+                <span>
+                  {currentUser.rol === 'Cliente'
+                    ? `Portal Cliente (${currentUser.nombre.split(' ')[0]})`
+                    : `Panel Privado (${currentUser.nombre.split(' ')[0]})`}
+                </span>
               </button>
             ) : (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={onGoToLogin}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
-              >
-                <LogIn size={15} />
-                <span>Iniciar Sesión</span>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <a
+                  href="#registro"
+                  className="btn btn-outline btn-sm hide-mobile"
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  <Briefcase size={14} />
+                  <span>Portal Clientes</span>
+                </a>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={onGoToLogin}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+                >
+                  <LogIn size={15} />
+                  <span>Iniciar Sesión</span>
+                </button>
+              </div>
             )}
 
             {/* Botón Menú Móvil */}
@@ -143,21 +157,36 @@ export default function PublicHeader({
               }}
             >
               <UserCheck size={16} />
-              <span>Ir a mi Panel de Control</span>
+              <span>
+                {currentUser.rol === 'Cliente'
+                  ? 'Ir a mi Portal de Cliente'
+                  : 'Ir a mi Panel de Control'}
+              </span>
             </button>
           ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onGoToLogin();
-              }}
-            >
-              <LogIn size={16} />
-              <span>Acceso a Colaboradores (Login)</span>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <a
+                href="#registro"
+                className="btn btn-outline"
+                style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Briefcase size={16} />
+                <span>Registro de Cuenta Cliente</span>
+              </a>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onGoToLogin();
+                }}
+              >
+                <LogIn size={16} />
+                <span>Iniciar Sesión</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

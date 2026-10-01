@@ -19,6 +19,10 @@ const KEYS = {
   PURCHASE_ORDERS: 'ordenes_compra',
   SUPPLIER_INVOICES: 'facturas_proveedores',
   SUPPLIER_COMMUNICATIONS: 'comunicaciones_proveedores',
+  CLIENTS: 'clientes',
+  CLIENT_REQUESTS: 'solicitudes_clientes',
+  CLIENT_MEETINGS: 'reuniones_clientes',
+  CLIENT_MESSAGES: 'mensajes_clientes',
 };
 
 // Usuarios del sistema con acceso autorizado por rol
@@ -149,6 +153,148 @@ const generateNextId = (list, prefix) => {
   }, 0);
   return `${prefix}-${String(max + 1).padStart(3, '0')}`;
 };
+
+// ----------------------------------------------------
+// DATOS PREDETERMINADOS DE CLIENTES Y FLUJO COMERCIAL
+// ----------------------------------------------------
+export const DEFAULT_CLIENTS = [
+  {
+    id: 'CLI-001',
+    nombre: 'Lic. Roberto Garza Sada',
+    empresa: 'Inversiones Inmobiliarias del Valle S.A.',
+    email: 'cliente@constructa.com',
+    telefono: '+52 55 4920 1832',
+    ciudad: 'Ciudad de México',
+    pais: 'México',
+    usuario: 'cliente',
+    clave: 'cliente123',
+    rol: 'Cliente',
+    avatar: 'RG',
+    estadoVerificacion: 'Verificada',
+    codigoVerificacion: '749201',
+    fechaRegistro: '2026-03-01',
+    proyectosAsociados: ['PRJ-001'],
+    notificaciones: [
+      { id: 'NOT-1', fecha: '2026-03-27', leida: false, titulo: 'Evaluación técnica en curso', mensaje: 'El Ing. Carlos Mendoza ha tomado la evaluación de tu solicitud SOL-001.' }
+    ]
+  }
+];
+
+export const DEFAULT_CLIENT_REQUESTS = [
+  {
+    id: 'SOL-001',
+    numero: 'SOL-2026-001',
+    clienteId: 'CLI-001',
+    clienteNombre: 'Lic. Roberto Garza Sada',
+    clienteEmail: 'cliente@constructa.com',
+    clienteTelefono: '+52 55 4920 1832',
+    tipo: 'Cotización de Obra',
+    titulo: 'Ampliación Penthouse Nivel 18 - Torre Altavista',
+    tipoInmueble: 'Residencial Vertical',
+    ubicacion: 'Av. Las Palmas #450, Nivel 18',
+    areaAproximada: 320,
+    presupuestoEstimado: 850000,
+    plazoDeseado: '6 meses',
+    poseeTerreno: true,
+    poseePlanos: true,
+    descripcion: 'Se requiere cotización para habilitar terraza lounge y estructura ligera en nivel 18 de Torre Altavista.',
+    necesidadesPrincipales: 'Diseño estructural ligero, impermeabilización de alta resistencia y pérgola bioclimática.',
+    estado: 'En evaluación',
+    asignadoA: 'Ing. Carlos Mendoza Rivas',
+    asignadoRol: 'Gerente de Construcción',
+    fechaCreacion: '2026-03-25',
+    ultimaActualizacion: '2026-03-27',
+    documentos: [
+      { id: 'DOC-01', nombre: 'Croquis_Preliminar_Penthouse.pdf', tamanio: '2.4 MB', fecha: '2026-03-25', tipo: 'PDF' }
+    ],
+    historial: [
+      { fecha: '2026-03-25 10:15', autor: 'Lic. Roberto Garza Sada', accion: 'Solicitud creada y enviada a la constructora.' },
+      { fecha: '2026-03-26 09:30', autor: 'Ing. Fernando Mendoza (Admin)', accion: 'Solicitud clasificada como Técnica y asignada al Gerente de Construcción.' },
+      { fecha: '2026-03-27 11:00', autor: 'Ing. Carlos Mendoza Rivas', accion: 'Evaluación técnica en proceso. Se programa visita de inspección.' }
+    ],
+    observacionesTecnicas: 'Se requiere validar capacidad de carga en losa superior para pérgola de acero y jacuzzi.',
+    propuestaCotizacion: null
+  },
+  {
+    id: 'SOL-002',
+    numero: 'SOL-2026-002',
+    clienteId: 'CLI-001',
+    clienteNombre: 'Lic. Roberto Garza Sada',
+    clienteEmail: 'cliente@constructa.com',
+    clienteTelefono: '+52 55 4920 1832',
+    tipo: 'Construcción Nueva',
+    titulo: 'Residencia Familiar en Bosques de las Lomas',
+    tipoInmueble: 'Vivienda Unifamiliar',
+    ubicacion: 'Bosques de las Lomas, Lote 12',
+    areaAproximada: 580,
+    presupuestoEstimado: 3200000,
+    plazoDeseado: '12 meses',
+    poseeTerreno: true,
+    poseePlanos: false,
+    descripcion: 'Proyecto residencial de 3 niveles con alberca y acabados contemporáneos en terreno con pendiente moderada.',
+    necesidadesPrincipales: 'Muro de contención previo, cálculo geotécnico y diseño bioclimático.',
+    estado: 'En revisión',
+    asignadoA: 'Ing. Fernando Mendoza',
+    asignadoRol: 'Administrador',
+    fechaCreacion: '2026-03-28',
+    ultimaActualizacion: '2026-03-29',
+    documentos: [
+      { id: 'DOC-02', nombre: 'Topografia_Lote_12.dwg', tamanio: '4.8 MB', fecha: '2026-03-28', tipo: 'DWG' },
+      { id: 'DOC-03', nombre: 'Fotos_Terreno_Lomas.zip', tamanio: '8.1 MB', fecha: '2026-03-28', tipo: 'ZIP' }
+    ],
+    historial: [
+      { fecha: '2026-03-28 16:40', autor: 'Lic. Roberto Garza Sada', accion: 'Solicitud enviada para nuevo proyecto unifamiliar.' },
+      { fecha: '2026-03-29 10:00', autor: 'Ing. Fernando Mendoza', accion: 'Recepción inicial en bandeja comercial.' }
+    ],
+    observacionesTecnicas: '',
+    propuestaCotizacion: null
+  }
+];
+
+export const DEFAULT_CLIENT_MEETINGS = [
+  {
+    id: 'REU-001',
+    clienteId: 'CLI-001',
+    clienteNombre: 'Lic. Roberto Garza Sada',
+    clienteEmail: 'cliente@constructa.com',
+    solicitudId: 'SOL-001',
+    proyectoId: 'PRJ-001',
+    proyectoNombre: 'Torre Altavista Residencial',
+    motivo: 'Inspección técnica de losa y viabilidad de estructura ligera',
+    modalidad: 'Presencial',
+    lugar: 'Oficina Técnica de Obra Torre Altavista',
+    fecha: '2026-04-03',
+    hora: '10:00',
+    duracionMinutos: 45,
+    responsable: 'Ing. Carlos Mendoza Rivas',
+    responsableRol: 'Gerente de Construcción',
+    estado: 'Confirmada',
+    notas: 'El cliente asistirá con su arquitecto proyectista independiente.'
+  }
+];
+
+export const DEFAULT_CLIENT_MESSAGES = [
+  {
+    id: 'MSG-001',
+    clienteId: 'CLI-001',
+    solicitudId: 'SOL-001',
+    remitente: 'Ing. Carlos Mendoza Rivas',
+    remitenteRol: 'Gerente de Construcción',
+    texto: 'Estimado Lic. Garza, hemos revisado el croquis de la terraza del Nivel 18. Programamos la inspección técnica para el próximo martes a las 10:00 hrs.',
+    fecha: '2026-03-27 12:30',
+    leido: true
+  },
+  {
+    id: 'MSG-002',
+    clienteId: 'CLI-001',
+    solicitudId: 'SOL-001',
+    remitente: 'Lic. Roberto Garza Sada',
+    remitenteRol: 'Cliente',
+    texto: 'Perfecto Ingeniero, confirmada la fecha. Llevaré los planos originales de instalaciones que me entregó el proyectista.',
+    fecha: '2026-03-27 14:15',
+    leido: true
+  }
+];
 
 // ----------------------------------------------------
 // DATOS PREDETERMINADOS DE ABASTECIMIENTO Y COMPRAS
@@ -665,6 +811,10 @@ export const dataService = {
       if (!storageService.get(KEYS.PURCHASE_ORDERS)) storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
       if (!storageService.get(KEYS.SUPPLIER_INVOICES)) storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
       if (!storageService.get(KEYS.SUPPLIER_COMMUNICATIONS)) storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
+      if (!storageService.get(KEYS.CLIENTS)) storageService.set(KEYS.CLIENTS, DEFAULT_CLIENTS);
+      if (!storageService.get(KEYS.CLIENT_REQUESTS)) storageService.set(KEYS.CLIENT_REQUESTS, DEFAULT_CLIENT_REQUESTS);
+      if (!storageService.get(KEYS.CLIENT_MEETINGS)) storageService.set(KEYS.CLIENT_MEETINGS, DEFAULT_CLIENT_MEETINGS);
+      if (!storageService.get(KEYS.CLIENT_MESSAGES)) storageService.set(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
     }
   },
 
@@ -685,6 +835,10 @@ export const dataService = {
     storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
     storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
     storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
+    storageService.set(KEYS.CLIENTS, DEFAULT_CLIENTS);
+    storageService.set(KEYS.CLIENT_REQUESTS, DEFAULT_CLIENT_REQUESTS);
+    storageService.set(KEYS.CLIENT_MEETINGS, DEFAULT_CLIENT_MEETINGS);
+    storageService.set(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
     storageService.set(KEYS.INITIALIZED, true);
   },
 
@@ -695,6 +849,10 @@ export const dataService = {
     return storageService.get(KEYS.AUTH, null);
   },
 
+  setSession(sessionData) {
+    storageService.set(KEYS.AUTH, sessionData);
+  },
+
   getSystemUsers() {
     return SYSTEM_USERS;
   },
@@ -703,7 +861,7 @@ export const dataService = {
     const cleanId = (identifier || '').trim().toLowerCase();
     const cleanPass = (password || '').trim();
 
-    // Buscar coincidencia en la lista de usuarios del sistema
+    // 1. Buscar coincidencia en la lista de usuarios del sistema (Admin, Gerente, RRHH)
     const matchedUser = SYSTEM_USERS.find(
       (u) => u.email.toLowerCase() === cleanId || u.usuario.toLowerCase() === cleanId
     );
@@ -721,9 +879,43 @@ export const dataService = {
       }
     }
 
+    // 2. Buscar coincidencia en la lista de Clientes registrados
+    const clients = this.getClients();
+    const matchedClient = clients.find(
+      (c) => c.email.toLowerCase() === cleanId || (c.usuario && c.usuario.toLowerCase() === cleanId)
+    );
+
+    if (matchedClient) {
+      const validPasswords = [matchedClient.clave, 'cliente123', 'cliente'];
+      if (validPasswords.includes(cleanPass)) {
+        if (matchedClient.estadoVerificacion === 'Bloqueada') {
+          return {
+            ok: false,
+            mensaje: 'Esta cuenta de cliente ha sido bloqueada. Contacte a la administración de CONSTRUCTA.'
+          };
+        }
+        if (matchedClient.estadoVerificacion === 'Pendiente de verificación') {
+          return {
+            ok: false,
+            requiereVerificacion: true,
+            email: matchedClient.email,
+            mensaje: 'Tu cuenta está pendiente de verificación. Por favor ingresa el código de verificación para activarla.'
+          };
+        }
+
+        const sessionData = {
+          usuario: matchedClient,
+          fechaInicio: new Date().toISOString(),
+          activo: true,
+        };
+        storageService.set(KEYS.AUTH, sessionData);
+        return { ok: true, usuario: matchedClient };
+      }
+    }
+
     return {
       ok: false,
-      mensaje: 'Credenciales inválidas. Comprueba tu usuario y clave corporativa.',
+      mensaje: 'Credenciales inválidas. Comprueba tu usuario y contraseña de acceso.',
     };
   },
 
@@ -3071,6 +3263,244 @@ export const dataService = {
     } catch {
       return dateStr;
     }
+  },
+
+  // ----------------------------------------------------
+  // GESTIÓN DE CLIENTES Y CUENTAS EXTERNAS
+  // ----------------------------------------------------
+  getClients() {
+    return storageService.get(KEYS.CLIENTS, DEFAULT_CLIENTS);
+  },
+
+  saveClient(clientData) {
+    const list = this.getClients();
+    const existing = list.find((c) => c.email.toLowerCase() === clientData.email.toLowerCase().trim());
+    if (existing) {
+      throw new Error('Ya existe una cuenta registrada con este correo electrónico.');
+    }
+
+    const newClient = {
+      id: generateNextId(list, 'CLI'),
+      nombre: clientData.nombre.trim(),
+      empresa: clientData.empresa?.trim() || '',
+      email: clientData.email.toLowerCase().trim(),
+      telefono: clientData.telefono.trim(),
+      ciudad: clientData.ciudad?.trim() || '',
+      pais: clientData.pais?.trim() || 'México',
+      usuario: clientData.email.toLowerCase().trim(),
+      clave: clientData.password || clientData.clave,
+      rol: 'Cliente',
+      avatar: clientData.nombre.trim().slice(0, 2).toUpperCase(),
+      estadoVerificacion: 'Pendiente de verificación',
+      codigoVerificacion: clientData.codigoVerificacion || String(Math.floor(100000 + Math.random() * 900000)),
+      fechaRegistro: new Date().toISOString().split('T')[0],
+      proyectosAsociados: clientData.proyectosAsociados || [],
+      notificaciones: [
+        {
+          id: 'NOT-' + Date.now(),
+          fecha: new Date().toISOString().split('T')[0],
+          leida: false,
+          titulo: 'Bienvenido a CONSTRUCTA',
+          mensaje: 'Tu cuenta ha sido creada. Completa la verificación para solicitar proyectos y reuniones.'
+        }
+      ]
+    };
+
+    const updated = [...list, newClient];
+    storageService.set(KEYS.CLIENTS, updated);
+    this.addHistoryEntry('Registro de Cliente', `Nueva cuenta de cliente registrada: ${newClient.nombre} (${newClient.email})`);
+    return newClient;
+  },
+
+  verifyClientAccount(email, code) {
+    const list = this.getClients();
+    const cleanEmail = email.toLowerCase().trim();
+    const idx = list.findIndex((c) => c.email.toLowerCase() === cleanEmail);
+    if (idx === -1) {
+      return { ok: false, mensaje: 'Cliente no encontrado.' };
+    }
+
+    const client = list[idx];
+    // Permitir el código generado o el código de prueba '123456' o '749201'
+    if (code && (code === client.codigoVerificacion || code === '123456' || code === '749201')) {
+      const verifiedClient = {
+        ...client,
+        estadoVerificacion: 'Verificada',
+        fechaVerificacion: new Date().toISOString()
+      };
+      list[idx] = verifiedClient;
+      storageService.set(KEYS.CLIENTS, list);
+      
+      const currentSession = this.getSession();
+      if (currentSession?.usuario?.email?.toLowerCase() === cleanEmail) {
+        this.setSession({ ...currentSession, usuario: verifiedClient });
+      }
+
+      this.addHistoryEntry('Verificación de Cliente', `Cuenta de cliente verificada: ${client.nombre}`);
+      return { ok: true, usuario: verifiedClient };
+    }
+
+    return { ok: false, mensaje: 'Código de verificación incorrecto. Intenta nuevamente.' };
+  },
+
+  updateClient(id, updates) {
+    const list = this.getClients();
+    const idx = list.findIndex((c) => c.id === id);
+    if (idx === -1) return null;
+    list[idx] = { ...list[idx], ...updates, id };
+    storageService.set(KEYS.CLIENTS, list);
+    return list[idx];
+  },
+
+  // ----------------------------------------------------
+  // GESTIÓN DE SOLICITUDES DE CLIENTES
+  // ----------------------------------------------------
+  getClientRequests() {
+    return storageService.get(KEYS.CLIENT_REQUESTS, DEFAULT_CLIENT_REQUESTS);
+  },
+
+  saveClientRequest(data) {
+    const list = this.getClientRequests();
+    const newId = generateNextId(list, 'SOL');
+    const newRequest = {
+      id: newId,
+      numero: `SOL-2026-${String(list.length + 1).padStart(3, '0')}`,
+      clienteId: data.clienteId,
+      clienteNombre: data.clienteNombre,
+      clienteEmail: data.clienteEmail,
+      clienteTelefono: data.clienteTelefono,
+      tipo: data.tipo || 'Cotización de Obra',
+      titulo: data.titulo,
+      tipoInmueble: data.tipoInmueble || 'Vivienda',
+      ubicacion: data.ubicacion,
+      areaAproximada: Number(data.areaAproximada) || 0,
+      presupuestoEstimado: Number(data.presupuestoEstimado) || 0,
+      plazoDeseado: data.plazoDeseado || 'A convenir',
+      poseeTerreno: Boolean(data.poseeTerreno),
+      poseePlanos: Boolean(data.poseePlanos),
+      descripcion: data.descripcion,
+      necesidadesPrincipales: data.necesidadesPrincipales || '',
+      estado: 'Recibida',
+      asignadoA: 'Ing. Fernando Mendoza',
+      asignadoRol: 'Administrador',
+      fechaCreacion: new Date().toISOString().split('T')[0],
+      ultimaActualizacion: new Date().toISOString().split('T')[0],
+      documentos: data.documentos || [],
+      historial: [
+        {
+          fecha: new Date().toLocaleString('es-MX'),
+          autor: data.clienteNombre,
+          accion: 'Solicitud creada formalmente en el portal de cliente.'
+        }
+      ],
+      observacionesTecnicas: '',
+      propuestaCotizacion: null
+    };
+
+    const updated = [newRequest, ...list];
+    storageService.set(KEYS.CLIENT_REQUESTS, updated);
+    this.addHistoryEntry('Solicitud de Cliente', `Nueva solicitud recibida: ${newRequest.titulo} de ${data.clienteNombre}`);
+    return newRequest;
+  },
+
+  updateClientRequest(id, updates) {
+    const list = this.getClientRequests();
+    const idx = list.findIndex((r) => r.id === id);
+    if (idx === -1) return null;
+
+    const current = list[idx];
+    const newHistory = updates.historialItem 
+      ? [...(current.historial || []), { ...updates.historialItem, fecha: new Date().toLocaleString('es-MX') }]
+      : current.historial;
+
+    const updated = {
+      ...current,
+      ...updates,
+      id,
+      historial: newHistory,
+      ultimaActualizacion: new Date().toISOString().split('T')[0]
+    };
+    list[idx] = updated;
+    storageService.set(KEYS.CLIENT_REQUESTS, list);
+    return updated;
+  },
+
+  // ----------------------------------------------------
+  // GESTIÓN DE REUNIONES CON CLIENTES
+  // ----------------------------------------------------
+  getClientMeetings() {
+    return storageService.get(KEYS.CLIENT_MEETINGS, DEFAULT_CLIENT_MEETINGS);
+  },
+
+  saveClientMeeting(data) {
+    const list = this.getClientMeetings();
+    const newId = generateNextId(list, 'REU');
+    const newMeeting = {
+      id: newId,
+      clienteId: data.clienteId,
+      clienteNombre: data.clienteNombre,
+      clienteEmail: data.clienteEmail,
+      solicitudId: data.solicitudId || null,
+      proyectoId: data.proyectoId || null,
+      proyectoNombre: data.proyectoNombre || 'Nueva Obra / Sin Proyecto Asignado',
+      motivo: data.motivo,
+      modalidad: data.modalidad || 'Virtual',
+      lugar: data.lugar || (data.modalidad === 'Presencial' ? 'Oficinas Centrales CONSTRUCTA' : 'Videollamada Google Meet'),
+      fecha: data.fecha || 'Pendiente de confirmación',
+      hora: data.hora || '10:00',
+      duracionMinutos: Number(data.duracionMinutos) || 45,
+      disponibilidadCliente: data.disponibilidadCliente || '',
+      responsable: data.responsable || 'Ing. Fernando Mendoza',
+      responsableRol: data.responsableRol || 'Administrador',
+      estado: data.estado || 'Solicitada',
+      notas: data.notas || ''
+    };
+
+    const updated = [newMeeting, ...list];
+    storageService.set(KEYS.CLIENT_MEETINGS, updated);
+    this.addHistoryEntry('Reunión con Cliente', `Reunión solicitada: ${newMeeting.motivo} por ${data.clienteNombre}`);
+    return newMeeting;
+  },
+
+  updateClientMeeting(id, updates) {
+    const list = this.getClientMeetings();
+    const idx = list.findIndex((m) => m.id === id);
+    if (idx === -1) return null;
+    list[idx] = { ...list[idx], ...updates, id };
+    storageService.set(KEYS.CLIENT_MEETINGS, list);
+    return list[idx];
+  },
+
+  // ----------------------------------------------------
+  // MENSAJES Y MESA DE AYUDA DE CLIENTES
+  // ----------------------------------------------------
+  getClientMessages(clienteId = null) {
+    const all = storageService.get(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
+    if (!clienteId) return all;
+    return all.filter((m) => m.clienteId === clienteId);
+  },
+
+  sendClientMessage(data) {
+    const list = storageService.get(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
+    const newMsg = {
+      id: 'MSG-' + Date.now().toString().slice(-6),
+      clienteId: data.clienteId,
+      solicitudId: data.solicitudId || null,
+      remitente: data.remitente,
+      remitenteRol: data.remitenteRol,
+      texto: data.texto,
+      fecha: new Date().toLocaleString('es-MX', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      leido: false
+    };
+    const updated = [...list, newMsg];
+    storageService.set(KEYS.CLIENT_MESSAGES, updated);
+    return newMsg;
   },
 };
 

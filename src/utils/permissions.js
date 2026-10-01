@@ -11,12 +11,15 @@ export const ROLES = {
   ADMIN: 'Administrador',
   GERENTE: 'Gerente de Construcción',
   RRHH: 'RRHH / Reclutamiento',
+  CLIENTE: 'Cliente',
 };
 
 export const ROLE_PERMISSIONS = {
   [ROLES.ADMIN]: [
     'dashboard',
     'proyectos',
+    'solicitudes-clientes',
+    'portal-cliente',
     'empleados',
     'materiales',
     'proveedores',
@@ -30,6 +33,8 @@ export const ROLE_PERMISSIONS = {
   [ROLES.GERENTE]: [
     'dashboard',
     'proyectos',
+    'solicitudes-clientes',
+    'portal-cliente',
     'empleados',
     'materiales',
     'proveedores',
@@ -45,6 +50,16 @@ export const ROLE_PERMISSIONS = {
     'entrevistas',
     'agenda',
     'empleados',
+  ],
+  [ROLES.CLIENTE]: [
+    'portal-cliente',
+    'mis-solicitudes',
+    'mis-proyectos',
+    'reuniones-cliente',
+    'documentos-cliente',
+    'pagos-cliente',
+    'mensajes-cliente',
+    'perfil-cliente',
   ],
 };
 

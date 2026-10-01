@@ -28,15 +28,22 @@ export const PrivateRoutes = ({ route, children }) => {
   // 2. Verificación paramétrica de autorización de roles (403 - Acceso no autorizado)
   const isAllowed = hasPermission(currentUser.rol, route?.path);
   if (!isAllowed) {
+    const fallbackTarget = currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
     return (
       <Status403 
-        onBackToHome={() => navigate('dashboard')} 
-        onGoToDashboard={() => navigate('dashboard')} 
+        onBackToHome={() => navigate(fallbackTarget)} 
+        onGoToDashboard={() => navigate(fallbackTarget)} 
       />
     );
   }
 
-  // 3. Acceso autorizado: Inyectar dentro del Layout Corporativo
+  // 3. Si el usuario es Cliente externo, renderizar su portal especializado directamente
+  // (El Portal del Cliente posee su propia barra superior ejecutiva y navegación dedicada)
+  if (currentUser.rol === 'Cliente') {
+    return <>{children}</>;
+  }
+
+  // 4. Acceso administrativo/interno autorizado: Inyectar dentro del Layout Corporativo
   return (
     <MainLayout currentRoute={route?.path || 'dashboard'}>
       {children}

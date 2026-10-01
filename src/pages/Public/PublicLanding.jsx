@@ -105,8 +105,9 @@ export default function PublicLanding({ config = COMPANY_CONFIG, initialModule =
   };
 
   const handleGoToDashboard = () => {
-    if (navigateTo) navigateTo('dashboard');
-    else window.location.hash = 'dashboard';
+    const target = currentUser?.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
+    if (navigateTo) navigateTo(target);
+    else window.location.hash = target;
   };
 
   // Renderizado dinámico del módulo activo

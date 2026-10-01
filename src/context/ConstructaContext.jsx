@@ -50,6 +50,10 @@ export const ConstructaProvider = ({ children }) => {
   const [purchaseOrders, setPurchaseOrders] = useState(() => dataService.getPurchaseOrders());
   const [supplierInvoices, setSupplierInvoices] = useState(() => dataService.getSupplierInvoices());
   const [supplierCommunications, setSupplierCommunications] = useState(() => dataService.getSupplierCommunications());
+  const [clients, setClients] = useState(() => dataService.getClients());
+  const [clientRequests, setClientRequests] = useState(() => dataService.getClientRequests());
+  const [clientMeetings, setClientMeetings] = useState(() => dataService.getClientMeetings());
+  const [clientMessages, setClientMessages] = useState(() => dataService.getClientMessages());
 
   // 4. Métricas Interconectadas Dinámicas
   const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
@@ -67,6 +71,10 @@ export const ConstructaProvider = ({ children }) => {
     setPurchaseOrders(dataService.getPurchaseOrders());
     setSupplierInvoices(dataService.getSupplierInvoices());
     setSupplierCommunications(dataService.getSupplierCommunications());
+    setClients(dataService.getClients());
+    setClientRequests(dataService.getClientRequests());
+    setClientMeetings(dataService.getClientMeetings());
+    setClientMessages(dataService.getClientMessages());
   }, []);
 
   // 5. Sistema de Notificaciones Flotantes (Toasts)
@@ -132,10 +140,17 @@ export const ConstructaProvider = ({ children }) => {
     if (res.ok) {
       setSession(dataService.getSession());
       setCurrentUser(res.usuario);
-      setActiveView('dashboard');
+      const targetView = res.usuario.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
+      setActiveView(targetView);
+      if (window.location.hash.replace('#', '') !== targetView) {
+        window.location.hash = targetView;
+      }
       showAlert(`Bienvenido al sistema, ${res.usuario.nombre}`, 'exito');
-      return { ok: true };
+      return { ok: true, usuario: res.usuario };
     } else {
+      if (res.requiereVerificacion) {
+        return { ok: false, requiereVerificacion: true, email: res.email, mensaje: res.mensaje };
+      }
       showAlert(res.mensaje, 'error');
       return { ok: false, mensaje: res.mensaje };
     }
@@ -595,6 +610,111 @@ export const ConstructaProvider = ({ children }) => {
     return true;
   };
 
+  // ----------------------------------------------------
+  // GESTIÓN DE CLIENTES Y FLUJO COMERCIAL/OPERATIVO
+  // ----------------------------------------------------
+  const registerClient = (clientData) => {
+    const res = dataService.saveClient(clientData);
+    if (res.ok) {
+      setClients(dataService.getClients());
+      refreshMetrics();
+      showAlert('Registro exitoso. Se ha generado su código de verificación preliminar.', 'exito');
+      return res;
+    } else {
+      showAlert(res.error || 'Error al registrar cliente.', 'error');
+      return res;
+    }
+  };
+
+  const verifyClientAccount = (email, code) => {
+    const res = dataService.verifyClientAccount(email, code);
+    if (res.ok) {
+      setClients(dataService.getClients());
+      refreshMetrics();
+      showAlert('¡Cuenta verificada exitosamente! Ya puede acceder al Portal del Cliente.', 'exito');
+      return res;
+    } else {
+      showAlert(res.error || 'Código de verificación incorrecto.', 'error');
+      return res;
+    }
+  };
+
+  const updateClientProfile = (clientData) => {
+    const updated = dataService.updateClient(clientData.id, clientData);
+    if (updated) {
+      setClients(dataService.getClients());
+      if (currentUser && currentUser.id === clientData.id) {
+        setCurrentUser(updated);
+        setSession((prev) => (prev ? { ...prev, usuario: updated } : prev));
+      }
+      refreshMetrics();
+      showAlert('Perfil de cliente actualizado con éxito.', 'exito');
+      return updated;
+    }
+    return null;
+  };
+
+  const saveClientRequest = (reqData) => {
+    const res = dataService.saveClientRequest(reqData);
+    if (res.ok) {
+      setClientRequests(dataService.getClientRequests());
+      refreshMetrics();
+      showAlert('Solicitud enviada a la Constructora con éxito. Nuestro equipo la revisará.', 'exito');
+      return res;
+    } else {
+      showAlert(res.error || 'Error al registrar la solicitud.', 'error');
+      return res;
+    }
+  };
+
+  const updateClientRequest = (id, updates) => {
+    const updated = dataService.updateClientRequest(id, updates);
+    if (updated) {
+      setClientRequests(dataService.getClientRequests());
+      refreshMetrics();
+      showAlert('Solicitud de cliente actualizada.', 'exito');
+      return updated;
+    }
+    return null;
+  };
+
+  const saveClientMeeting = (meetingData) => {
+    const res = dataService.saveClientMeeting(meetingData);
+    if (res.ok) {
+      setClientMeetings(dataService.getClientMeetings());
+      refreshMetrics();
+      showAlert('Solicitud de reunión agendada. Se notificará a la coordinación.', 'exito');
+      return res;
+    } else {
+      showAlert(res.error || 'Error al registrar la reunión.', 'error');
+      return res;
+    }
+  };
+
+  const updateClientMeeting = (id, updates) => {
+    const updated = dataService.updateClientMeeting(id, updates);
+    if (updated) {
+      setClientMeetings(dataService.getClientMeetings());
+      refreshMetrics();
+      showAlert('Reunión actualizada.', 'exito');
+      return updated;
+    }
+    return null;
+  };
+
+  const sendClientMessage = (msgData) => {
+    const res = dataService.sendClientMessage(msgData);
+    if (res.ok) {
+      setClientMessages(dataService.getClientMessages());
+      refreshMetrics();
+      showAlert('Mensaje enviado a soporte del proyecto.', 'exito');
+      return res;
+    } else {
+      showAlert(res.error || 'Error al enviar el mensaje.', 'error');
+      return res;
+    }
+  };
+
   // Restablecer datos a la semilla inicial de db.json y compras
   const resetDemoData = () => {
     dataService.resetAllData();
@@ -613,6 +733,10 @@ export const ConstructaProvider = ({ children }) => {
     setPurchaseOrders(dataService.getPurchaseOrders());
     setSupplierInvoices(dataService.getSupplierInvoices());
     setSupplierCommunications(dataService.getSupplierCommunications());
+    setClients(dataService.getClients());
+    setClientRequests(dataService.getClientRequests());
+    setClientMeetings(dataService.getClientMeetings());
+    setClientMessages(dataService.getClientMessages());
     refreshMetrics();
     showAlert('Los datos del sistema han sido restaurados a sus valores predeterminados.', 'info');
   };
@@ -635,6 +759,10 @@ export const ConstructaProvider = ({ children }) => {
     purchaseOrders,
     supplierInvoices,
     supplierCommunications,
+    clients,
+    clientRequests,
+    clientMeetings,
+    clientMessages,
   }), [
     projects,
     employees,
@@ -651,6 +779,10 @@ export const ConstructaProvider = ({ children }) => {
     purchaseOrders,
     supplierInvoices,
     supplierCommunications,
+    clients,
+    clientRequests,
+    clientMeetings,
+    clientMessages,
   ]);
 
   return (
@@ -724,6 +856,19 @@ export const ConstructaProvider = ({ children }) => {
         agendaActivities,
         saveAgendaActivity,
         deleteAgendaActivity,
+        // CLIENTES
+        clients,
+        clientRequests,
+        clientMeetings,
+        clientMessages,
+        registerClient,
+        verifyClientAccount,
+        updateClientProfile,
+        saveClientRequest,
+        updateClientRequest,
+        saveClientMeeting,
+        updateClientMeeting,
+        sendClientMessage,
         movements,
         inventoryMovements: movements,
         history,

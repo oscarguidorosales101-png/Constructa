@@ -18,6 +18,9 @@ import Status403 from '../pages/Status/Status403';
 import Status404 from '../pages/Status/Status404';
 
 import PublicLanding from '../pages/Public/PublicLanding';
+import ClientRegister from '../pages/Auth/ClientRegister';
+import ClientPortal from '../pages/ClientPortal/ClientPortal';
+import ClientRequestsManager from '../pages/ClientRequests/ClientRequestsManager';
 
 export const PRIVATE_MODULES = [
   'dashboard',
@@ -32,7 +35,9 @@ export const PRIVATE_MODULES = [
   'gastos',
   'cronograma',
   'avance',
-  'reportes'
+  'reportes',
+  'portal-cliente',
+  'solicitudes-clientes'
 ];
 
 export const PUBLIC_ROUTES = [
@@ -45,6 +50,8 @@ export const PUBLIC_ROUTES = [
   'trabaja-con-nosotros',
   'contacto',
   'login',
+  'registro',
+  'registro-cliente',
   '401',
   '403',
   '404'
@@ -192,12 +199,38 @@ export const routeConfig = {
     isPrivate: true,
     requiredRole: null,
   },
+  'portal-cliente': {
+    path: 'portal-cliente',
+    label: 'Portal del Cliente',
+    component: ClientPortal,
+    isPrivate: true,
+    requiredRole: 'Cliente',
+  },
+  'solicitudes-clientes': {
+    path: 'solicitudes-clientes',
+    label: 'Solicitudes de Clientes',
+    component: ClientRequestsManager,
+    isPrivate: true,
+    requiredRole: null,
+  },
 
   // Rutas Públicas y Estados HTTP
   login: {
     path: 'login',
     label: 'Iniciar Sesión',
     component: Login,
+    isPrivate: false,
+  },
+  registro: {
+    path: 'registro',
+    label: 'Registro de Cliente',
+    component: ClientRegister,
+    isPrivate: false,
+  },
+  'registro-cliente': {
+    path: 'registro-cliente',
+    label: 'Registro de Cliente',
+    component: ClientRegister,
     isPrivate: false,
   },
   401: {
