@@ -2,10 +2,20 @@ import React from 'react';
 import { COMPANY_CONFIG } from '../../config/companyConfig';
 import { Building2, ShieldCheck, Lock, ArrowUp, Phone, Mail, MapPin } from 'lucide-react';
 
-export default function PublicFooter({ config = COMPANY_CONFIG }) {
+export default function PublicFooter({ config = COMPANY_CONFIG, onNavigateSection }) {
   const { identity, contact } = config;
 
   const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLinkClick = (e, sectionId) => {
+    e.preventDefault();
+    if (onNavigateSection) {
+      onNavigateSection(sectionId);
+    } else {
+      window.location.hash = sectionId;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -35,12 +45,12 @@ export default function PublicFooter({ config = COMPANY_CONFIG }) {
           <div className="public-footer-col">
             <h4 className="public-footer-title">Institucional</h4>
             <ul className="public-footer-links">
-              <li><a href="#inicio">Inicio</a></li>
-              <li><a href="#empresa">Nuestra Empresa</a></li>
-              <li><a href="#filosofia">Misión y Valores</a></li>
-              <li><a href="#logros">Logros y Métricas</a></li>
-              <li><a href="#especialidades">Especialidades</a></li>
-              <li><a href="#video">Video Institucional</a></li>
+              <li><a href="#inicio" onClick={(e) => handleLinkClick(e, 'inicio')}>Inicio</a></li>
+              <li><a href="#empresa" onClick={(e) => handleLinkClick(e, 'empresa')}>Nuestra Empresa</a></li>
+              <li><a href="#empresa" onClick={(e) => handleLinkClick(e, 'empresa')}>Misión y Valores</a></li>
+              <li><a href="#logros" onClick={(e) => handleLinkClick(e, 'logros')}>Logros y Métricas</a></li>
+              <li><a href="#especialidades" onClick={(e) => handleLinkClick(e, 'especialidades')}>Especialidades</a></li>
+              <li><a href="#video" onClick={(e) => handleLinkClick(e, 'video')}>Video Institucional</a></li>
             </ul>
           </div>
 
@@ -48,10 +58,10 @@ export default function PublicFooter({ config = COMPANY_CONFIG }) {
           <div className="public-footer-col">
             <h4 className="public-footer-title">Obras y Talento</h4>
             <ul className="public-footer-links">
-              <li><a href="#proyectos">Portafolio de Obras</a></li>
-              <li><a href="#galeria">Galería Fotográfica</a></li>
-              <li><a href="#trabaja-con-nosotros">Bolsa de Empleo</a></li>
-              <li><a href="#contacto">Atención a Clientes</a></li>
+              <li><a href="#proyectos" onClick={(e) => handleLinkClick(e, 'proyectos')}>Portafolio de Obras</a></li>
+              <li><a href="#galeria" onClick={(e) => handleLinkClick(e, 'galeria')}>Galería Fotográfica</a></li>
+              <li><a href="#trabaja-con-nosotros" onClick={(e) => handleLinkClick(e, 'trabaja-con-nosotros')}>Bolsa de Empleo</a></li>
+              <li><a href="#contacto" onClick={(e) => handleLinkClick(e, 'contacto')}>Atención a Clientes</a></li>
               <li>
                 <a href="#login" className="public-footer-login-link">
                   <Lock size={12} />

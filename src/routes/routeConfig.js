@@ -37,6 +37,13 @@ export const PRIVATE_MODULES = [
 
 export const PUBLIC_ROUTES = [
   'inicio',
+  'empresa',
+  'especialidades',
+  'video',
+  'logros',
+  'galeria',
+  'trabaja-con-nosotros',
+  'contacto',
   'login',
   '401',
   '403',
@@ -48,6 +55,48 @@ export const routeConfig = {
   inicio: {
     path: 'inicio',
     label: 'Inicio',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  empresa: {
+    path: 'empresa',
+    label: 'Empresa',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  especialidades: {
+    path: 'especialidades',
+    label: 'Especialidades',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  video: {
+    path: 'video',
+    label: 'Video',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  logros: {
+    path: 'logros',
+    label: 'Logros',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  galeria: {
+    path: 'galeria',
+    label: 'Galería',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  'trabaja-con-nosotros': {
+    path: 'trabaja-con-nosotros',
+    label: 'Trabaja con Nosotros',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  contacto: {
+    path: 'contacto',
+    label: 'Contacto',
     component: PublicLanding,
     isPrivate: false,
   },

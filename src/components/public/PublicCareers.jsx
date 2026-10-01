@@ -11,12 +11,16 @@ import {
   CheckCircle2,
   AlertCircle,
   FileCheck,
-  Send
+  Send,
+  ChevronRight,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 import PublicApplicationModal from './PublicApplicationModal';
 
-export default function PublicCareers({ config = COMPANY_CONFIG }) {
-  const { vacancies } = config;
+export default function PublicCareers({ onNavigateSection }) {
+  const { vacancies } = COMPANY_CONFIG;
   const [filterArea, setFilterArea] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedVacancyId, setExpandedVacancyId] = useState(null);
@@ -67,7 +71,7 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
       case 'Cerrada':
         return (
           <span className="public-vacancy-badge badge-closed">
-            <span className="public-badge-dot dot-red" /> Concluida
+            <span className="public-badge-dot dot-red" /> Convocatoria Concluida
           </span>
         );
       default:
@@ -76,15 +80,54 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
   };
 
   return (
-    <section id="trabaja-con-nosotros" className="public-section public-careers-section">
+    <section id="trabaja-con-nosotros" className="public-section public-module-section">
       <div className="public-container">
+        {/* Breadcrumb de Navegación Modular */}
+        <div className="public-breadcrumb">
+          <button type="button" onClick={() => onNavigateSection?.('inicio')}>Inicio</button>
+          <ChevronRight size={14} />
+          <span>Trabaja con Nosotros</span>
+        </div>
+
         {/* Section Header */}
-        <div className="public-section-header">
-          <span className="public-section-badge">Bolsa de Empleo Institucional</span>
-          <h2 className="public-section-title">Trabaja con Nosotros</h2>
-          <p className="public-section-subtitle">
-            Buscamos profesionales apasionados por la ingeniería, la arquitectura y la construcción. Súmate a un equipo comprometido con la excelencia.
+        <div className="section-header">
+          <span className="section-tag">
+            <Briefcase size={14} style={{ display: 'inline', marginRight: '6px' }} />
+            Oportunidades de Carrera
+          </span>
+          <h2 className="section-title">Construye tu Futuro con Nosotros</h2>
+          <p className="section-description">
+            Buscamos ingenieros, arquitectos, técnicos de campo y especialistas que compartan nuestra pasión por la precisión, la seguridad industrial y la excelencia constructiva.
           </p>
+        </div>
+
+        {/* Cultura y Compromiso Laboral */}
+        <div className="public-careers-culture-banner">
+          <div className="public-culture-header">
+            <div className="public-culture-icon">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <h3 className="public-culture-title">Cultura de Obra Segura, Justa y de Alto Rendimiento</h3>
+              <p className="public-culture-desc">
+                En CONSTRUCTA impulsamos la capacitación técnica permanente, el cumplimiento estricto de la ley laboral y las condiciones de seguridad en cada frente de trabajo.
+              </p>
+            </div>
+          </div>
+          <div className="public-culture-perks">
+            <div className="public-perk-item">
+              <CheckCircle2 size={16} className="public-perk-check" />
+              <span>Contratación formal con todas las prestaciones</span>
+            </div>
+            <div className="public-perk-item">
+              <CheckCircle2 size={16} className="public-perk-check" />
+              <span>Capacitación continua en normas STPS y BIM</span>
+            </div>
+            <div className="public-perk-item">
+              <CheckCircle2 size={16} className="public-perk-check" />
+              <span>Equipos de protección y protocolos HSE certificados</span>
+            </div>
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
@@ -124,7 +167,7 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
             </p>
             <button
               type="button"
-              className="public-btn public-btn-outline"
+              className="constructa-btn constructa-btn-outline"
               onClick={() => {
                 setFilterArea('Todas');
                 setSearchTerm('');
@@ -155,12 +198,13 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
                     <div className="public-vacancy-actions">
                       <button
                         type="button"
-                        className="public-btn public-btn-primary public-btn-apply"
+                        className={`public-btn-apply-prominent ${isClosed ? 'disabled' : ''}`}
                         disabled={isClosed}
                         onClick={() => handleOpenApplication(vacancy)}
+                        title={isClosed ? 'Esta convocatoria ya ha concluido' : 'Postularme a esta vacante'}
                       >
-                        {isClosed ? 'Concluida' : 'Postularme'}
-                        <Send size={14} />
+                        <Send size={15} />
+                        <span>{isClosed ? 'Concluida' : 'Postularme'}</span>
                       </button>
 
                       <button
@@ -177,20 +221,20 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
                   {/* Vacancy Pills Row */}
                   <div className="public-vacancy-pills-row">
                     <div className="public-vacancy-pill">
-                      <MapPin size={13} style={{ color: 'var(--color-gold)' }} />
+                      <MapPin size={13} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
                       <span>{vacancy.ubicacion}</span>
                     </div>
                     <div className="public-vacancy-pill">
-                      <Clock size={13} style={{ color: 'var(--color-gold)' }} />
+                      <Clock size={13} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
                       <span>{vacancy.tipoJornada} • {vacancy.modalidad}</span>
                     </div>
                     <div className="public-vacancy-pill">
-                      <Briefcase size={13} style={{ color: 'var(--color-gold)' }} />
+                      <Briefcase size={13} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
                       <span>Exp: {vacancy.experienciaMinima}</span>
                     </div>
                     {vacancy.rangoSalarial && (
                       <div className="public-vacancy-pill public-pill-salary">
-                        <DollarSign size={13} style={{ color: 'var(--color-emerald)' }} />
+                        <DollarSign size={13} style={{ color: 'var(--accent-emerald, #10b981)' }} />
                         <span>{vacancy.rangoSalarial}</span>
                       </div>
                     )}
@@ -254,16 +298,17 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
 
                       {/* Bottom Apply CTA */}
                       <div className="public-vacancy-bottom-cta">
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary, #94a3b8)' }}>
                           ¿Cumples con los requisitos? Envíanos tu información y expediente curricular.
                         </p>
                         <button
                           type="button"
-                          className="public-btn public-btn-primary"
+                          className={`constructa-btn constructa-btn-primary ${isClosed ? 'disabled' : ''}`}
                           disabled={isClosed}
                           onClick={() => handleOpenApplication(vacancy)}
                         >
-                          {isClosed ? 'Convocatoria Finalizada' : 'Iniciar Postulación Ahora'}
+                          <Send size={15} />
+                          <span>{isClosed ? 'Convocatoria Finalizada' : 'Iniciar Postulación Ahora'}</span>
                         </button>
                       </div>
                     </div>
@@ -277,14 +322,17 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
         {/* Spontaneous Open Application Banner */}
         <div className="public-spontaneous-banner">
           <div className="public-spontaneous-content">
-            <h3 className="public-spontaneous-title">¿No encuentras una vacante afín a tu perfil?</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <Sparkles size={18} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+              <h3 className="public-spontaneous-title">¿No encuentras una vacante afín a tu especialidad?</h3>
+            </div>
             <p className="public-spontaneous-text">
-              Estamos en constante búsqueda de talento técnico y operativo para futuras aperturas de obra. Envía tu currículum a nuestra bolsa general de talentos.
+              Estamos en constante búsqueda de talento técnico y operativo para futuras aperturas de obra. Envía tu currículum a nuestra cartera general de talentos.
             </p>
           </div>
           <button
             type="button"
-            className="public-btn public-btn-outline"
+            className="constructa-btn constructa-btn-outline"
             onClick={() => handleOpenApplication({
               id: 'VAC-GRAL',
               puesto: 'Candidatura General / Cartera de Talento',
@@ -295,6 +343,31 @@ export default function PublicCareers({ config = COMPANY_CONFIG }) {
           >
             Registrar candidatura general
           </button>
+        </div>
+
+        {/* Acciones Relacionadas / Continuidad */}
+        <div className="public-section-bottom-cta">
+          <div className="public-bottom-cta-text">
+            <h4>¿Deseas conocer más sobre nuestras obras y frentes de trabajo?</h4>
+            <p>Descubre los proyectos ejecutados por nuestros equipos multidisciplinarios de ingeniería.</p>
+          </div>
+          <div className="public-bottom-cta-actions">
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-primary"
+              onClick={() => onNavigateSection?.('proyectos')}
+            >
+              <span>Ver Portafolio de Obras</span>
+              <ArrowRight size={15} />
+            </button>
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-outline"
+              onClick={() => onNavigateSection?.('contacto')}
+            >
+              <span>Contactar a Recursos Humanos</span>
+            </button>
+          </div>
         </div>
       </div>
 

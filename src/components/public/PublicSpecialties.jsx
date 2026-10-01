@@ -7,85 +7,130 @@ import {
   Hammer,
   FileCheck,
   CheckCircle2,
-  Layers
+  Layers,
+  ArrowRight,
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import COMPANY_CONFIG from '../../config/companyConfig';
 
-export default function PublicSpecialties({ onSelectSpecialty }) {
+export default function PublicSpecialties({ onNavigateSection }) {
   const getIcon = (name) => {
     switch (name) {
-      case 'Building2': return <Building2 size={24} />;
-      case 'Briefcase': return <Briefcase size={24} />;
-      case 'Warehouse': return <Warehouse size={24} />;
-      case 'Truck': return <Truck size={24} />;
-      case 'Hammer': return <Hammer size={24} />;
-      case 'FileCheck': return <FileCheck size={24} />;
-      default: return <Layers size={24} />;
+      case 'Building2': return <Building2 size={22} />;
+      case 'Briefcase': return <Briefcase size={22} />;
+      case 'Warehouse': return <Warehouse size={22} />;
+      case 'Truck': return <Truck size={22} />;
+      case 'Hammer': return <Hammer size={22} />;
+      case 'FileCheck': return <FileCheck size={22} />;
+      default: return <Layers size={22} />;
     }
   };
 
   return (
-    <section className="public-section public-section-alt" id="especialidades">
+    <section className="public-section public-module-section" id="especialidades">
       <div className="public-container">
+        {/* Breadcrumb de Navegación Modular */}
+        <div className="public-breadcrumb">
+          <button type="button" onClick={() => onNavigateSection?.('inicio')}>Inicio</button>
+          <ChevronRight size={14} />
+          <span>Especialidades</span>
+        </div>
+
+        {/* Header de Sección Consistente */}
         <div className="section-header">
           <span className="section-tag">Capacidad Operativa</span>
-          <h2 className="section-title">Especialidades Constructivas</h2>
+          <h2 className="section-title">Nuestras Líneas de Especialidad</h2>
           <p className="section-description">
             Abarcamos todas las etapas de la edificación e infraestructura pesada,
             garantizando solvencia técnica, maquinaria especializada y cuadrillas altamente capacitadas.
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '1.5rem',
-          }}
-        >
+        {/* 6 Especialidades Grid con Imágenes Arquitectónicas */}
+        <div className="public-specialties-card-grid">
           {COMPANY_CONFIG.specialties.map((esp) => (
-            <div key={esp.id} className="feature-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <div className="feature-card-icon" style={{ marginBottom: 0 }}>
-                  {getIcon(esp.icon)}
+            <div key={esp.id} className="public-specialty-card">
+              {/* Imagen Arquitectónica de Encabezado */}
+              <div className="public-specialty-img-wrap">
+                <img
+                  src={esp.image}
+                  alt={esp.title}
+                  className="public-specialty-img"
+                  loading="lazy"
+                />
+                <div className="public-specialty-img-overlay">
+                  <span className="public-specialty-tag">{esp.tag}</span>
                 </div>
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    color: 'var(--accent-amber, #f59e0b)',
-                    background: 'rgba(245, 158, 11, 0.08)',
-                    padding: '0.25rem 0.6rem',
-                    borderRadius: '4px',
-                    border: '1px solid rgba(245, 158, 11, 0.2)',
-                  }}
-                >
-                  {esp.tag}
-                </span>
               </div>
 
-              <h3 className="feature-card-title">{esp.title}</h3>
-              <p className="feature-card-desc" style={{ marginBottom: '1.25rem' }}>
-                {esp.description}
-              </p>
-
-              <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                  Capacidades Destacadas:
+              {/* Contenido de la Especialidad */}
+              <div className="public-specialty-body">
+                <div className="public-specialty-title-row">
+                  <div className="public-specialty-icon-box">
+                    {getIcon(esp.icon)}
+                  </div>
+                  <h3 className="public-specialty-title">{esp.title}</h3>
                 </div>
-                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  {esp.features.map((feat, i) => (
-                    <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-secondary, #94a3b8)' }}>
-                      <CheckCircle2 size={13} style={{ color: 'var(--accent-emerald, #10b981)', flexShrink: 0 }} />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
+
+                <p className="public-specialty-desc">
+                  {esp.description}
+                </p>
+
+                {/* Capacidades Destacadas */}
+                <div className="public-specialty-features">
+                  <div className="public-specialty-features-title">
+                    Capacidades Destacadas:
+                  </div>
+                  <ul className="public-specialty-checklist">
+                    {esp.features.map((feat, i) => (
+                      <li key={i}>
+                        <CheckCircle2 size={13} className="public-specialty-check" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Acción para ver proyectos afines */}
+                <div className="public-specialty-footer">
+                  <button
+                    type="button"
+                    className="public-specialty-action-btn"
+                    onClick={() => onNavigateSection?.('proyectos')}
+                  >
+                    <span>Ver Proyectos de esta Línea</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Acciones Relacionadas / Continuidad */}
+        <div className="public-section-bottom-cta">
+          <div className="public-bottom-cta-text">
+            <h4>¿Requieres asesoría técnica para una obra específica?</h4>
+            <p>Nuestros directores de proyecto evalúan especificaciones, viabilidad y estimación de costos sin compromiso.</p>
+          </div>
+          <div className="public-bottom-cta-actions">
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-primary"
+              onClick={() => onNavigateSection?.('contacto')}
+            >
+              <span>Solicitar Asesoría o Cotización</span>
+              <ArrowRight size={15} />
+            </button>
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-outline"
+              onClick={() => onNavigateSection?.('proyectos')}
+            >
+              <span>Ver Portafolio de Obras</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>

@@ -1,54 +1,43 @@
 import React, { useState, useRef } from 'react';
 import { COMPANY_CONFIG } from '../../config/companyConfig';
-import { Play, Pause, Volume2, VolumeX, Maximize2, CheckCircle2, Film, AlertCircle } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize2,
+  CheckCircle2,
+  Film,
+  AlertCircle,
+  ChevronRight,
+  ArrowRight,
+  ShieldCheck
+} from 'lucide-react';
 
-export default function PublicVideo({ config = COMPANY_CONFIG }) {
-  const { video } = config;
+export default function PublicVideo({ onNavigateSection }) {
+  const { video } = COMPANY_CONFIG;
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      videoRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch(() => {
-        setIsPlaying(false);
-      });
-    }
-  };
-
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
-
-  const handleFullscreen = () => {
-    if (!videoRef.current) return;
-    if (videoRef.current.requestFullscreen) {
-      videoRef.current.requestFullscreen();
-    } else if (videoRef.current.webkitRequestFullscreen) {
-      videoRef.current.webkitRequestFullscreen();
-    }
-  };
-
   return (
-    <section id="video" className="public-section public-video-section">
+    <section id="video" className="public-section public-module-section">
       <div className="public-container">
+        {/* Breadcrumb de Navegación Modular */}
+        <div className="public-breadcrumb">
+          <button type="button" onClick={() => onNavigateSection?.('inicio')}>Inicio</button>
+          <ChevronRight size={14} />
+          <span>Video Institucional</span>
+        </div>
+
         {/* Section Header */}
-        <div className="public-section-header">
-          <span className="public-section-badge">
+        <div className="section-header">
+          <span className="section-tag">
             <Film size={14} style={{ display: 'inline', marginRight: '6px' }} />
-            Recorrido Institucional
+            Recorrido en Frente de Obra
           </span>
-          <h2 className="public-section-title">{video.title}</h2>
-          <p className="public-section-subtitle">{video.subtitle}</p>
+          <h2 className="section-title">{video.title}</h2>
+          <p className="section-description">{video.subtitle}</p>
         </div>
 
         {/* Video & Info Layout */}
@@ -79,9 +68,14 @@ export default function PublicVideo({ config = COMPANY_CONFIG }) {
                 <p className="public-video-fallback-desc">
                   El archivo audiovisual institucional está en proceso de sincronización. Le invitamos a conocer nuestras obras en la sección de Proyectos.
                 </p>
-                <a href="#proyectos" className="public-btn public-btn-primary" style={{ marginTop: '14px' }}>
+                <button
+                  type="button"
+                  className="constructa-btn constructa-btn-primary"
+                  onClick={() => onNavigateSection?.('proyectos')}
+                  style={{ marginTop: '14px' }}
+                >
                   Explorar Proyectos
-                </a>
+                </button>
               </div>
             )}
           </div>
@@ -113,10 +107,41 @@ export default function PublicVideo({ config = COMPANY_CONFIG }) {
             </div>
 
             <div className="public-video-footer-cta">
-              <a href="#trabaja-con-nosotros" className="public-btn public-btn-outline" style={{ width: '100%', justifyContent: 'center' }}>
-                Formar parte de nuestro equipo
-              </a>
+              <button
+                type="button"
+                className="constructa-btn constructa-btn-outline"
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => onNavigateSection?.('trabaja-con-nosotros')}
+              >
+                <span>Formar parte de nuestro equipo</span>
+                <ArrowRight size={14} />
+              </button>
             </div>
+          </div>
+        </div>
+
+        {/* Acciones Relacionadas / Continuidad */}
+        <div className="public-section-bottom-cta">
+          <div className="public-bottom-cta-text">
+            <h4>¿Quieres ver los desarrollos y estructuras terminadas?</h4>
+            <p>Conoce los proyectos finalizados y en proceso de construcción en nuestro portafolio de obras.</p>
+          </div>
+          <div className="public-bottom-cta-actions">
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-primary"
+              onClick={() => onNavigateSection?.('proyectos')}
+            >
+              <span>Ver Portafolio de Obras</span>
+              <ArrowRight size={15} />
+            </button>
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-outline"
+              onClick={() => onNavigateSection?.('galeria')}
+            >
+              <span>Ver Galería Fotográfica</span>
+            </button>
           </div>
         </div>
       </div>

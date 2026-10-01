@@ -166,6 +166,7 @@ export const COMPANY_CONFIG = {
       description: 'Torres departamentales de 15 a 35 niveles con cimentaciones profundas, sótanos estructurados, acabados de primer nivel y amenidades integradas.',
       features: ['Estructuras sismo-resistentes', 'Acústica de vanguardia', 'Eficiencia lumínica y térmica'],
       icon: 'Building2',
+      image: 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=1000&q=80',
     },
     {
       id: 'esp-corporativo',
@@ -174,6 +175,7 @@ export const COMPANY_CONFIG = {
       description: 'Centros empresariales clase A+, muros cortina de cristal térmico, sistemas de climatización inteligente HVAC y certificaciones ambientales LEED.',
       features: ['Plantas libres de columnas', 'Cableado estructurado central', 'Accesibilidad universal total'],
       icon: 'Briefcase',
+      image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80',
     },
     {
       id: 'esp-industrial',
@@ -182,6 +184,7 @@ export const COMPANY_CONFIG = {
       description: 'Naves de estructura metálica de grandes claros, pisos industriales de alta resistencia con fibras poliméricas, andenes de carga y patios de maniobras.',
       features: ['Pisos de alta planicidad', 'Sistemas contra incendio NFPA', 'Cubiertas aislantes KR-18'],
       icon: 'Warehouse',
+      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1000&q=80',
     },
     {
       id: 'esp-civil',
@@ -190,6 +193,7 @@ export const COMPANY_CONFIG = {
       description: 'Pasos a desnivel, puentes vehiculares, colectores pluviales, plantas de tratamiento y urbanización de frentes metropolitanos.',
       features: ['Hormigones hidráulicos especiales', 'Topografía satelital y drones', 'Control geotécnico estricto'],
       icon: 'Truck',
+      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1000&q=80',
     },
     {
       id: 'esp-remodelacion',
@@ -198,6 +202,7 @@ export const COMPANY_CONFIG = {
       description: 'Refuerzo de columnas y trabes con polímeros reforzados de carbono (CFRP), adecuación sísmica de inmuebles y modernización de instalaciones.',
       features: ['Diagnóstico no destructivo', 'Intervención sin desalojo', 'Dictamen pericial certificado'],
       icon: 'Hammer',
+      image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1000&q=80',
     },
     {
       id: 'esp-epc',
@@ -206,6 +211,7 @@ export const COMPANY_CONFIG = {
       description: 'Acompañamiento integral desde la concepción del anteproyecto, tramitología, modelado BIM 5D, ejecución y liquidación de obra.',
       features: ['Supervisión 360° en tiempo real', 'Control estricto de costos', 'Garantía extendida de vicios ocultos'],
       icon: 'FileCheck',
+      image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1000&q=80',
     },
   ],
 

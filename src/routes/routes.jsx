@@ -59,12 +59,24 @@ export const AppRoutes = () => {
   const currentKey = activeView || (currentUser ? 'dashboard' : 'inicio');
   const currentRoute = routeConfig[currentKey];
 
-  // Caso: Sitio Público Institucional
-  if (currentKey === 'inicio') {
+  // Caso: Sitio Público Institucional (con soporte para navegación modular)
+  const isPublicSection = [
+    'inicio',
+    'empresa',
+    'especialidades',
+    'video',
+    'logros',
+    'galeria',
+    'trabaja-con-nosotros',
+    'contacto',
+  ].includes(currentKey) || (!currentUser && currentKey === 'proyectos');
+
+  if (isPublicSection) {
     const PublicLandingComponent = routeConfig.inicio.component;
+    const initialSection = (!currentUser && currentKey === 'proyectos') ? 'proyectos' : currentKey;
     return (
       <>
-        <PublicLandingComponent />
+        <PublicLandingComponent initialModule={initialSection} />
         <ToastContainer />
       </>
     );

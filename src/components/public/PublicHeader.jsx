@@ -15,11 +15,11 @@ export default function PublicHeader({
     { id: 'inicio', label: 'Inicio' },
     { id: 'empresa', label: 'Empresa' },
     { id: 'especialidades', label: 'Especialidades' },
-    { id: 'proyectos-publicos', label: 'Proyectos' },
-    { id: 'video-institucional', label: 'Video' },
+    { id: 'proyectos', label: 'Proyectos' },
+    { id: 'video', label: 'Video' },
     { id: 'logros', label: 'Logros' },
     { id: 'galeria', label: 'Galería' },
-    { id: 'vacantes', label: 'Trabaja con Nosotros' },
+    { id: 'trabaja-con-nosotros', label: 'Trabaja con Nosotros' },
     { id: 'contacto', label: 'Contacto' },
   ];
 

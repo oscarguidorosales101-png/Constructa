@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { COMPANY_CONFIG } from '../../config/companyConfig';
-import { Image, Maximize2, X, ChevronLeft, ChevronRight, MapPin, Tag } from 'lucide-react';
+import { Image, Maximize2, X, ChevronLeft, ChevronRight, MapPin, Tag, ArrowRight } from 'lucide-react';
 
-export default function PublicGallery({ config = COMPANY_CONFIG }) {
-  const { gallery } = config;
+export default function PublicGallery({ onNavigateSection }) {
+  const { gallery } = COMPANY_CONFIG;
   const [activeCategory, setActiveCategory] = useState('Todas');
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
@@ -44,17 +44,24 @@ export default function PublicGallery({ config = COMPANY_CONFIG }) {
   const currentItem = selectedImageIndex !== null ? filteredGallery[selectedImageIndex] : null;
 
   return (
-    <section id="galeria" className="public-section public-gallery-section">
+    <section id="galeria" className="public-section public-module-section">
       <div className="public-container">
+        {/* Breadcrumb de Navegación Modular */}
+        <div className="public-breadcrumb">
+          <button type="button" onClick={() => onNavigateSection?.('inicio')}>Inicio</button>
+          <ChevronRight size={14} />
+          <span>Galería</span>
+        </div>
+
         {/* Section Header */}
-        <div className="public-section-header">
-          <span className="public-section-badge">
+        <div className="section-header">
+          <span className="section-tag">
             <Image size={14} style={{ display: 'inline', marginRight: '6px' }} />
             Registro Fotográfico
           </span>
-          <h2 className="public-section-title">Galería Visual de Frentes de Obra</h2>
-          <p className="public-section-subtitle">
-            Evidencia fotográfica de los procesos constructivos, supervisión estructural y acabados de nuestras obras.
+          <h2 className="section-title">Galería Visual de Frentes de Obra</h2>
+          <p className="section-description">
+            Evidencia fotográfica de los procesos constructivos, supervisión estructural, colados y acabados arquitectónicos en nuestras obras.
           </p>
         </div>
 
@@ -72,13 +79,15 @@ export default function PublicGallery({ config = COMPANY_CONFIG }) {
           ))}
         </div>
 
-        {/* Masonry / Grid */}
+        {/* Gallery Grid */}
         <div className="public-gallery-grid">
           {filteredGallery.map((item, idx) => (
             <div
               key={item.id}
               className="public-gallery-card"
               onClick={() => setSelectedImageIndex(idx)}
+              role="button"
+              tabIndex={0}
             >
               <img
                 src={item.image}
@@ -90,7 +99,7 @@ export default function PublicGallery({ config = COMPANY_CONFIG }) {
                 <span className="public-gallery-card-tag">{item.category}</span>
                 <h4 className="public-gallery-card-title">{item.title}</h4>
                 <div className="public-gallery-card-meta">
-                  <MapPin size={13} style={{ color: 'var(--color-gold)' }} />
+                  <MapPin size={13} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
                   <span>{item.location}</span>
                 </div>
                 <div className="public-gallery-card-zoom-icon">
@@ -99,6 +108,31 @@ export default function PublicGallery({ config = COMPANY_CONFIG }) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Acciones Relacionadas / Continuidad */}
+        <div className="public-section-bottom-cta">
+          <div className="public-bottom-cta-text">
+            <h4>¿Deseas consultar los datos técnicos de estas edificaciones?</h4>
+            <p>Accede a nuestro portafolio de obras para revisar plazos de ejecución, presupuestos y avances físicos.</p>
+          </div>
+          <div className="public-bottom-cta-actions">
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-primary"
+              onClick={() => onNavigateSection?.('proyectos')}
+            >
+              <span>Ver Portafolio de Obras</span>
+              <ArrowRight size={15} />
+            </button>
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-outline"
+              onClick={() => onNavigateSection?.('contacto')}
+            >
+              <span>Consultar Obra Similar</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -154,7 +188,7 @@ export default function PublicGallery({ config = COMPANY_CONFIG }) {
               <h3 className="public-lightbox-title">{currentItem.title}</h3>
               <p className="public-lightbox-desc">{currentItem.description}</p>
               <div className="public-lightbox-loc">
-                <MapPin size={14} style={{ color: 'var(--color-gold)' }} />
+                <MapPin size={14} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
                 <span>{currentItem.location}</span>
               </div>
             </div>

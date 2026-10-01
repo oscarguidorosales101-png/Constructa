@@ -17,13 +17,16 @@ import {
   Mail,
   Phone,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  IdCard,
+  Send,
+  Eye
 } from 'lucide-react';
 
 export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
   const { saveApplicant } = useConstructa();
 
-  // Multi-step tab state
+  // Multi-step state: 1 (Personal) -> 2 (Perfil) -> 3 (Experiencia) -> 4 (Formación & Habilidades) -> 5 (Certificaciones & Documentos) -> 6 (Revisión)
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [createdApplicantId, setCreatedApplicantId] = useState('');
@@ -32,13 +35,16 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
   // Form State
   const [formData, setFormData] = useState({
     nombre: '',
+    dni: '',
     email: '',
     telefono: '',
     ubicacion: '',
     puestoSolicitado: vacancy?.puesto || '',
+    profesion: 'Ingeniería Civil / Edificación',
     area: vacancy?.area || 'Operaciones en Obra',
     disponibilidad: 'Inmediata',
     tipoJornada: vacancy?.tipoJornada || 'Tiempo Completo',
+    experienciaAnios: '3 a 5 años',
     perfilProfesional: '',
     experiencias: [
       {
@@ -46,7 +52,8 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
         empresa: '',
         fechaInicio: '',
         fechaFin: '',
-        responsabilidades: ''
+        responsabilidades: '',
+        referenciaContacto: ''
       }
     ],
     formacion: [
@@ -58,7 +65,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
       }
     ],
     habilidadesInput: '',
-    habilidades: ['Supervisión de Obra', 'Interpretación de Planos'],
+    habilidades: ['Supervisión de Obra', 'Interpretación de Planos', 'Control de Calidad'],
     certificaciones: [
       {
         titulo: '',
@@ -101,24 +108,28 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
     const newErrors = {};
 
     if (step === 1) {
-      if (!formData.nombre.trim()) newErrors.nombre = 'El nombre completo es obligatorio.';
+      if (!formData.nombre.trim()) newErrors.nombre = 'Ingresa tu nombre completo.';
+      if (!formData.dni.trim()) newErrors.dni = 'Ingresa tu número de identificación o DNI.';
       if (!formData.email.trim()) {
         newErrors.email = 'El correo electrónico es obligatorio.';
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         newErrors.email = 'Ingresa un correo electrónico con formato válido.';
       }
       if (!formData.telefono.trim()) newErrors.telefono = 'El teléfono de contacto es obligatorio.';
-      if (!formData.ubicacion.trim()) newErrors.ubicacion = 'La ciudad o residencia es obligatoria.';
+      if (!formData.ubicacion.trim()) newErrors.ubicacion = 'Ingresa tu ciudad o zona de residencia.';
     }
 
     if (step === 2) {
       if (!formData.perfilProfesional.trim()) {
-        newErrors.perfilProfesional = 'Por favor redacta un breve resumen de tu perfil profesional.';
+        newErrors.perfilProfesional = 'Por favor redacta un breve resumen de tu perfil y trayectoria.';
       }
+    }
+
+    if (step === 3) {
       if (formData.experiencias.length > 0) {
         const first = formData.experiencias[0];
         if (!first.puesto.trim() || !first.empresa.trim()) {
-          newErrors.experiencia = 'Indica al menos el puesto y la empresa de tu experiencia principal.';
+          newErrors.experiencia = 'Indica al menos el puesto y la empresa de tu experiencia laboral principal.';
         }
       }
     }
@@ -129,7 +140,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, 4));
+      setCurrentStep((prev) => Math.min(prev + 1, 6));
     }
   };
 
@@ -143,7 +154,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
       ...prev,
       experiencias: [
         ...prev.experiencias,
-        { puesto: '', empresa: '', fechaInicio: '', fechaFin: '', responsabilidades: '' }
+        { puesto: '', empresa: '', fechaInicio: '', fechaFin: '', responsabilidades: '', referenciaContacto: '' }
       ]
     }));
   };
@@ -240,18 +251,26 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    const newDocs = files.map((file) => ({
-      id: 'DOC-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-      nombre: file.name,
-      tipo: file.name.split('.').pop()?.toUpperCase() || 'DOCUMENTO',
-      tamanio: `${(file.size / 1024).toFixed(1)} KB`,
-      fecha: new Date().toISOString().split('T')[0],
-      categoria: file.name.toLowerCase().includes('cv') ? 'Currículum Vitae' : 'Certificado / Anexo'
-    }));
+    const allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'];
+
+    const validDocs = [];
+    files.forEach((file) => {
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (!allowedExtensions.includes(ext)) return;
+
+      validDocs.push({
+        id: 'DOC-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        nombre: file.name,
+        tipo: ext.toUpperCase(),
+        tamanio: `${(file.size / 1024).toFixed(1)} KB`,
+        fecha: new Date().toISOString().split('T')[0],
+        categoria: file.name.toLowerCase().includes('cv') ? 'Currículum Vitae' : 'Certificado / Anexo'
+      });
+    });
 
     setFormData((prev) => ({
       ...prev,
-      documentos: [...prev.documentos, ...newDocs]
+      documentos: [...prev.documentos, ...validDocs]
     }));
   };
 
@@ -265,35 +284,44 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
   // Final Submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validateStep(1) || !validateStep(2)) {
-      setCurrentStep(1);
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
       return;
     }
 
-    // Clean data payload for saveApplicant
     const cleanExperiencias = formData.experiencias.filter((e) => e.puesto || e.empresa);
     const cleanFormacion = formData.formacion.filter((f) => f.titulo || f.institucion);
     const cleanCertificaciones = formData.certificaciones.filter((c) => c.titulo);
 
-    // Calculate approximate experience years
-    const expYears = Math.max(cleanExperiencias.length * 2, 2);
+    // Compute years of experience
+    const parsedExp = parseInt(formData.experienciaAnios, 10) || Math.max(cleanExperiencias.length * 2, 2);
 
     const payload = {
       nombre: formData.nombre.trim(),
+      dni: formData.dni.trim(),
       email: formData.email.trim(),
       telefono: formData.telefono.trim(),
       ubicacion: formData.ubicacion.trim(),
       puestoSolicitado: formData.puestoSolicitado || vacancy?.puesto || 'Puesto Operativo',
+      profesion: formData.profesion,
       area: formData.area || vacancy?.area || 'Operaciones en Obra',
       disponibilidad: formData.disponibilidad,
       tipoJornada: formData.tipoJornada,
-      experienciaAnios: expYears,
+      experienciaAnios: parsedExp,
       perfilProfesional: formData.perfilProfesional.trim(),
       experiencias: cleanExperiencias,
       formacion: cleanFormacion,
       habilidades: formData.habilidades,
       certificaciones: cleanCertificaciones,
-      documentos: formData.documentos,
+      documentos: formData.documentos.length > 0 ? formData.documentos : [
+        {
+          id: 'DOC-CV-DEFAULT',
+          nombre: `CV_${formData.nombre.replace(/\s+/g, '_')}.pdf`,
+          tipo: 'PDF',
+          tamanio: '320.0 KB',
+          fecha: new Date().toISOString().split('T')[0],
+          categoria: 'Currículum Vitae'
+        }
+      ],
       estado: 'Recibida',
       origen: 'Sitio Público — Trabaja con Nosotros',
       fechaPostulacion: new Date().toISOString().split('T')[0]
@@ -321,12 +349,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
       <div
         className="constructa-modal public-application-modal"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '800px', width: '95%', maxHeight: '92vh', overflowY: 'auto' }}
+        style={{ maxWidth: '820px', width: '95%', maxHeight: '92vh', overflowY: 'auto' }}
       >
         {/* Modal Header */}
         <div className="modal-header">
           <div>
-            <span style={{ color: 'var(--color-gold)', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.5px' }}>
+            <span style={{ color: 'var(--accent-amber, #f59e0b)', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.5px' }}>
               BOLSA DE TRABAJO CONSTRUCTA
             </span>
             <h3 className="modal-title" style={{ fontSize: '1.25rem', marginTop: '2px' }}>
@@ -338,7 +366,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
             className="btn-icon"
             onClick={handleResetAndClose}
             aria-label="Cerrar formulario de postulación"
-            style={{ color: 'var(--color-text-muted)' }}
+            style={{ color: 'var(--text-muted, #94a3b8)' }}
           >
             <X size={20} />
           </button>
@@ -353,7 +381,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                 height: 64,
                 borderRadius: '50%',
                 background: 'rgba(16, 185, 129, 0.12)',
-                color: 'var(--color-emerald)',
+                color: 'var(--accent-emerald, #10b981)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -364,12 +392,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
               <CheckCircle2 size={36} />
             </div>
 
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 10px 0' }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#ffffff', margin: '0 0 10px 0' }}>
               Postulación recibida
             </h3>
 
-            <p style={{ maxWidth: '520px', margin: '0 auto 18px auto', fontSize: '0.95rem', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
-              Hemos recibido tu información y expediente curricular correctamente. Nuestro equipo de Recursos Humanos revisará tu perfil y continuará el proceso de selección cuando corresponda.
+            <p style={{ maxWidth: '520px', margin: '0 auto 18px auto', fontSize: '0.95rem', color: 'var(--text-secondary, #94a3b8)', lineHeight: '1.65' }}>
+              Hemos recibido tu información y expediente curricular correctamente. Nuestro equipo de Recursos Humanos revisará tu perfil profesional y continuará el proceso de selección cuando corresponda.
             </p>
 
             {createdApplicantId && (
@@ -377,11 +405,11 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                 style={{
                   display: 'inline-block',
                   background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid var(--color-border)',
+                  border: '1px solid var(--border-medium, rgba(255, 255, 255, 0.1))',
                   padding: '8px 18px',
-                  borderRadius: 'var(--radius-sm)',
+                  borderRadius: '6px',
                   fontSize: '0.86rem',
-                  color: 'var(--color-gold)',
+                  color: 'var(--accent-amber, #f59e0b)',
                   marginBottom: '24px'
                 }}
               >
@@ -392,7 +420,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
             <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
               <button
                 type="button"
-                className="public-btn public-btn-primary"
+                className="constructa-btn constructa-btn-primary"
                 onClick={handleResetAndClose}
               >
                 Finalizar y regresar al sitio
@@ -401,13 +429,15 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            {/* Step Indicator */}
+            {/* Stepper Progresivo */}
             <div className="public-steps-nav">
               {[
                 { num: 1, label: 'Datos Personales' },
-                { num: 2, label: 'Perfil y Experiencia' },
-                { num: 3, label: 'Formación y Habilidades' },
-                { num: 4, label: 'Documentos' }
+                { num: 2, label: 'Perfil' },
+                { num: 3, label: 'Experiencia' },
+                { num: 4, label: 'Formación & Habilidades' },
+                { num: 5, label: 'Documentos' },
+                { num: 6, label: 'Revisión' }
               ].map((step) => (
                 <div
                   key={step.num}
@@ -428,13 +458,13 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
 
             {/* Modal Body */}
             <div className="modal-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* STEP 1: INFORMACIÓN PERSONAL */}
+              {/* BLOQUE 1: INFORMACIÓN PERSONAL */}
               {currentStep === 1 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div className="public-form-grid-2">
                     <div className="public-form-field">
                       <label className="public-form-label">
-                        Nombre completo <span style={{ color: 'var(--color-danger)' }}>*</span>
+                        Nombre completo <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                       </label>
                       <input
                         type="text"
@@ -448,7 +478,23 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
 
                     <div className="public-form-field">
                       <label className="public-form-label">
-                        Correo electrónico <span style={{ color: 'var(--color-danger)' }}>*</span>
+                        Identificación / Cédula / DNI <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej. DNI-8492019 o Cédula Profesional"
+                        value={formData.dni}
+                        onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                        className={`public-form-input ${errors.dni ? 'has-error' : ''}`}
+                      />
+                      {errors.dni && <span className="public-form-error">{errors.dni}</span>}
+                    </div>
+                  </div>
+
+                  <div className="public-form-grid-2">
+                    <div className="public-form-field">
+                      <label className="public-form-label">
+                        Correo electrónico <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                       </label>
                       <input
                         type="email"
@@ -459,12 +505,10 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       />
                       {errors.email && <span className="public-form-error">{errors.email}</span>}
                     </div>
-                  </div>
 
-                  <div className="public-form-grid-2">
                     <div className="public-form-field">
                       <label className="public-form-label">
-                        Teléfono / WhatsApp <span style={{ color: 'var(--color-danger)' }}>*</span>
+                        Teléfono / WhatsApp de Contacto <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                       </label>
                       <input
                         type="tel"
@@ -475,10 +519,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       />
                       {errors.telefono && <span className="public-form-error">{errors.telefono}</span>}
                     </div>
+                  </div>
 
+                  <div className="public-form-grid-2">
                     <div className="public-form-field">
                       <label className="public-form-label">
-                        Ciudad / Ubicación de residencia <span style={{ color: 'var(--color-danger)' }}>*</span>
+                        Ciudad / Ubicación de residencia <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                       </label>
                       <input
                         type="text"
@@ -489,9 +535,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       />
                       {errors.ubicacion && <span className="public-form-error">{errors.ubicacion}</span>}
                     </div>
-                  </div>
 
-                  <div className="public-form-grid-2">
                     <div className="public-form-field">
                       <label className="public-form-label">Disponibilidad de incorporación</label>
                       <select
@@ -505,142 +549,197 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                         <option value="A convenir">A convenir según proyecto</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* BLOQUE 2: PERFIL PROFESIONAL */}
+              {currentStep === 2 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="public-form-grid-2">
+                    <div className="public-form-field">
+                      <label className="public-form-label">Puesto al que postula</label>
+                      <input
+                        type="text"
+                        value={formData.puestoSolicitado}
+                        onChange={(e) => setFormData({ ...formData, puestoSolicitado: e.target.value })}
+                        className="public-form-input"
+                      />
+                    </div>
 
                     <div className="public-form-field">
-                      <label className="public-form-label">Modalidad de Jornada Deseada</label>
+                      <label className="public-form-label">Profesión / Especialidad</label>
+                      <input
+                        type="text"
+                        placeholder="Ej. Ingeniero Civil, Topógrafo, Arquitecto..."
+                        value={formData.profesion}
+                        onChange={(e) => setFormData({ ...formData, profesion: e.target.value })}
+                        className="public-form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="public-form-grid-2">
+                    <div className="public-form-field">
+                      <label className="public-form-label">Años de Experiencia en Construcción</label>
+                      <select
+                        value={formData.experienciaAnios}
+                        onChange={(e) => setFormData({ ...formData, experienciaAnios: e.target.value })}
+                        className="public-form-select"
+                      >
+                        <option value="1 a 2 años">1 a 2 años</option>
+                        <option value="3 a 5 años">3 a 5 años</option>
+                        <option value="6 a 9 años">6 a 9 años</option>
+                        <option value="10+ años">10+ años (Senior / Especialista)</option>
+                      </select>
+                    </div>
+
+                    <div className="public-form-field">
+                      <label className="public-form-label">Modalidad de Jornada</label>
                       <select
                         value={formData.tipoJornada}
                         onChange={(e) => setFormData({ ...formData, tipoJornada: e.target.value })}
                         className="public-form-select"
                       >
-                        <option value="Tiempo Completo">Tiempo Completo en Obra</option>
+                        <option value="Tiempo Completo">Tiempo Completo en Frente de Obra</option>
                         <option value="Por Proyecto">Por Contrato de Proyecto</option>
                         <option value="Medio Tiempo">Medio Tiempo</option>
                       </select>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* STEP 2: PERFIL PROFESIONAL Y EXPERIENCIA */}
-              {currentStep === 2 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                   <div className="public-form-field">
                     <label className="public-form-label">
-                      Resumen o Extracto Profesional <span style={{ color: 'var(--color-danger)' }}>*</span>
+                      Resumen o Extracto Profesional <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>
                     </label>
                     <textarea
                       rows={3}
-                      placeholder="Describe brevemente tus años de experiencia, especialidad (edificación, obra civil, acabados) y fortalezas profesionales..."
+                      placeholder="Describe brevemente tus años de experiencia, tipo de obras en las que has participado (edificación vertical, naves, vialidades) y tus fortalezas clave..."
                       value={formData.perfilProfesional}
                       onChange={(e) => setFormData({ ...formData, perfilProfesional: e.target.value })}
                       className={`public-form-textarea ${errors.perfilProfesional ? 'has-error' : ''}`}
                     />
                     {errors.perfilProfesional && <span className="public-form-error">{errors.perfilProfesional}</span>}
                   </div>
+                </div>
+              )}
 
-                  {/* Multiple Experience Items */}
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Briefcase size={16} /> Experiencia Laboral en Obra o Proyectos
+              {/* BLOQUE 3: EXPERIENCIA LABORAL */}
+              {currentStep === 3 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '0.98rem', color: 'var(--accent-amber, #f59e0b)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Briefcase size={16} /> Experiencia en Obras o Empresas Anteriores
                       </h4>
-                      <button
-                        type="button"
-                        onClick={addExperience}
-                        className="public-btn-sm-ghost"
-                        style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Plus size={14} /> Agregar otra experiencia
-                      </button>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted, #94a3b8)' }}>
+                        Registra tus posiciones más relevantes en el sector de la construcción
+                      </span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={addExperience}
+                      className="constructa-btn constructa-btn-outline constructa-btn-sm"
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Plus size={14} /> Agregar otra
+                    </button>
+                  </div>
 
-                    {errors.experiencia && (
-                      <div className="public-form-error" style={{ marginBottom: '10px' }}>{errors.experiencia}</div>
-                    )}
+                  {errors.experiencia && (
+                    <div className="public-form-error" style={{ marginBottom: '8px' }}>{errors.experiencia}</div>
+                  )}
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {formData.experiencias.map((exp, idx) => (
-                        <div key={idx} className="public-dynamic-card">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
-                              Experiencia #{idx + 1}
-                            </span>
-                            {formData.experiencias.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeExperience(idx)}
-                                className="btn-icon"
-                                style={{ color: 'var(--color-danger)' }}
-                                title="Eliminar experiencia"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            )}
-                          </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {formData.experiencias.map((exp, idx) => (
+                      <div key={idx} className="public-dynamic-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent-amber, #f59e0b)' }}>
+                            Posición #{idx + 1}
+                          </span>
+                          {formData.experiencias.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeExperience(idx)}
+                              className="btn-icon"
+                              style={{ color: 'var(--color-danger, #ef4444)' }}
+                              title="Eliminar experiencia"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
 
-                          <div className="public-form-grid-2">
-                            <input
-                              type="text"
-                              placeholder="Puesto o Cargo desempeñado *"
-                              value={exp.puesto}
-                              onChange={(e) => updateExperience(idx, 'puesto', e.target.value)}
-                              className="public-form-input"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Empresa o Constructora *"
-                              value={exp.empresa}
-                              onChange={(e) => updateExperience(idx, 'empresa', e.target.value)}
-                              className="public-form-input"
-                            />
-                          </div>
-
-                          <div className="public-form-grid-2" style={{ marginTop: '8px' }}>
-                            <input
-                              type="text"
-                              placeholder="Periodo inicio (ej. 2022 o Ene 2022)"
-                              value={exp.fechaInicio}
-                              onChange={(e) => updateExperience(idx, 'fechaInicio', e.target.value)}
-                              className="public-form-input"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Periodo término (ej. 2025 o Actual)"
-                              value={exp.fechaFin}
-                              onChange={(e) => updateExperience(idx, 'fechaFin', e.target.value)}
-                              className="public-form-input"
-                            />
-                          </div>
-
-                          <textarea
-                            rows={2}
-                            placeholder="Principales responsabilidades, tipo de obra y resultados..."
-                            value={exp.responsabilidades}
-                            onChange={(e) => updateExperience(idx, 'responsabilidades', e.target.value)}
-                            className="public-form-textarea"
-                            style={{ marginTop: '8px' }}
+                        <div className="public-form-grid-2">
+                          <input
+                            type="text"
+                            placeholder="Puesto desempeñado *"
+                            value={exp.puesto}
+                            onChange={(e) => updateExperience(idx, 'puesto', e.target.value)}
+                            className="public-form-input"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Empresa o Constructora *"
+                            value={exp.empresa}
+                            onChange={(e) => updateExperience(idx, 'empresa', e.target.value)}
+                            className="public-form-input"
                           />
                         </div>
-                      ))}
-                    </div>
+
+                        <div className="public-form-grid-2" style={{ marginTop: '8px' }}>
+                          <input
+                            type="text"
+                            placeholder="Inicio (ej. 2022 o Ene 2022)"
+                            value={exp.fechaInicio}
+                            onChange={(e) => updateExperience(idx, 'fechaInicio', e.target.value)}
+                            className="public-form-input"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Término (ej. 2025 o Actual)"
+                            value={exp.fechaFin}
+                            onChange={(e) => updateExperience(idx, 'fechaFin', e.target.value)}
+                            className="public-form-input"
+                          />
+                        </div>
+
+                        <textarea
+                          rows={2}
+                          placeholder="Responsabilidades y tareas clave en la obra..."
+                          value={exp.responsabilidades}
+                          onChange={(e) => updateExperience(idx, 'responsabilidades', e.target.value)}
+                          className="public-form-textarea"
+                          style={{ marginTop: '8px' }}
+                        />
+
+                        <input
+                          type="text"
+                          placeholder="Referencia o contacto en la empresa (opcional: Nombre / Teléfono)"
+                          value={exp.referenciaContacto}
+                          onChange={(e) => updateExperience(idx, 'referenciaContacto', e.target.value)}
+                          className="public-form-input"
+                          style={{ marginTop: '8px', fontSize: '0.84rem' }}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {/* STEP 3: FORMACIÓN, HABILIDADES Y CERTIFICACIONES */}
-              {currentStep === 3 && (
+              {/* BLOQUE 4: FORMACIÓN Y HABILIDADES */}
+              {currentStep === 4 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Education */}
+                  {/* Formación */}
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--accent-amber, #f59e0b)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <GraduationCap size={16} /> Formación Académica
                       </h4>
                       <button
                         type="button"
                         onClick={addEducation}
-                        className="public-btn-sm-ghost"
+                        className="constructa-btn constructa-btn-outline constructa-btn-sm"
                         style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
                         <Plus size={14} /> Agregar estudio
@@ -651,13 +750,13 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       {formData.formacion.map((edu, idx) => (
                         <div key={idx} className="public-dynamic-card">
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Grado #{idx + 1}</span>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted, #94a3b8)' }}>Grado #{idx + 1}</span>
                             {formData.formacion.length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => removeEducation(idx)}
                                 className="btn-icon"
-                                style={{ color: 'var(--color-danger)' }}
+                                style={{ color: 'var(--color-danger, #ef4444)' }}
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -666,14 +765,14 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                           <div className="public-form-grid-3">
                             <input
                               type="text"
-                              placeholder="Título o Carrera (ej. Ingeniería Civil)"
+                              placeholder="Título (ej. Ingeniería Civil)"
                               value={edu.titulo}
                               onChange={(e) => updateEducation(idx, 'titulo', e.target.value)}
                               className="public-form-input"
                             />
                             <input
                               type="text"
-                              placeholder="Institución o Universidad"
+                              placeholder="Institución Educativa"
                               value={edu.institucion}
                               onChange={(e) => updateEducation(idx, 'institucion', e.target.value)}
                               className="public-form-input"
@@ -691,15 +790,15 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                     </div>
                   </div>
 
-                  {/* Skills tags */}
+                  {/* Habilidades */}
                   <div>
-                    <h4 style={{ margin: '0 0 8px 0', fontSize: '0.95rem', color: 'var(--color-gold)' }}>
-                      Habilidades y Competencias Técnicas
+                    <h4 style={{ margin: '0 0 8px 0', fontSize: '0.95rem', color: 'var(--accent-amber, #f59e0b)' }}>
+                      Habilidades Técnicas y Destrezas Operativas
                     </h4>
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                       <input
                         type="text"
-                        placeholder="Ej. Control de Bitácora, AutoCAD, Cimentaciones..."
+                        placeholder="Ej. Control de Bitácora, AutoCAD, Revit, Cimentaciones..."
                         value={formData.habilidadesInput}
                         onChange={(e) => setFormData({ ...formData, habilidadesInput: e.target.value })}
                         onKeyDown={(e) => {
@@ -711,7 +810,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                         className="public-form-input"
                         style={{ flex: 1 }}
                       />
-                      <button type="button" onClick={addSkill} className="public-btn public-btn-outline" style={{ padding: '0 16px' }}>
+                      <button
+                        type="button"
+                        onClick={addSkill}
+                        className="constructa-btn constructa-btn-outline"
+                        style={{ padding: '0 16px' }}
+                      >
                         Agregar
                       </button>
                     </div>
@@ -731,20 +835,25 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       ))}
                     </div>
                   </div>
+                </div>
+              )}
 
-                  {/* Certifications */}
+              {/* BLOQUE 5: CERTIFICACIONES Y DOCUMENTOS */}
+              {currentStep === 5 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Certificaciones */}
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Award size={16} /> Certificaciones Oficiales o DC-3
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--accent-amber, #f59e0b)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Award size={16} /> Certificaciones Oficiales, STPS / DC-3 o Licencias
                       </h4>
                       <button
                         type="button"
                         onClick={addCertification}
-                        className="public-btn-sm-ghost"
+                        className="constructa-btn constructa-btn-outline constructa-btn-sm"
                         style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
-                        <Plus size={14} /> Agregar certificación
+                        <Plus size={14} /> Agregar
                       </button>
                     </div>
 
@@ -753,14 +862,14 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                         <div key={idx} className="public-form-grid-3">
                           <input
                             type="text"
-                            placeholder="Nombre del curso / certificación"
+                            placeholder="Nombre certificación / curso"
                             value={cert.titulo}
                             onChange={(e) => updateCertification(idx, 'titulo', e.target.value)}
                             className="public-form-input"
                           />
                           <input
                             type="text"
-                            placeholder="Entidad emisora / STPS"
+                            placeholder="Entidad emisora"
                             value={cert.institucion}
                             onChange={(e) => updateCertification(idx, 'institucion', e.target.value)}
                             className="public-form-input"
@@ -778,7 +887,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                                 type="button"
                                 onClick={() => removeCertification(idx)}
                                 className="btn-icon"
-                                style={{ color: 'var(--color-danger)' }}
+                                style={{ color: 'var(--color-danger, #ef4444)' }}
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -788,76 +897,113 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       ))}
                     </div>
                   </div>
+
+                  {/* Documentos */}
+                  <div>
+                    <div className="public-upload-zone">
+                      <input
+                        type="file"
+                        id="public-cv-upload"
+                        multiple
+                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                        onChange={handleFileUpload}
+                        style={{ display: 'none' }}
+                      />
+                      <label htmlFor="public-cv-upload" className="public-upload-label">
+                        <div className="public-upload-icon-circle">
+                          <Upload size={26} />
+                        </div>
+                        <h4 style={{ margin: '8px 0 4px 0', fontSize: '1rem', color: '#ffffff' }}>
+                          Adjunta tu Currículum Vitae y Documentos
+                        </h4>
+                        <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted, #94a3b8)' }}>
+                          Formatos aceptados: PDF, JPG, PNG, DOCX (Máx. 15MB por archivo).
+                        </p>
+                        <span className="constructa-btn constructa-btn-outline constructa-btn-sm" style={{ marginTop: '10px', pointerEvents: 'none' }}>
+                          Examinar archivos en tu equipo
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Attached list */}
+                    <div style={{ marginTop: '12px' }}>
+                      <h5 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: 'var(--text-secondary, #94a3b8)' }}>
+                        Archivos anexados ({formData.documentos.length})
+                      </h5>
+
+                      {formData.documentos.length === 0 ? (
+                        <div className="public-empty-docs-box">
+                          <FileText size={20} style={{ color: 'var(--text-muted, #94a3b8)' }} />
+                          <span>Aún no has adjuntado archivos. Puedes anexar tu CV en formato PDF.</span>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {formData.documentos.map((doc) => (
+                            <div key={doc.id} className="public-attached-doc-row">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <FileText size={18} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                                <div>
+                                  <strong style={{ fontSize: '0.88rem', color: '#ffffff' }}>{doc.nombre}</strong>
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted, #94a3b8)' }}>
+                                    {doc.categoria} • {doc.tamanio} • {doc.fecha}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeDocument(doc.id)}
+                                className="btn-icon"
+                                style={{ color: 'var(--color-danger, #ef4444)' }}
+                                title="Remover archivo"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* STEP 4: DOCUMENTOS Y CV */}
-              {currentStep === 4 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                  <div className="public-upload-zone">
-                    <input
-                      type="file"
-                      id="public-cv-upload"
-                      multiple
-                      accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                      onChange={handleFileUpload}
-                      style={{ display: 'none' }}
-                    />
-                    <label htmlFor="public-cv-upload" className="public-upload-label">
-                      <div className="public-upload-icon-circle">
-                        <Upload size={28} />
+              {/* BLOQUE 6: REVISIÓN PREVIA AL ENVÍO */}
+              {currentStep === 6 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="public-review-summary-box">
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem', color: 'var(--accent-amber, #f59e0b)' }}>
+                      Revisión de Postulación
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '0.86rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Candidato:</span>
+                        <strong>{formData.nombre}</strong>
                       </div>
-                      <h4 style={{ margin: '8px 0 4px 0', fontSize: '1rem', color: 'var(--color-text-primary)' }}>
-                        Selecciona o arrastra tu Currículum Vitae y documentos
-                      </h4>
-                      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                        Formatos aceptados: PDF, JPG, PNG, DOCX (Máx. 15MB por archivo).
-                      </p>
-                      <span className="public-btn public-btn-outline" style={{ marginTop: '12px', pointerEvents: 'none' }}>
-                        Examinar archivos en tu equipo
-                      </span>
-                    </label>
+                      <div>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Identificación:</span>
+                        <strong>{formData.dni}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Vacante solicitada:</span>
+                        <strong style={{ color: 'var(--accent-amber, #f59e0b)' }}>{formData.puestoSolicitado}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Contacto:</span>
+                        <span>{formData.email} • {formData.telefono}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Ubicación:</span>
+                        <span>{formData.ubicacion}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Disponibilidad:</span>
+                        <span style={{ color: 'var(--accent-emerald, #10b981)' }}>{formData.disponibilidad}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Attached Documents List */}
-                  <div>
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-                      Documentos anexados ({formData.documentos.length})
-                    </h4>
-
-                    {formData.documentos.length === 0 ? (
-                      <div className="public-empty-docs-box">
-                        <FileText size={22} style={{ color: 'var(--color-text-muted)' }} />
-                        <span>Aún no has adjuntado archivos. Puedes anexar tu CV en formato PDF.</span>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {formData.documentos.map((doc) => (
-                          <div key={doc.id} className="public-attached-doc-row">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <FileText size={18} style={{ color: 'var(--color-gold)' }} />
-                              <div>
-                                <strong style={{ fontSize: '0.88rem', color: 'var(--color-text-primary)' }}>
-                                  {doc.nombre}
-                                </strong>
-                                <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                                  {doc.categoria} • {doc.tamanio} • {doc.fecha}
-                                </div>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeDocument(doc.id)}
-                              className="btn-icon"
-                              style={{ color: 'var(--color-danger)' }}
-                              title="Remover archivo"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '12px 16px', borderRadius: '8px', fontSize: '0.84rem', color: 'var(--text-secondary, #94a3b8)', lineHeight: '1.55' }}>
+                    Al enviar esta solicitud, tus datos y expediente curricular único serán remitidos al departamento de Recursos Humanos de CONSTRUCTA para su evaluación en los procesos de selección activos.
                   </div>
                 </div>
               )}
@@ -869,7 +1015,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                 {currentStep > 1 && (
                   <button
                     type="button"
-                    className="public-btn public-btn-outline"
+                    className="constructa-btn constructa-btn-outline"
                     onClick={handlePrev}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
@@ -881,16 +1027,16 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
-                  className="public-btn public-btn-outline"
+                  className="constructa-btn constructa-btn-outline"
                   onClick={handleResetAndClose}
                 >
                   Cancelar
                 </button>
 
-                {currentStep < 4 ? (
+                {currentStep < 6 ? (
                   <button
                     type="button"
-                    className="public-btn public-btn-primary"
+                    className="constructa-btn constructa-btn-primary"
                     onClick={handleNext}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
@@ -899,10 +1045,10 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                 ) : (
                   <button
                     type="submit"
-                    className="public-btn public-btn-primary"
+                    className="constructa-btn constructa-btn-primary"
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
-                    <CheckCircle2 size={16} /> Enviar Postulación
+                    <Send size={15} /> Confirmar y Enviar Postulación
                   </button>
                 )}
               </div>

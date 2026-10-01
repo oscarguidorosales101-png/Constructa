@@ -1,10 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { useConstructa } from '../../context/ConstructaContext';
 import { COMPANY_CONFIG } from '../../config/companyConfig';
-import { Building2, Search, ArrowRight, Calendar, DollarSign, MapPin, Eye, CheckCircle2 } from 'lucide-react';
+import {
+  Building2,
+  Search,
+  ArrowRight,
+  Calendar,
+  DollarSign,
+  MapPin,
+  Eye,
+  CheckCircle2,
+  ChevronRight,
+  Filter
+} from 'lucide-react';
 import PublicProjectModal from './PublicProjectModal';
 
-export default function PublicProjects({ onSelectProject }) {
+export default function PublicProjects({ onNavigateSection }) {
   const { projects = [], expenses = [] } = useConstructa();
   const [filterStatus, setFilterStatus] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,14 +75,21 @@ export default function PublicProjects({ onSelectProject }) {
   };
 
   return (
-    <section id="proyectos" className="public-section public-projects-section">
+    <section id="proyectos" className="public-section public-module-section">
       <div className="public-container">
+        {/* Breadcrumb de Navegación Modular */}
+        <div className="public-breadcrumb">
+          <button type="button" onClick={() => onNavigateSection?.('inicio')}>Inicio</button>
+          <ChevronRight size={14} />
+          <span>Proyectos</span>
+        </div>
+
         {/* Section Header */}
-        <div className="public-section-header">
-          <span className="public-section-badge">Portafolio Operativo</span>
-          <h2 className="public-section-title">Nuestras Obras y Desarrollos</h2>
-          <p className="public-section-subtitle">
-            Edificación vertical, centros corporativos y obras de infraestructura ejecutadas con rigor normativo y precisión estructural.
+        <div className="section-header">
+          <span className="section-tag">Portafolio Operativo</span>
+          <h2 className="section-title">Nuestras Obras y Desarrollos</h2>
+          <p className="section-description">
+            Edificación vertical, centros corporativos y obras de infraestructura ejecutadas con rigor normativo, control analítico de avance y precisión estructural.
           </p>
         </div>
 
@@ -112,7 +130,7 @@ export default function PublicProjects({ onSelectProject }) {
             </p>
             <button
               type="button"
-              className="public-btn public-btn-outline"
+              className="constructa-btn constructa-btn-outline"
               onClick={() => {
                 setFilterStatus('Todos');
                 setSearchTerm('');
@@ -154,7 +172,7 @@ export default function PublicProjects({ onSelectProject }) {
                     <h3 className="public-proj-card-title">{project.nombre}</h3>
 
                     <div className="public-proj-card-location">
-                      <MapPin size={13} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+                      <MapPin size={13} style={{ color: 'var(--accent-amber, #f59e0b)', flexShrink: 0 }} />
                       <span className="public-truncate-1">{project.ubicacion}</span>
                     </div>
 
@@ -175,7 +193,7 @@ export default function PublicProjects({ onSelectProject }) {
                     {/* Financial & Timeline Metrics */}
                     <div className="public-proj-specs-grid">
                       <div className="public-proj-spec">
-                        <span className="public-proj-spec-k">Presupuesto</span>
+                        <span className="public-proj-spec-k">Presupuesto Base</span>
                         <strong className="public-proj-spec-v">{formatCurrency(project.presupuesto)}</strong>
                       </div>
                       <div className="public-proj-spec">
@@ -198,12 +216,41 @@ export default function PublicProjects({ onSelectProject }) {
           </div>
         )}
 
+        {/* Acciones Relacionadas / Continuidad */}
+        <div className="public-section-bottom-cta">
+          <div className="public-bottom-cta-text">
+            <h4>¿Tienes en mente un desarrollo o licitación similar?</h4>
+            <p>Nuestro equipo multidisciplinario evalúa planos arquitectónicos, volumetrías y especificaciones técnicas.</p>
+          </div>
+          <div className="public-bottom-cta-actions">
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-primary"
+              onClick={() => onNavigateSection?.('contacto')}
+            >
+              <span>Consultar u Obra Similar</span>
+              <ArrowRight size={15} />
+            </button>
+            <button
+              type="button"
+              className="constructa-btn constructa-btn-outline"
+              onClick={() => onNavigateSection?.('galeria')}
+            >
+              <span>Ver Galería de Obras</span>
+            </button>
+          </div>
+        </div>
+
         {/* Modal Detail */}
         {selectedProject && (
           <PublicProjectModal
             project={selectedProject}
             isOpen={Boolean(selectedProject)}
             onClose={() => setSelectedProject(null)}
+            onNavigateContact={() => {
+              setSelectedProject(null);
+              onNavigateSection?.('contacto');
+            }}
           />
         )}
       </div>

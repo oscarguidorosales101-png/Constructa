@@ -439,145 +439,160 @@ export default function Applicants({ onNavigate }) {
             <table className="constructa-table">
               <thead>
                 <tr>
-                  <th>Código</th>
-                  <th>Candidato / Identificación</th>
-                  <th>Puesto Aspirado</th>
-                  <th>Área Técnica</th>
-                  <th>Experiencia</th>
-                  <th>Disponibilidad</th>
-                  <th>Fecha</th>
+                  <th>Candidato</th>
+                  <th>Vacante</th>
+                  <th>Postulación</th>
                   <th>Estado</th>
-                  <th style={{ textAlign: 'center', minWidth: '320px' }}>Acciones Independientes</th>
+                  <th>Entrevista</th>
+                  <th style={{ textAlign: 'center', minWidth: '280px' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredApplicants.map((app) => (
-                  <tr key={app.id}>
-                    <td style={{ color: 'var(--color-gold)', fontWeight: 600, fontSize: '0.82rem' }}>
-                      {app.id}
-                    </td>
-
-                    <td>
-                      <div>
-                        <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                          {app.nombre}
-                        </div>
-                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                          {app.dni} • {app.ubicacion || 'Sin ubicación'}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                      {app.puestoSolicitado}
-                    </td>
-
-                    <td style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                      {app.area || 'General'}
-                    </td>
-
-                    <td>
-                      <div>
-                        <span style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontSize: '0.85rem' }}>
-                          {app.experienciaAnios ? `${app.experienciaAnios} años` : '—'}
-                        </span>
-                        {app.ultimaEmpresa && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                            ex {app.ultimaEmpresa}
+                {filteredApplicants.map((app) => {
+                  const interview = (data.interviews || []).find((i) => i.postulanteId === app.id);
+                  return (
+                    <tr key={app.id}>
+                      {/* Candidato */}
+                      <td>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ color: 'var(--color-gold)', fontWeight: 600, fontSize: '0.8rem' }}>
+                              {app.id}
+                            </span>
+                            <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                              {app.nombre}
+                            </span>
                           </div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                            {app.dni ? `DNI: ${app.dni} • ` : ''}{app.telefono || app.email || app.ubicacion || 'Sin contacto'}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Vacante */}
+                      <td>
+                        <div>
+                          <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                            {app.vacanteTitulo || app.puestoSolicitado}
+                          </span>
+                          {app.vacanteId && (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                              Ref: {app.vacanteId}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Postulación */}
+                      <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                        {app.fechaPostulacion}
+                      </td>
+
+                      {/* Estado */}
+                      <td>{renderStatusBadge(app.estado)}</td>
+
+                      {/* Entrevista */}
+                      <td>
+                        {interview ? (
+                          <div>
+                            <Badge variant={interview.estado === 'Realizada' ? 'success' : interview.estado === 'Cancelada' ? 'danger' : 'info'}>
+                              {interview.estado}
+                            </Badge>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                              {interview.fecha} {interview.horaInicio ? `• ${interview.horaInicio}` : ''}
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                            Sin agendar
+                          </span>
                         )}
-                      </div>
-                    </td>
+                      </td>
 
-                    <td style={{ fontSize: '0.82rem', color: 'var(--color-emerald)' }}>
-                      {app.disponibilidad || 'Inmediata'}
-                    </td>
-
-                    <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-                      {app.fechaPostulacion}
-                    </td>
-
-                    <td>{renderStatusBadge(app.estado)}</td>
-
-                    {/* Acciones claras e independientes en primer plano */}
-                    <td style={{ textAlign: 'center' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap' }}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Ver ficha resumida de información"
-                          icon={<Eye size={13} />}
-                          onClick={() => handleOpenInfo(app)}
-                          style={{ padding: '4px 8px', fontSize: '0.78rem' }}
-                        >
-                          Ver
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Ver currículum vitae completo"
-                          icon={<FileText size={13} style={{ color: 'var(--color-gold)' }} />}
-                          onClick={() => handleOpenCurriculum(app)}
-                          style={{ padding: '4px 8px', fontSize: '0.78rem', color: 'var(--color-gold)' }}
-                        >
-                          CV
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Ver detalle de la entrevista"
-                          icon={<CalendarClock size={13} style={{ color: 'var(--color-sapphire)' }} />}
-                          onClick={() => handleOpenInterview(app)}
-                          style={{ padding: '4px 8px', fontSize: '0.78rem', color: 'var(--color-sapphire)' }}
-                        >
-                          Entrevista
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Editar expediente del postulante"
-                          icon={<Edit size={13} />}
-                          onClick={() => handleOpenEdit(app)}
-                          style={{ padding: '4px 8px', fontSize: '0.78rem' }}
-                        >
-                          Editar
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Programar entrevista para este postulante"
-                          icon={<CalendarPlus size={14} style={{ color: 'var(--color-text-primary)' }} />}
-                          onClick={() => handleOpenSchedule(app)}
-                          style={{ padding: '4px 6px' }}
-                        />
-
-                        {app.estado === 'Seleccionado' && !app.empleadoId && (
+                      {/* Acciones */}
+                      <td style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap' }}>
                           <Button
                             variant="ghost"
                             size="sm"
-                            title="Dar de alta como empleado"
-                            icon={<UserCheck size={14} style={{ color: 'var(--color-emerald)' }} />}
-                            onClick={() => handleOpenConvert(app)}
+                            title="Ver currículum vitae completo"
+                            icon={<FileText size={13} style={{ color: 'var(--color-gold)' }} />}
+                            onClick={() => handleOpenCurriculum(app)}
+                            style={{ padding: '4px 8px', fontSize: '0.78rem', color: 'var(--color-gold)', fontWeight: 600 }}
+                          >
+                            Ver CV
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Ver ficha del candidato"
+                            icon={<Eye size={13} />}
+                            onClick={() => handleOpenInfo(app)}
+                            style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                          >
+                            Ficha
+                          </Button>
+
+                          {interview ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Ver detalle de la entrevista"
+                              icon={<CalendarClock size={13} style={{ color: 'var(--color-sapphire)' }} />}
+                              onClick={() => handleOpenInterview(app)}
+                              style={{ padding: '4px 8px', fontSize: '0.78rem', color: 'var(--color-sapphire)' }}
+                            >
+                              Entrevista
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Programar entrevista para este postulante"
+                              icon={<CalendarPlus size={13} style={{ color: 'var(--color-gold)' }} />}
+                              onClick={() => handleOpenSchedule(app)}
+                              style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                            >
+                              Agendar
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Editar expediente del postulante"
+                            icon={<Edit size={13} />}
+                            onClick={() => handleOpenEdit(app)}
+                            style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                          >
+                            Editar
+                          </Button>
+
+                          {app.estado === 'Seleccionado' && !app.empleadoId && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Dar de alta como empleado"
+                              icon={<UserCheck size={14} style={{ color: 'var(--color-emerald)' }} />}
+                              onClick={() => handleOpenConvert(app)}
+                              style={{ padding: '4px 6px' }}
+                            />
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Retirar postulante"
+                            icon={<Trash2 size={13} style={{ color: 'var(--color-rose)' }} />}
+                            onClick={() => handleDeleteApplicant(app)}
                             style={{ padding: '4px 6px' }}
                           />
-                        )}
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Retirar postulante"
-                          icon={<Trash2 size={13} style={{ color: 'var(--color-rose)' }} />}
-                          onClick={() => handleDeleteApplicant(app)}
-                          style={{ padding: '4px 6px' }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -585,57 +600,51 @@ export default function Applicants({ onNavigate }) {
       ) : (
         /* Cards View */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-          {filteredApplicants.map((app) => (
-            <div
-              key={app.id}
-              className="constructa-card"
-              style={{
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: '14px',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <span style={{ color: 'var(--color-gold)', fontWeight: 600, fontSize: '0.8rem' }}>
-                    {app.id}
-                  </span>
-                  {renderStatusBadge(app.estado)}
+          {filteredApplicants.map((app) => {
+            const interview = (data.interviews || []).find((i) => i.postulanteId === app.id);
+            return (
+              <div
+                key={app.id}
+                className="constructa-card"
+                style={{
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '14px',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--color-gold)', fontWeight: 600, fontSize: '0.8rem' }}>
+                      {app.id}
+                    </span>
+                    {renderStatusBadge(app.estado)}
+                  </div>
+
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 4px 0' }}>
+                    {app.nombre}
+                  </h3>
+
+                  <div style={{ fontSize: '0.88rem', color: 'var(--color-gold)', fontWeight: 600, marginBottom: '6px' }}>
+                    {app.vacanteTitulo || app.puestoSolicitado}
+                  </div>
+
+                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    {app.dni && <div><strong>DNI:</strong> {app.dni}</div>}
+                    <div><strong>Contacto:</strong> {app.telefono || app.email || 'No registrado'}</div>
+                    <div>
+                      <strong>Entrevista:</strong>{' '}
+                      {interview ? (
+                        <span style={{ color: 'var(--color-sapphire)' }}>
+                          {interview.estado} ({interview.fecha})
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-muted)' }}>Sin agendar</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 4px 0' }}>
-                  {app.nombre}
-                </h3>
-
-                <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', fontWeight: 600, marginBottom: '8px' }}>
-                  {app.puestoSolicitado}
-                </div>
-
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div><strong>Área:</strong> {app.area}</div>
-                  <div><strong>Experiencia:</strong> {app.experienciaAnios} años ({app.ultimaEmpresa || 'No especificada'})</div>
-                  <div><strong>Disponibilidad:</strong> {app.disponibilidad || 'Inmediata'}</div>
-                </div>
-
-                {app.perfilProfesional && (
-                  <p
-                    style={{
-                      fontSize: '0.8rem',
-                      color: 'var(--color-text-muted)',
-                      marginTop: '10px',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      lineHeight: '1.4',
-                    }}
-                  >
-                    {app.perfilProfesional}
-                  </p>
-                )}
-              </div>
 
               {/* Botones de acción organizados e independientes */}
               <div
@@ -711,8 +720,9 @@ export default function Applicants({ onNavigate }) {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
       )}
 
       {/* ========================================================================= */}

@@ -13,7 +13,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-export default function PublicContact({ config = COMPANY_CONFIG }) {
+export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSection }) {
   const { contact, identity } = config;
   const [formData, setFormData] = useState({
     nombre: '',
@@ -48,6 +48,19 @@ export default function PublicContact({ config = COMPANY_CONFIG }) {
   return (
     <section id="contacto" className="public-section public-contact-section">
       <div className="public-container">
+        {/* Breadcrumb de navegación */}
+        <div className="public-breadcrumb">
+          <button 
+            type="button" 
+            onClick={() => onNavigateSection ? onNavigateSection('inicio') : (window.location.hash = 'inicio')}
+            className="public-breadcrumb-link"
+          >
+            Inicio
+          </button>
+          <span className="public-breadcrumb-separator">/</span>
+          <span className="public-breadcrumb-current">Contacto</span>
+        </div>
+
         {/* Section Header */}
         <div className="public-section-header">
           <span className="public-section-badge">Atención Empresarial</span>
@@ -275,6 +288,30 @@ export default function PublicContact({ config = COMPANY_CONFIG }) {
             />
           </div>
         )}
+
+        {/* Barra de Continuidad Institucional */}
+        <div className="public-module-continuity-bar">
+          <div className="public-module-continuity-text">
+            <h4>¿Deseas explorar nuestras obras ejecutadas o unirte al equipo?</h4>
+            <p>Conoce nuestro portafolio de proyectos concluidos o postúlate a las vacantes abiertas.</p>
+          </div>
+          <div className="public-module-continuity-actions">
+            <button
+              type="button"
+              className="public-btn public-btn-outline"
+              onClick={() => onNavigateSection ? onNavigateSection('proyectos') : (window.location.hash = 'proyectos')}
+            >
+              Ver Portafolio de Obras
+            </button>
+            <button
+              type="button"
+              className="public-btn public-btn-primary"
+              onClick={() => onNavigateSection ? onNavigateSection('trabaja-con-nosotros') : (window.location.hash = 'trabaja-con-nosotros')}
+            >
+              Bolsa de Empleo
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );
