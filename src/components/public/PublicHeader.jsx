@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { HardHat, LogIn, Menu, X, ArrowRight, UserCheck, Briefcase } from 'lucide-react';
+import { HardHat, LogIn, Menu, X, ArrowRight, UserCheck, Briefcase, Sliders, Bot } from 'lucide-react';
 import COMPANY_CONFIG from '../../config/companyConfig';
+import { useConstructa } from '../../context/ConstructaContext';
 
 export default function PublicHeader({
   activeSection,
@@ -10,6 +11,7 @@ export default function PublicHeader({
   onGoToDashboard,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { openAccessibilityModal, openAIAssistantModal } = useConstructa();
 
   const navItems = [
     { id: 'inicio', label: 'Inicio' },
@@ -67,8 +69,49 @@ export default function PublicHeader({
             ))}
           </ul>
 
-          {/* Acciones de Entrada al Sistema */}
-          <div className="public-header-actions">
+          {/* Acciones de Entrada al Sistema & Accesibilidad */}
+          <div className="public-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={openAIAssistantModal}
+              title="Asistente de IA"
+              style={{
+                color: 'var(--accent-blue, #38bdf8)',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '6px',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontSize: '0.8rem',
+                cursor: 'pointer'
+              }}
+            >
+              <Bot size={15} />
+              <span className="hide-mobile">IA</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={openAccessibilityModal}
+              title="Centro de Accesibilidad & Tema"
+              style={{
+                color: 'var(--accent-amber, #f59e0b)',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '6px',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontSize: '0.8rem',
+                cursor: 'pointer'
+              }}
+            >
+              <Sliders size={15} />
+              <span className="hide-mobile">Accesibilidad</span>
+            </button>
             {currentUser ? (
               <button
                 type="button"

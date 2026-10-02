@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import dataService from '../services/dataService.js';
+import clientService from '../services/clientService.js';
+import settingsService from '../services/settingsService.js';
+import accessibilityService from '../services/accessibilityService.js';
+import aiService from '../services/aiService.js';
 
 const ConstructaContext = createContext(null);
 
@@ -58,6 +62,36 @@ export const ConstructaProvider = ({ children }) => {
 
   // 4. Métricas Interconectadas Dinámicas
   const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
+
+  // 4.1 Preferencias Globales de Accesibilidad & Apariencia
+  const [settings, setSettings] = useState(() => settingsService.getSettings());
+  const [accessibilityModalOpen, setAccessibilityModalOpen] = useState(false);
+  const [aiAssistantModalOpen, setAiAssistantModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Sincronizar configuraciones persistentes al montar con guarda de seguridad
+    if (settingsService && typeof settingsService.init === 'function') {
+      settingsService.init()
+        .then((initialSettings) => {
+          if (initialSettings) setSettings(initialSettings);
+        })
+        .catch((err) => {
+          console.warn('[ConstructaContext] Error al inicializar settings:', err);
+        });
+    }
+  }, []);
+
+  const updateSettings = useCallback(async (newSettings) => {
+    try {
+      const res = await settingsService.saveSettings(newSettings);
+      const updated = (res && res.settings) ? res.settings : (res || newSettings);
+      setSettings((prev) => ({ ...prev, ...updated }));
+      return updated;
+    } catch (err) {
+      console.error('[ConstructaContext] Error al guardar settings:', err);
+      return newSettings;
+    }
+  }, []);
 
   // Recalcular métricas automáticamente ante cualquier cambio de estado
   const refreshMetrics = useCallback(() => {
@@ -615,16 +649,17 @@ export const ConstructaProvider = ({ children }) => {
   // ----------------------------------------------------
   // GESTIÓN DE CLIENTES Y FLUJO COMERCIAL/OPERATIVO
   // ----------------------------------------------------
-  const registerClient = (clientData) => {
-    const res = dataService.saveClient(clientData);
-    if (res.ok) {
+  const registerClient = async (clientData) => {
+    const res = await clientService.registerClient(clientData);
+    if (res && res.ok) {
       setClients(dataService.getClients());
       refreshMetrics();
       showAlert('Registro exitoso. Se ha generado su código de verificación preliminar.', 'exito');
       return res;
     } else {
-      showAlert(res.error || 'Error al registrar cliente.', 'error');
-      return res;
+      const err = (res && res.error) || 'Error al registrar cliente.';
+      showAlert(err, 'error');
+      return res || { ok: false, error: err };
     }
   };
 
@@ -946,6 +981,16 @@ export const ConstructaProvider = ({ children }) => {
         formatCurrency: dataService.formatCurrency,
         formatNumber: dataService.formatNumber,
         formatDate: dataService.formatDate,
+        // PREFERENCIAS GLOBALES & ACCESIBILIDAD
+        settings,
+        updateSettings,
+        theme: settings.theme,
+        isAccessibilityModalOpen: accessibilityModalOpen,
+        openAccessibilityModal: () => setAccessibilityModalOpen(true),
+        closeAccessibilityModal: () => setAccessibilityModalOpen(false),
+        isAIAssistantModalOpen: aiAssistantModalOpen,
+        openAIAssistantModal: () => setAiAssistantModalOpen(true),
+        closeAIAssistantModal: () => setAiAssistantModalOpen(false),
       }}
     >
       {children}

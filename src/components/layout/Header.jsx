@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Calendar, ShieldCheck, User } from 'lucide-react';
+import { Menu, Calendar, ShieldCheck, User, Sliders, Bot, Sun, Moon } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 
 const ROUTE_INFO = {
@@ -58,7 +58,7 @@ const ROUTE_INFO = {
 };
 
 export const Header = ({ currentRoute, onToggleMobileMenu }) => {
-  const { currentUser } = useConstructa();
+  const { currentUser, openAccessibilityModal, openAIAssistantModal, settings } = useConstructa();
   
   let routeMeta = ROUTE_INFO[currentRoute] || {
     title: 'CONSTRUCTA',
@@ -115,6 +115,54 @@ export const Header = ({ currentRoute, onToggleMobileMenu }) => {
       </div>
 
       <div className="header-right">
+        {/* Acceso directo Asistente de IA */}
+        <button
+          type="button"
+          onClick={openAIAssistantModal}
+          title="Asistente de Inteligencia Artificial (Gemini / OpenAI)"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.45rem 0.8rem',
+            borderRadius: 'var(--radius-sm)',
+            background: 'rgba(56, 189, 248, 0.12)',
+            border: '1px solid rgba(56, 189, 248, 0.3)',
+            color: 'var(--accent-blue)',
+            cursor: 'pointer',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            transition: 'all 0.15s'
+          }}
+        >
+          <Bot size={15} />
+          <span className="hide-mobile">Asistente IA</span>
+        </button>
+
+        {/* Acceso directo Centro de Accesibilidad & Tema */}
+        <button
+          type="button"
+          onClick={openAccessibilityModal}
+          title="Centro de Accesibilidad, Tema y Voz"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.45rem 0.8rem',
+            borderRadius: 'var(--radius-sm)',
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
+            color: 'var(--accent-amber)',
+            cursor: 'pointer',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            transition: 'all 0.15s'
+          }}
+        >
+          {settings?.theme === 'light' ? <Sun size={15} /> : <Sliders size={15} />}
+          <span className="hide-mobile">Accesibilidad</span>
+        </button>
+
         <div className="header-date-badge">
           <Calendar size={14} style={{ color: 'var(--accent-amber)' }} />
           <span>{capitalizedDate}</span>

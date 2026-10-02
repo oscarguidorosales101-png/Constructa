@@ -8,6 +8,9 @@ import Status404 from '../pages/Status/Status404';
 import Login from '../pages/Login/Login';
 import ToastContainer from '../components/common/ToastContainer';
 import ConfirmModal from '../components/common/ConfirmModal';
+import AccessibilityModal from '../components/accessibility/AccessibilityModal';
+import AIAssistantModal from '../components/ai/AIAssistantModal';
+import ErrorBoundary from '../components/common/ErrorBoundary';
 
 export const AppRoutes = () => {
   const { 
@@ -124,7 +127,9 @@ export const AppRoutes = () => {
 
   return (
     <>
-      {content}
+      <ErrorBoundary title="Error al cargar la vista">
+        {content}
+      </ErrorBoundary>
       <ToastContainer />
       <ConfirmModal
         isOpen={Boolean(confirmState?.isOpen)}
@@ -138,6 +143,12 @@ export const AppRoutes = () => {
         onConfirm={confirmState?.onConfirm}
         onClose={closeConfirm}
       />
+      <ErrorBoundary fallback={null}>
+        <AccessibilityModal />
+      </ErrorBoundary>
+      <ErrorBoundary fallback={null}>
+        <AIAssistantModal />
+      </ErrorBoundary>
     </>
   );
 };

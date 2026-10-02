@@ -1,9 +1,9 @@
 /* ==========================================================================
-   CONSTRUCTA — Sistema de Diseño Negro Elegante / Empresarial
+   CONSTRUCTA — Sistema de Diseño Negro Elegante & Modo Claro Centralizado
    ========================================================================== */
 
 :root {
-  /* Fondos y Superficies Principales */
+  /* Fondos y Superficies Principales (Modo Oscuro por Defecto) */
   --bg-app: #0a0d14;
   --bg-sidebar: #0d121c;
   --bg-header: rgba(13, 18, 28, 0.85);
@@ -12,6 +12,8 @@
   --bg-surface-elevated: #1a2336;
   --bg-input: #0e1420;
   --bg-input-focus: #141c2d;
+  --bg-modal: #111724;
+  --bg-table-header: #0f1420;
 
   /* Alias Semánticos */
   --color-bg-page: #0a0d14;
@@ -59,7 +61,7 @@
   --accent-red-dark: #dc2626;
   --accent-red-glow: rgba(239, 68, 68, 0.15);
 
-  /* Sombras sutiles de profundidad */
+  /* Sombras */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.65);
@@ -74,4 +76,112 @@
   /* Transiciones */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   TEMA CLARO GLOBAL — Elegante, legible, alto contraste profesional
+   ========================================================================== */
+:root[data-theme="light"],
+[data-theme="light"] {
+  --bg-app: #f1f5f9;
+  --bg-sidebar: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.95);
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-surface-elevated: #f8fafc;
+  --bg-input: #ffffff;
+  --bg-input-focus: #ffffff;
+  --bg-modal: #ffffff;
+  --bg-table-header: #f8fafc;
+
+  --color-bg-page: #f1f5f9;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #f8fafc;
+  --color-border: #cbd5e1;
+  --color-border-subtle: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-card: #e2e8f0;
+  --border-focus: #d97706;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  --accent-amber: #d97706;
+  --accent-amber-light: #f59e0b;
+  --accent-amber-dark: #b45309;
+  --accent-amber-glow: rgba(217, 119, 6, 0.15);
+
+  --accent-blue: #0284c7;
+  --accent-blue-dark: #0369a1;
+  --accent-blue-glow: rgba(2, 132, 199, 0.15);
+
+  --accent-green: #059669;
+  --accent-green-dark: #047857;
+  --accent-green-glow: rgba(5, 150, 105, 0.15);
+
+  --accent-red: #dc2626;
+  --accent-red-dark: #b91c1c;
+  --accent-red-glow: rgba(220, 38, 38, 0.15);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.12);
+  --shadow-glow-amber: 0 0 25px rgba(217, 119, 6, 0.15);
+}
+
+/* ==========================================================================
+   MODOS DE ACCESIBILIDAD CROMÁTICA & DALTONISMO
+   ========================================================================== */
+
+/* 1. Alto Contraste */
+[data-color-vision="high-contrast"] {
+  --border-subtle: #94a3b8 !important;
+  --border-medium: #ffffff !important;
+  --border-card: #cbd5e1 !important;
+  --text-primary: #ffffff !important;
+  --text-secondary: #f1f5f9 !important;
+  --text-muted: #e2e8f0 !important;
+}
+
+[data-theme="light"][data-color-vision="high-contrast"],
+:root[data-theme="light"][data-color-vision="high-contrast"] {
+  --bg-app: #ffffff !important;
+  --bg-card: #ffffff !important;
+  --border-subtle: #000000 !important;
+  --border-medium: #000000 !important;
+  --border-card: #000000 !important;
+  --text-primary: #000000 !important;
+  --text-secondary: #111111 !important;
+  --text-muted: #222222 !important;
+}
+
+/* 2. Protanopia (Rojo-débil/ciego) -> Desplaza rojo a azul marino/magenta vivo */
+[data-color-vision="protanopia"] {
+  --accent-red: #6366f1 !important;
+  --accent-red-dark: #4f46e5 !important;
+  --accent-red-glow: rgba(99, 102, 241, 0.2) !important;
+  --color-rose: #6366f1 !important;
+}
+
+/* 3. Deuteranopia (Verde-débil/ciego) -> Desplaza verde a cian/azul cielo */
+[data-color-vision="deuteranopia"] {
+  --accent-green: #0284c7 !important;
+  --accent-green-dark: #0369a1 !important;
+  --accent-green-glow: rgba(2, 132, 199, 0.2) !important;
+  --color-emerald: #0284c7 !important;
+}
+
+/* 4. Tritanopia (Azul-débil/ciego) -> Desplaza azul a cerceta brillante y amarillos a rojo intenso */
+[data-color-vision="tritanopia"] {
+  --accent-blue: #0d9488 !important;
+  --accent-blue-dark: #0f766e !important;
+  --accent-blue-glow: rgba(13, 148, 136, 0.2) !important;
+  --color-cyan: #0d9488 !important;
 }

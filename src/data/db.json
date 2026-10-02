@@ -1833,10 +1833,22 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-10", "evento": "Postulación recibida vía portal de empleo" },
-        { "fecha": "2026-03-12", "evento": "Expediente revisado y calificado como Apto" },
-        { "fecha": "2026-03-14", "evento": "Candidato preseleccionado por perfil técnico" },
-        { "fecha": "2026-03-16", "evento": "Entrevista técnica programada con Ing. Carlos Mendoza" }
+        {
+          "fecha": "2026-03-10",
+          "evento": "Postulación recibida vía portal de empleo"
+        },
+        {
+          "fecha": "2026-03-12",
+          "evento": "Expediente revisado y calificado como Apto"
+        },
+        {
+          "fecha": "2026-03-14",
+          "evento": "Candidato preseleccionado por perfil técnico"
+        },
+        {
+          "fecha": "2026-03-16",
+          "evento": "Entrevista técnica programada con Ing. Carlos Mendoza"
+        }
       ],
       "empleadoId": null
     },
@@ -1901,9 +1913,18 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-12", "evento": "Postulación recibida para puesto de Administradora" },
-        { "fecha": "2026-03-15", "evento": "Currículum evaluado positivamente por Dirección" },
-        { "fecha": "2026-03-18", "evento": "Candidata preseleccionada para entrevista" }
+        {
+          "fecha": "2026-03-12",
+          "evento": "Postulación recibida para puesto de Administradora"
+        },
+        {
+          "fecha": "2026-03-15",
+          "evento": "Currículum evaluado positivamente por Dirección"
+        },
+        {
+          "fecha": "2026-03-18",
+          "evento": "Candidata preseleccionada para entrevista"
+        }
       ],
       "empleadoId": null
     },
@@ -1962,10 +1983,22 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-08", "evento": "Postulación recibida por recomendación técnica" },
-        { "fecha": "2026-03-11", "evento": "Preselección aprobada por experiencia comprobada" },
-        { "fecha": "2026-03-14", "evento": "Entrevista realizada con resultado sobresaliente" },
-        { "fecha": "2026-03-24", "evento": "Candidato seleccionado oficialmente para contratación" }
+        {
+          "fecha": "2026-03-08",
+          "evento": "Postulación recibida por recomendación técnica"
+        },
+        {
+          "fecha": "2026-03-11",
+          "evento": "Preselección aprobada por experiencia comprobada"
+        },
+        {
+          "fecha": "2026-03-14",
+          "evento": "Entrevista realizada con resultado sobresaliente"
+        },
+        {
+          "fecha": "2026-03-24",
+          "evento": "Candidato seleccionado oficialmente para contratación"
+        }
       ],
       "empleadoId": null
     },
@@ -2024,9 +2057,18 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-14", "evento": "Postulación recibida para proyecto de infraestructura" },
-        { "fecha": "2026-03-17", "evento": "Expediente preseleccionado por especialidad técnica" },
-        { "fecha": "2026-03-25", "evento": "Entrevista técnica realizada con Arq. Sofía Valenzuela" }
+        {
+          "fecha": "2026-03-14",
+          "evento": "Postulación recibida para proyecto de infraestructura"
+        },
+        {
+          "fecha": "2026-03-17",
+          "evento": "Expediente preseleccionado por especialidad técnica"
+        },
+        {
+          "fecha": "2026-03-25",
+          "evento": "Entrevista técnica realizada con Arq. Sofía Valenzuela"
+        }
       ],
       "empleadoId": null
     },
@@ -2091,8 +2133,14 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-18", "evento": "Postulación recibida vía bolsa de trabajo" },
-        { "fecha": "2026-03-21", "evento": "Expediente en revisión por departamento de personal" }
+        {
+          "fecha": "2026-03-18",
+          "evento": "Postulación recibida vía bolsa de trabajo"
+        },
+        {
+          "fecha": "2026-03-21",
+          "evento": "Expediente en revisión por departamento de personal"
+        }
       ],
       "empleadoId": null
     },
@@ -2151,9 +2199,18 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-15", "evento": "Postulación recibida para vacante de Operador de Grúa" },
-        { "fecha": "2026-03-17", "evento": "Documentación y licencias federales validadas" },
-        { "fecha": "2026-03-19", "evento": "Entrevista programada para el 27/03 con Ing. Carlos Mendoza" }
+        {
+          "fecha": "2026-03-15",
+          "evento": "Postulación recibida para vacante de Operador de Grúa"
+        },
+        {
+          "fecha": "2026-03-17",
+          "evento": "Documentación y licencias federales validadas"
+        },
+        {
+          "fecha": "2026-03-19",
+          "evento": "Entrevista programada para el 27/03 con Ing. Carlos Mendoza"
+        }
       ],
       "empleadoId": null
     },
@@ -2212,7 +2269,10 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-22", "evento": "Postulación recibida en oficina central de obra" }
+        {
+          "fecha": "2026-03-22",
+          "evento": "Postulación recibida en oficina central de obra"
+        }
       ],
       "empleadoId": null
     },
@@ -2271,10 +2331,22 @@
         }
       ],
       "historial": [
-        { "fecha": "2026-03-05", "evento": "Postulación recibida vía LinkedIn" },
-        { "fecha": "2026-03-10", "evento": "Preselección para entrevista técnica" },
-        { "fecha": "2026-03-20", "evento": "Entrevista realizada con Arq. Sofía Valenzuela" },
-        { "fecha": "2026-03-21", "evento": "Candidata no seleccionada por requerir perfil con Revit MEP avanzado" }
+        {
+          "fecha": "2026-03-05",
+          "evento": "Postulación recibida vía LinkedIn"
+        },
+        {
+          "fecha": "2026-03-10",
+          "evento": "Preselección para entrevista técnica"
+        },
+        {
+          "fecha": "2026-03-20",
+          "evento": "Entrevista realizada con Arq. Sofía Valenzuela"
+        },
+        {
+          "fecha": "2026-03-21",
+          "evento": "Candidata no seleccionada por requerir perfil con Revit MEP avanzado"
+        }
       ],
       "empleadoId": null
     }
@@ -2297,7 +2369,10 @@
       "evaluacion": null,
       "comentarios": null,
       "historial": [
-        { "fecha": "2026-03-16 11:30", "evento": "Entrevista programada para el 27/03/2026 de 10:00 a 10:45" }
+        {
+          "fecha": "2026-03-16 11:30",
+          "evento": "Entrevista programada para el 27/03/2026 de 10:00 a 10:45"
+        }
       ]
     },
     {
@@ -2317,7 +2392,10 @@
       "evaluacion": null,
       "comentarios": null,
       "historial": [
-        { "fecha": "2026-03-19 14:00", "evento": "Entrevista técnica programada para el 27/03/2026 de 11:30 a 12:15" }
+        {
+          "fecha": "2026-03-19 14:00",
+          "evento": "Entrevista técnica programada para el 27/03/2026 de 11:30 a 12:15"
+        }
       ]
     },
     {
@@ -2337,8 +2415,14 @@
       "evaluacion": "Excelente dominio de estación total y software CivilCAD. Candidato con perfil sólido para el proyecto Puente Bicentenario.",
       "comentarios": "Aprobado para fase final de contratación.",
       "historial": [
-        { "fecha": "2026-03-18 10:00", "evento": "Entrevista programada para el 25/03/2026 de 09:00 a 10:00" },
-        { "fecha": "2026-03-25 10:10", "evento": "Entrevista concluida con resultado Favorable" }
+        {
+          "fecha": "2026-03-18 10:00",
+          "evento": "Entrevista programada para el 25/03/2026 de 09:00 a 10:00"
+        },
+        {
+          "fecha": "2026-03-25 10:10",
+          "evento": "Entrevista concluida con resultado Favorable"
+        }
       ]
     },
     {
@@ -2358,8 +2442,14 @@
       "evaluacion": "Liderazgo comprobado en más de 5 proyectos verticales. Recomendado para contratación inmediata en Torre Altavista.",
       "comentarios": "Candidato seleccionado para plaza de Maestro de Obra.",
       "historial": [
-        { "fecha": "2026-03-12 16:30", "evento": "Entrevista programada para el 24/03/2026 de 15:00 a 15:45" },
-        { "fecha": "2026-03-24 16:00", "evento": "Entrevista realizada. Candidato evaluado y aprobado" }
+        {
+          "fecha": "2026-03-12 16:30",
+          "evento": "Entrevista programada para el 24/03/2026 de 15:00 a 15:45"
+        },
+        {
+          "fecha": "2026-03-24 16:00",
+          "evento": "Entrevista realizada. Candidato evaluado y aprobado"
+        }
       ]
     },
     {
@@ -2379,9 +2469,132 @@
       "evaluacion": "El perfil no cuenta con la experiencia requerida en Revit MEP y normativas locales para edificios corporativos.",
       "comentarios": "Se conserva en cartera de candidatos para futuros proyectos residenciales menores.",
       "historial": [
-        { "fecha": "2026-03-10 11:00", "evento": "Entrevista programada para el 20/03/2026 de 16:00 a 16:45" },
-        { "fecha": "2026-03-20 17:00", "evento": "Entrevista realizada con dictamen Desfavorable" }
+        {
+          "fecha": "2026-03-10 11:00",
+          "evento": "Entrevista programada para el 20/03/2026 de 16:00 a 16:45"
+        },
+        {
+          "fecha": "2026-03-20 17:00",
+          "evento": "Entrevista realizada con dictamen Desfavorable"
+        }
       ]
     }
-  ]
+  ],
+  "clients": [
+    {
+      "id": "CLI-001",
+      "nombre": "Lic. Roberto Garza Sada",
+      "empresa": "Inversiones Inmobiliarias del Valle S.A.",
+      "email": "cliente@constructa.com",
+      "aliasEmail": "cliente.a@constructa.com",
+      "telefono": "+52 55 4920 1832",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "usuario": "cliente",
+      "clave": "Cliente2026!",
+      "aliases": [
+        "cliente123",
+        "cliente",
+        "cliente.a@constructa.com"
+      ],
+      "rol": "Cliente",
+      "avatar": "RG",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2026-03-01",
+      "proyectosAsociados": [
+        "PRJ-001"
+      ]
+    },
+    {
+      "id": "CLI-002",
+      "nombre": "Arq. Beatriz Morales Garza",
+      "empresa": "Desarrollos Residenciales del Norte",
+      "email": "cliente.b@constructa.com",
+      "telefono": "+52 81 8320 9944",
+      "ciudad": "Monterrey, N.L.",
+      "pais": "México",
+      "usuario": "cliente.b",
+      "clave": "Cliente2026!",
+      "aliases": [
+        "clienteb"
+      ],
+      "rol": "Cliente",
+      "avatar": "BM",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "654321",
+      "fechaRegistro": "2026-03-02",
+      "proyectosAsociados": [
+        "PRJ-002"
+      ]
+    },
+    {
+      "id": "CLI-003",
+      "nombre": "Prueba Automatizada S.A.",
+      "empresa": "",
+      "email": "cliente.prueba.1790969178556@constructa.com",
+      "telefono": "8119876543",
+      "ciudad": "Monterrey, N.L.",
+      "pais": "México",
+      "usuario": "cliente.prueba.1790969178556@constructa.com",
+      "clave": "Password2026!",
+      "rol": "Cliente",
+      "avatar": "PR",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2026-10-02",
+      "proyectosAsociados": []
+    },
+    {
+      "id": "CLI-004",
+      "nombre": "Steve salas",
+      "empresa": "",
+      "email": "ssalasl@fwdcostarica.com",
+      "telefono": "+506 6058 6593",
+      "ciudad": "Puntarenas",
+      "pais": "México",
+      "usuario": "ssalasl@fwdcostarica.com",
+      "clave": "Ajo28291213",
+      "rol": "Cliente",
+      "avatar": "ST",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2026-10-02",
+      "proyectosAsociados": []
+    },
+    {
+      "id": "CLI-005",
+      "nombre": "Oscar Yabeth Guido Rosales",
+      "empresa": "",
+      "email": "oscarguidorosales101@gmail.com",
+      "telefono": "+506 60586593",
+      "ciudad": "Puntarenas",
+      "pais": "México",
+      "usuario": "oscarguidorosales101@gmail.com",
+      "clave": "Ajo28291213",
+      "rol": "Cliente",
+      "avatar": "OS",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2026-10-02",
+      "proyectosAsociados": []
+    }
+  ],
+  "settings": {
+    "theme": "light",
+    "fontSize": "normal",
+    "colorVision": "high-contrast",
+    "reducedMotion": true,
+    "voice": {
+      "enabled": false,
+      "voiceURI": "",
+      "rate": 1,
+      "pitch": 1,
+      "volume": 1
+    },
+    "updatedAt": "2026-10-02T20:34:46.542Z",
+    "voiceEnabled": true,
+    "voiceRate": 1.9,
+    "voiceURI": "Google UK English Male"
+  }
 }

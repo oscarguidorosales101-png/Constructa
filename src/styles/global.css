@@ -1,7 +1,7 @@
 @import './variables.css';
 
 /* ==========================================================================
-   Estilos Globales y Normalización
+   Estilos Globales y Normalización con Soporte Accesibilidad
    ========================================================================== */
 
 *, *::before, *::after {
@@ -10,10 +10,27 @@
   padding: 0;
 }
 
+/* Escala Tipográfica Global Accesible (rem-driven) */
 html {
   font-size: 16px;
   scroll-behavior: smooth;
-  color-scheme: dark;
+  color-scheme: dark light;
+}
+
+html[data-font-size="small"] {
+  font-size: 14px !important;
+}
+
+html[data-font-size="normal"] {
+  font-size: 16px !important;
+}
+
+html[data-font-size="large"] {
+  font-size: 18px !important;
+}
+
+html[data-font-size="xlarge"] {
+  font-size: 20px !important;
 }
 
 body {
@@ -24,6 +41,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   letter-spacing: -0.01em;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 /* Enlaces y botones base */
@@ -55,16 +73,123 @@ input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #25334d;
+  background: var(--border-medium);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334466;
+  background: var(--text-muted);
 }
 
-/* Focus accesible */
+/* Focus accesible universal */
 :focus-visible {
   outline: 2px solid var(--accent-amber);
   outline-offset: 2px;
+}
+
+/* Estados accesibles con símbolos visuales no dependientes del color */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.status-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Adaptación de Componentes en Modo Claro */
+[data-theme="light"] input.constructa-input,
+[data-theme="light"] textarea.constructa-input,
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] input.constructa-input:focus,
+[data-theme="light"] textarea.constructa-input:focus,
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .form-textarea:focus {
+  background-color: #ffffff !important;
+  border-color: #d97706 !important;
+}
+
+[data-theme="light"] select,
+[data-theme="light"] select.constructa-input,
+[data-theme="light"] select.form-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] select option:checked {
+  background-color: #f1f5f9 !important;
+  color: #d97706 !important;
+}
+
+[data-theme="light"] .modal-content,
+[data-theme="light"] .constructa-modal,
+[data-theme="light"] .modal-header,
+[data-theme="light"] .modal-footer {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .table th,
+[data-theme="light"] .constructa-table th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .table td,
+[data-theme="light"] .constructa-table td {
+  border-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .constructa-page-title {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .btn-secondary {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .btn-secondary:hover:not(:disabled) {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Reducción de movimiento accesible */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-reduced-motion="true"] *,
+[data-reduced-motion="true"] *::before,
+[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }

@@ -16,12 +16,24 @@ import {
   AlertTriangle,
   Globe,
   Inbox,
+  Bot,
+  Sliders
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import { hasPermission } from '../../utils/permissions.js';
 
 export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
-  const { currentUser, metrics, requestConfirm, logout, setActiveView, clientRequests, unreadMessagesCount } = useConstructa();
+  const {
+    currentUser,
+    metrics,
+    requestConfirm,
+    logout,
+    setActiveView,
+    clientRequests,
+    unreadMessagesCount,
+    openAccessibilityModal,
+    openAIAssistantModal
+  } = useConstructa();
   const navigate = onNavigate || setActiveView;
 
   const handleLogoutClick = () => {
@@ -167,7 +179,33 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
           );
         })}
 
-        <div style={{ padding: '8px 0 0 0', borderTop: '1px solid var(--color-border)', marginTop: '8px' }}>
+        <div style={{ padding: '8px 0 0 0', borderTop: '1px solid var(--border-subtle)', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => {
+              openAIAssistantModal();
+              if (onClose) onClose();
+            }}
+            style={{ color: 'var(--accent-blue)' }}
+          >
+            <Bot size={18} />
+            <span>Asistente IA</span>
+          </button>
+
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => {
+              openAccessibilityModal();
+              if (onClose) onClose();
+            }}
+            style={{ color: 'var(--accent-amber)' }}
+          >
+            <Sliders size={18} />
+            <span>Accesibilidad & Tema</span>
+          </button>
+
           <button
             type="button"
             className="nav-item"

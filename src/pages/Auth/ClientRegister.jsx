@@ -97,14 +97,14 @@ export const ClientRegister = ({ onNavigate }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const res = registerClient({
+    try {
+      const res = await registerClient({
         nombre: formData.nombre.trim(),
         email: formData.email.trim(),
         telefono: formData.telefono.trim(),
@@ -115,24 +115,30 @@ export const ClientRegister = ({ onNavigate }) => {
 
       setIsSubmitting(false);
 
-      if (res.ok) {
+      if (res && res.ok) {
         setRegisteredEmail(res.cliente.email);
         setSimulatedCode(res.cliente.codigoVerificacion);
         setStep('verify');
       } else {
-        const errorMsg = res.error || 'No se pudo completar el registro.';
+        const errorMsg = (res && res.error) || 'No se pudo completar el registro.';
         const isDuplicate =
+          (res && res.code === 'DUPLICATE_EMAIL') ||
           errorMsg.toLowerCase().includes('ya existe') ||
-          errorMsg.toLowerCase().includes('registrada') ||
+          errorMsg.toLowerCase().includes('registrad') ||
           errorMsg.toLowerCase().includes('asociada');
         setErrors({
           email: isDuplicate
-            ? 'Ya existe una cuenta asociada a este correo electrónico.'
+            ? 'Este correo ya está registrado.'
             : errorMsg,
           isDuplicate: isDuplicate,
         });
       }
-    }, 400);
+    } catch (err) {
+      setIsSubmitting(false);
+      setErrors({
+        email: 'Error de conexión con el servidor. Intente nuevamente.',
+      });
+    }
   };
 
   const handleVerifySubmit = (e) => {
