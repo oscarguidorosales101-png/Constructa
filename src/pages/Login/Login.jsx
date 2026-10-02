@@ -6,12 +6,15 @@ import ToastContainer from '../../components/common/ToastContainer.jsx';
 
 export const Login = ({ onLoginSuccess }) => {
   const { login } = useConstructa();
-  const [identifier, setIdentifier] = useState('admin@constructa.com');
-  const [password, setPassword] = useState('admin');
+  const registeredEmail = typeof window !== 'undefined' ? sessionStorage.getItem('constructa_registered_email') : null;
+  const [identifier, setIdentifier] = useState(registeredEmail || 'admin@constructa.com');
+  const [password, setPassword] = useState(registeredEmail ? '' : 'admin');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDemoAccounts, setShowDemoAccounts] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('Administrador');
+  const [selectedRole, setSelectedRole] = useState(registeredEmail ? 'Cliente' : 'Administrador');
+  const [registeredNotice, setRegisteredNotice] = useState(Boolean(registeredEmail));
+  const [forgotModal, setForgotModal] = useState(false);
 
   const DEMO_ACCOUNTS = [
     {
@@ -43,12 +46,21 @@ export const Login = ({ onLoginSuccess }) => {
     },
     {
       role: 'Cliente',
-      title: 'Cliente (Propietario de Obra)',
+      title: 'Cliente A (Residencial Altavista)',
       email: 'cliente@constructa.com',
       password: 'Cliente2026!',
       name: 'Lic. Roberto Garza Sada',
-      badge: 'Portal Cliente',
+      badge: 'Portal Cliente A',
       color: '#10b981',
+    },
+    {
+      role: 'Cliente',
+      title: 'Cliente B (Corporativo Nexus)',
+      email: 'cliente.b@constructa.com',
+      password: 'Cliente2026!',
+      name: 'Arq. Beatriz Morales Garza',
+      badge: 'Portal Cliente B',
+      color: '#059669',
     },
   ];
 
@@ -166,6 +178,27 @@ export const Login = ({ onLoginSuccess }) => {
             </div>
           )}
 
+          {/* Banner de cuenta recién registrada */}
+          {registeredNotice && (
+            <div
+              style={{
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '8px',
+                padding: '0.75rem 1rem',
+                marginBottom: '1rem',
+                fontSize: '0.82rem',
+                color: '#6ee7b7',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <CheckCircle2 size={16} />
+              <span>Cuenta registrada con éxito. Ingresa tu contraseña para acceder a tu portal.</span>
+            </div>
+          )}
+
           <div className="form-group">
             <label className="form-label" htmlFor="login-identifier">
               Usuario o Correo Electrónico
@@ -229,9 +262,26 @@ export const Login = ({ onLoginSuccess }) => {
                 }}
               />
             </div>
-            {errors.password && (
-              <span className="form-error">{errors.password}</span>
-            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+              {errors.password ? (
+                <span className="form-error" style={{ margin: 0 }}>{errors.password}</span>
+              ) : <span />}
+              <button
+                type="button"
+                onClick={() => setForgotModal(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline',
+                }}
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
           </div>
 
           <div style={{ marginTop: '1.25rem' }}>
@@ -381,6 +431,41 @@ export const Login = ({ onLoginSuccess }) => {
           </div>
         </div>
       </div>
+
+      {/* Modal Recuperación de Contraseña */}
+      {forgotModal && (
+        <div className="client-modal-overlay" onClick={() => setForgotModal(false)}>
+          <div className="client-modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px' }}>
+            <div className="client-modal-header">
+              <h3>Recuperación de Contraseña</h3>
+              <button
+                type="button"
+                onClick={() => setForgotModal(false)}
+                style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '1.4rem', cursor: 'pointer' }}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="client-modal-body" style={{ fontSize: '0.88rem', lineHeight: 1.6, color: '#cbd5e1' }}>
+              <p>
+                Para restablecer el acceso a su cuenta corporativa o privada de Cliente, por favor comuníquese con el departamento de soporte y seguridad de <strong>CONSTRUCTA</strong>:
+              </p>
+              <div style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '0.75rem', borderRadius: '6px', margin: '0.75rem 0' }}>
+                <p style={{ margin: 0, color: '#f59e0b' }}><strong>Correo de Soporte:</strong> soporte@constructa.com</p>
+                <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}><strong>Conmutador:</strong> +52 81 8345 6789 (Ext. 104)</p>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: 0 }}>
+                Un administrador validará su identidad y emitirá un enlace temporal de restablecimiento seguro.
+              </p>
+            </div>
+            <div className="client-modal-footer">
+              <Button variant="primary" onClick={() => setForgotModal(false)}>
+                Entendido
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer />
     </div>

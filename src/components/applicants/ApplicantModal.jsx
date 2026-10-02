@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../common/Button';
-import { X, UserPlus, Save, Briefcase, User, GraduationCap } from 'lucide-react';
+import { X, UserPlus, Save, Briefcase, User, GraduationCap, Lock, ShieldCheck } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext';
 
 const INITIAL_FORM = {
@@ -28,6 +28,7 @@ const INITIAL_FORM = {
   expPuesto: '',
   expDuracion: '2 años',
   expResp: '',
+  notasInternas: '',
 };
 
 export default function ApplicantModal({
@@ -39,6 +40,7 @@ export default function ApplicantModal({
   const { data } = useConstructa();
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [activeSection, setActiveSection] = useState('general'); // 'general' | 'experience'
+  const isImmutable = Boolean(applicant);
 
   useEffect(() => {
     if (applicant) {
@@ -53,6 +55,7 @@ export default function ApplicantModal({
         expPuesto: applicant.experiencias?.[0]?.puesto || '',
         expDuracion: applicant.experiencias?.[0]?.duracion || '2 años',
         expResp: applicant.experiencias?.[0]?.responsabilidades || '',
+        notasInternas: applicant.notasInternas || applicant.observacionesReclutamiento || '',
       });
     } else {
       setFormData(INITIAL_FORM);
@@ -69,12 +72,28 @@ export default function ApplicantModal({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Parse skills
+    // Si ya es un postulante registrado, el currículum es INMUTABLE:
+    // El personal interno NO puede editar los datos del currículum original (Reglas 21, 22 y 23)
+    if (isImmutable) {
+      const payload = {
+        ...applicant,
+        estado: formData.estado,
+        proyectoAsignadoTentativo: formData.proyectoAsignadoTentativo,
+        disponibilidad: formData.disponibilidad,
+        notasInternas: formData.notasInternas,
+        observacionesReclutamiento: formData.notasInternas,
+        fechaModificacionInterna: new Date().toISOString(),
+      };
+      onSave(payload);
+      onClose();
+      return;
+    }
+
+    // Creación de nuevo postulante inicial
     const habilidades = formData.habilidadesText
       ? formData.habilidadesText.split(',').map((s) => s.trim()).filter(Boolean)
-      : applicant?.habilidades || [];
+      : [];
 
-    // Parse training
     const formacion = formData.formacionTitulo
       ? [
           {
@@ -83,29 +102,25 @@ export default function ApplicantModal({
             anio: formData.formacionAnio || '2022',
             tipo: 'Educación Técnica / Profesional',
           },
-          ...(applicant?.formacion?.slice(1) || []),
         ]
-      : applicant?.formacion || [];
+      : [];
 
-    // Parse experience
     const experiencias = formData.expEmpresa
       ? [
           {
-            id: applicant?.experiencias?.[0]?.id || 'EXP-001',
+            id: 'EXP-001',
             empresa: formData.expEmpresa,
             puesto: formData.expPuesto || formData.puestoSolicitado,
             fechaInicio: '2022',
             fechaFin: '2025',
             duracion: formData.expDuracion,
             responsabilidades: formData.expResp,
-            logros: applicant?.experiencias?.[0]?.logros || 'Cumplimiento continuo de normas de calidad y entrega a tiempo.',
+            logros: 'Cumplimiento continuo de normas de calidad y entrega a tiempo.',
           },
-          ...(applicant?.experiencias?.slice(1) || []),
         ]
-      : applicant?.experiencias || [];
+      : [];
 
     const payload = {
-      ...applicant,
       nombre: formData.nombre,
       dni: formData.dni,
       email: formData.email,
@@ -125,7 +140,11 @@ export default function ApplicantModal({
       habilidades,
       formacion,
       experiencias,
-      referencias: applicant?.referencias || [],
+      referencias: [],
+      inmutable: true,
+      bloqueado: true,
+      fechaPostulacion: new Date().toISOString().split('T')[0],
+      notasInternas: formData.notasInternas,
     };
 
     onSave(payload);
@@ -174,11 +193,14 @@ export default function ApplicantModal({
               <Briefcase size={20} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
-                {applicant ? 'Editar Expediente de Postulante' : 'Registrar Nuevo Postulante'}
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {isImmutable && <Lock size={16} style={{ color: '#f59e0b' }} />}
+                {applicant ? `Expediente de Candidato — ${applicant.nombre}` : 'Registrar Nuevo Postulante'}
               </h3>
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                Ingreso de expediente profesional y perfil laboral para selección
+                {isImmutable
+                  ? 'Expediente curricular único e inmutable. Gestión interna de selección y proyecto.'
+                  : 'Ingreso inicial de expediente profesional y perfil laboral para selección'}
               </p>
             </div>
           </div>
@@ -234,12 +256,34 @@ export default function ApplicantModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px', flex: 1 }}>
+            {isImmutable && (
+              <div
+                style={{
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <Lock size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                <div style={{ fontSize: '0.82rem', color: '#cbd5e1' }}>
+                  <strong style={{ color: '#f59e0b', display: 'block' }}>
+                    Expediente Curricular Inmutable (Fuente Única Oficial)
+                  </strong>
+                  El currículum original enviado por el candidato no puede ser alterado por el personal interno. Como evaluador puede actualizar el estado de selección, asignar proyecto y registrar observaciones técnicas.
+                </div>
+              </div>
+            )}
+
             {activeSection === 'general' && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '5px' }}>
-                      Nombre Completo *
+                      Nombre Completo * {isImmutable && <span style={{ color: '#f59e0b', fontSize: '0.72rem' }}>(Inmutable)</span>}
                     </label>
                     <input
                       type="text"
@@ -248,13 +292,15 @@ export default function ApplicantModal({
                       placeholder="Ej. Juan Manuel Pérez Soto"
                       value={formData.nombre}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                       required
                     />
                   </div>
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '5px' }}>
-                      Identificación / DNI *
+                      Identificación / DNI * {isImmutable && <span style={{ color: '#f59e0b', fontSize: '0.72rem' }}>(Inmutable)</span>}
                     </label>
                     <input
                       type="text"
@@ -263,6 +309,8 @@ export default function ApplicantModal({
                       placeholder="Ej. DNI-84920192"
                       value={formData.dni}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                       required
                     />
                   </div>
@@ -280,6 +328,8 @@ export default function ApplicantModal({
                       placeholder="correo@ejemplo.com"
                       value={formData.email}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                       required
                     />
                   </div>
@@ -295,6 +345,8 @@ export default function ApplicantModal({
                       placeholder="+52 55 1234 5678"
                       value={formData.telefono}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                       required
                     />
                   </div>
@@ -310,6 +362,8 @@ export default function ApplicantModal({
                       placeholder="Ej. Ciudad de México / Naucalpan"
                       value={formData.ubicacion}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                     />
                   </div>
                 </div>
@@ -326,6 +380,8 @@ export default function ApplicantModal({
                       placeholder="Ej. Electricista Industrial"
                       value={formData.puestoSolicitado}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                       required
                     />
                   </div>
@@ -339,6 +395,8 @@ export default function ApplicantModal({
                       className="constructa-input"
                       value={formData.area}
                       onChange={handleChange}
+                      disabled={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                     >
                       <option value="Estructuras y Obra Civil">Estructuras y Obra Civil</option>
                       <option value="Instalaciones Eléctricas y Especiales">Instalaciones Eléctricas y Especiales</option>
@@ -431,7 +489,7 @@ export default function ApplicantModal({
               <>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '5px' }}>
-                    Perfil / Extracto Profesional
+                    Perfil / Extracto Profesional {isImmutable && <span style={{ color: '#f59e0b', fontSize: '0.72rem' }}>(Inmutable)</span>}
                   </label>
                   <textarea
                     name="perfilProfesional"
@@ -440,7 +498,8 @@ export default function ApplicantModal({
                     placeholder="Descripción resumida del perfil, trayectoria y especialización en el ramo..."
                     value={formData.perfilProfesional}
                     onChange={handleChange}
-                    style={{ resize: 'vertical' }}
+                    readOnly={isImmutable}
+                    style={{ resize: 'vertical', background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                   />
                 </div>
 
@@ -456,6 +515,8 @@ export default function ApplicantModal({
                       placeholder="Ej. Constructora del Norte S.A."
                       value={formData.expEmpresa}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                     />
                   </div>
 
@@ -470,6 +531,8 @@ export default function ApplicantModal({
                       placeholder="Ej. Cabo de Fierrería"
                       value={formData.expPuesto}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                     />
                   </div>
 
@@ -484,6 +547,8 @@ export default function ApplicantModal({
                       placeholder="Ej. 3 años y 4 meses"
                       value={formData.expDuracion}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                     />
                   </div>
                 </div>
@@ -499,6 +564,8 @@ export default function ApplicantModal({
                     placeholder="Supervisión de cuadrillas, control de materiales, cumplimiento de bitácora..."
                     value={formData.expResp}
                     onChange={handleChange}
+                    readOnly={isImmutable}
+                    style={{ resize: 'vertical', background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                   />
                 </div>
 
@@ -514,6 +581,8 @@ export default function ApplicantModal({
                       placeholder="Ej. Técnico Superior en Electricidad / Certificado STPS DC-3"
                       value={formData.formacionTitulo}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                     />
                   </div>
 
@@ -528,6 +597,8 @@ export default function ApplicantModal({
                       placeholder="2021"
                       value={formData.formacionAnio}
                       onChange={handleChange}
+                      readOnly={isImmutable}
+                      style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                     />
                   </div>
                 </div>
@@ -543,10 +614,28 @@ export default function ApplicantModal({
                     placeholder="Lectura de planos, Empalmes alta tensión, Soldadura SMAW, Trabajo en alturas"
                     value={formData.habilidadesText}
                     onChange={handleChange}
+                    readOnly={isImmutable}
+                    style={{ background: isImmutable ? 'rgba(255, 255, 255, 0.03)' : undefined }}
                   />
                 </div>
               </>
             )}
+
+            {/* Observaciones Internas de Selección y Reclutamiento */}
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px', marginTop: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.82rem', color: '#f59e0b', fontWeight: 600, marginBottom: '6px' }}>
+                Observaciones y Notas de Reclutamiento / Selección (Uso Interno)
+              </label>
+              <textarea
+                name="notasInternas"
+                className="constructa-input"
+                rows="2"
+                placeholder="Observaciones de la evaluación técnica, comentarios del entrevistador o notas del proceso..."
+                value={formData.notasInternas}
+                onChange={handleChange}
+                style={{ resize: 'vertical' }}
+              />
+            </div>
           </div>
 
           {/* Footer Actions */}

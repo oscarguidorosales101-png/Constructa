@@ -65,19 +65,23 @@ export const AppRoutes = () => {
     'inicio',
     'empresa',
     'especialidades',
+    'proyectos-publicos',
     'video',
     'logros',
     'galeria',
     'trabaja-con-nosotros',
     'contacto',
-  ].includes(currentKey) || (!currentUser && currentKey === 'proyectos');
+  ].includes(currentKey) ||
+    (!currentUser && currentKey === 'proyectos') ||
+    (currentUser?.rol === 'Cliente' && currentKey === 'proyectos') ||
+    (currentUser?.rol === 'RRHH / Reclutamiento' && currentKey === 'proyectos');
 
   // Resolución del contenido según la ruta
   let content = null;
 
   if (isPublicSection) {
     const PublicLandingComponent = routeConfig.inicio.component;
-    const initialSection = (!currentUser && currentKey === 'proyectos') ? 'proyectos' : currentKey;
+    const initialSection = (currentKey === 'proyectos' || currentKey === 'proyectos-publicos') ? 'proyectos' : currentKey;
     content = <PublicLandingComponent initialModule={initialSection} />;
   } else if (currentKey === 'registro' || currentKey === 'registro-cliente') {
     const RegisterComponent = routeConfig.registro.component;

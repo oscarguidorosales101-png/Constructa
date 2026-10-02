@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Calendar, MapPin, User, DollarSign, Activity, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, Building2, Calendar, MapPin, User, DollarSign, Activity, CheckCircle2, ArrowRight, Maximize2 } from 'lucide-react';
 
 export default function PublicProjectModal({ project, isOpen, onClose, onNavigateContact }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (isLightboxOpen) {
+          setIsLightboxOpen(false);
+        } else {
+          onClose();
+        }
+      }
     };
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -17,7 +24,7 @@ export default function PublicProjectModal({ project, isOpen, onClose, onNavigat
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isLightboxOpen]);
 
   if (!isOpen || !project) return null;
 
@@ -93,7 +100,12 @@ export default function PublicProjectModal({ project, isOpen, onClose, onNavigat
         {/* Modal Body */}
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '24px' }}>
           {/* Main Visual */}
-          <div className="public-modal-hero-img-wrap">
+          <div
+            className="public-modal-hero-img-wrap"
+            onClick={() => setIsLightboxOpen(true)}
+            style={{ cursor: 'zoom-in', position: 'relative' }}
+            title="Clic para ampliar fotografía de la obra"
+          >
             <img 
               src={primaryImage} 
               alt={project.nombre} 
@@ -106,6 +118,26 @@ export default function PublicProjectModal({ project, isOpen, onClose, onNavigat
                 <MapPin size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
                 <span>{project.ubicacion}</span>
               </div>
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'rgba(10, 15, 25, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.78rem',
+                color: '#ffffff',
+                backdropFilter: 'blur(4px)'
+              }}
+            >
+              <Maximize2 size={13} />
+              <span>Ampliar foto</span>
             </div>
           </div>
 
@@ -205,6 +237,49 @@ export default function PublicProjectModal({ project, isOpen, onClose, onNavigat
           </button>
         </div>
       </div>
+
+      {/* Lightbox ampliado para imagen de la obra */}
+      {isLightboxOpen && (
+        <div 
+          className="public-lightbox-overlay" 
+          style={{ zIndex: 1200 }} 
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsLightboxOpen(false);
+          }}
+        >
+          <div className="public-lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="public-lightbox-close"
+              onClick={() => setIsLightboxOpen(false)}
+              aria-label="Cerrar vista ampliada"
+            >
+              <X size={22} />
+            </button>
+
+            <div className="public-lightbox-img-wrap">
+              <img
+                src={primaryImage}
+                alt={project.nombre}
+                className="public-lightbox-img"
+              />
+            </div>
+
+            <div className="public-lightbox-caption">
+              <div className="public-lightbox-tags">
+                <span className="public-lightbox-category">{project.codigo} • {project.estado}</span>
+              </div>
+              <h3 className="public-lightbox-title">{project.nombre}</h3>
+              <p className="public-lightbox-desc">{project.descripcion || 'Obra civil de alta especificación técnica.'}</p>
+              <div className="public-lightbox-loc">
+                <MapPin size={14} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                <span>{project.ubicacion}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

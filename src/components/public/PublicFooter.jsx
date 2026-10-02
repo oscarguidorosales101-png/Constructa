@@ -58,7 +58,7 @@ export default function PublicFooter({ config = COMPANY_CONFIG, onNavigateSectio
           <div className="public-footer-col">
             <h4 className="public-footer-title">Obras y Talento</h4>
             <ul className="public-footer-links">
-              <li><a href="#proyectos" onClick={(e) => handleLinkClick(e, 'proyectos')}>Portafolio de Obras</a></li>
+              <li><a href="#proyectos-publicos" onClick={(e) => handleLinkClick(e, 'proyectos-publicos')}>Portafolio de Obras</a></li>
               <li><a href="#galeria" onClick={(e) => handleLinkClick(e, 'galeria')}>Galería Fotográfica</a></li>
               <li><a href="#trabaja-con-nosotros" onClick={(e) => handleLinkClick(e, 'trabaja-con-nosotros')}>Bolsa de Empleo</a></li>
               <li><a href="#contacto" onClick={(e) => handleLinkClick(e, 'contacto')}>Atención a Clientes</a></li>

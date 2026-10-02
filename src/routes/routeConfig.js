@@ -44,6 +44,7 @@ export const PUBLIC_ROUTES = [
   'inicio',
   'empresa',
   'especialidades',
+  'proyectos-publicos',
   'video',
   'logros',
   'galeria',
@@ -74,6 +75,12 @@ export const routeConfig = {
   especialidades: {
     path: 'especialidades',
     label: 'Especialidades',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  'proyectos-publicos': {
+    path: 'proyectos-publicos',
+    label: 'Proyectos',
     component: PublicLanding,
     isPrivate: false,
   },

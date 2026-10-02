@@ -173,23 +173,30 @@ export const ClientPortal = ({ onNavigate }) => {
     );
   }, [clientMeetings, clientEmail]);
 
-  // Proyectos vinculados al cliente (por ID o por relación)
+  // Proyectos vinculados estrictamente al cliente autenticado
   const myProjects = useMemo(() => {
     const directLinked = (currentUser?.proyectosAsociados || []);
-    return (projects || []).filter(
-      (p) => directLinked.includes(p.id) || p.id === 'PRJ-001'
-    );
-  }, [projects, currentUser]);
+    return (projects || []).filter((p) => {
+      // Vinculado explícitamente en el perfil del cliente
+      if (directLinked.includes(p.id)) return true;
+      // Vinculado por clienteId
+      if (currentUser?.id && (p.clienteId === currentUser.id || p.cliente === currentUser.nombre)) return true;
+      // Vinculado por correo del cliente
+      if (clientEmail && p.clienteEmail?.toLowerCase() === clientEmail.toLowerCase()) return true;
+      return false;
+    });
+  }, [projects, currentUser, clientEmail]);
 
   const primaryProject = myProjects[0] || null;
 
-  // Conversaciones filtradas del cliente
+  // Conversaciones privadas y exclusivas del cliente autenticado (Aislamiento Total)
   const myConversations = useMemo(() => {
-    return (conversations || []).filter(
-      (c) =>
-        c.clienteEmail?.toLowerCase() === clientEmail.toLowerCase() ||
-        c.clienteId === (currentUser?.id || 'CLI-001')
-    );
+    if (!currentUser && !clientEmail) return [];
+    return (conversations || []).filter((c) => {
+      const matchEmail = clientEmail && c.clienteEmail?.toLowerCase() === clientEmail.toLowerCase();
+      const matchId = currentUser?.id && c.clienteId === currentUser.id;
+      return Boolean(matchEmail || matchId);
+    });
   }, [conversations, clientEmail, currentUser]);
 
   // Establecer conversación activa inicial

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useConstructa } from '../../context/ConstructaContext';
 import { COMPANY_CONFIG } from '../../config/companyConfig';
 import {
@@ -11,7 +11,10 @@ import {
   Eye,
   CheckCircle2,
   ChevronRight,
-  Filter
+  Filter,
+  X,
+  ChevronLeft,
+  Maximize2
 } from 'lucide-react';
 import PublicProjectModal from './PublicProjectModal';
 
@@ -20,6 +23,58 @@ export default function PublicProjects({ onNavigateSection }) {
   const [filterStatus, setFilterStatus] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [lightboxData, setLightboxData] = useState(null); // { project, images: [], activeIndex: 0 }
+
+  // Lightbox keyboard controls & body scroll lock
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!lightboxData) return;
+      if (e.key === 'Escape') setLightboxData(null);
+      if (e.key === 'ArrowLeft') handleLightboxPrev();
+      if (e.key === 'ArrowRight') handleLightboxNext();
+    };
+    if (lightboxData) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [lightboxData]);
+
+  const handleLightboxPrev = () => {
+    setLightboxData((prev) => {
+      if (!prev) return null;
+      const nextIdx = prev.activeIndex > 0 ? prev.activeIndex - 1 : prev.images.length - 1;
+      return { ...prev, activeIndex: nextIdx };
+    });
+  };
+
+  const handleLightboxNext = () => {
+    setLightboxData((prev) => {
+      if (!prev) return null;
+      const nextIdx = prev.activeIndex < prev.images.length - 1 ? prev.activeIndex + 1 : 0;
+      return { ...prev, activeIndex: nextIdx };
+    });
+  };
+
+  const openLightboxForProject = (proj, projIdx) => {
+    const primary = proj.imagen || sampleImages[projIdx % sampleImages.length];
+    const galleryImgs = proj.galeria && proj.galeria.length > 0
+      ? proj.galeria
+      : [
+          primary,
+          sampleImages[(projIdx + 1) % sampleImages.length],
+          sampleImages[(projIdx + 2) % sampleImages.length]
+        ];
+    const uniqueImgs = Array.from(new Set([primary, ...galleryImgs]));
+    setLightboxData({
+      project: proj,
+      images: uniqueImgs,
+      activeIndex: 0
+    });
+  };
 
   // Compute spent amount for project from existing expenses
   const getProjectSpent = (projectId) => {
@@ -152,7 +207,15 @@ export default function PublicProjects({ onNavigateSection }) {
                   onClick={() => setSelectedProject(project)}
                 >
                   {/* Card Image */}
-                  <div className="public-proj-card-img-wrap">
+                  <div
+                    className="public-proj-card-img-wrap"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightboxForProject(project, idx);
+                    }}
+                    style={{ cursor: 'zoom-in' }}
+                    title="Clic para ampliar fotografía de la obra"
+                  >
                     <img
                       src={imgUrl}
                       alt={project.nombre}
@@ -168,6 +231,23 @@ export default function PublicProjects({ onNavigateSection }) {
                         {project.estado}
                       </span>
                       <span className="public-proj-code">{project.codigo}</span>
+                      <div
+                        style={{
+                          marginLeft: 'auto',
+                          background: 'rgba(10, 15, 25, 0.75)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '0.72rem',
+                          color: '#ffffff'
+                        }}
+                      >
+                        <Maximize2 size={12} />
+                        <span>Ver foto</span>
+                      </div>
                     </div>
                   </div>
 
@@ -256,6 +336,74 @@ export default function PublicProjects({ onNavigateSection }) {
               onNavigateSection?.('contacto');
             }}
           />
+        )}
+
+        {/* Lightbox Modal para Fotografías de Obras */}
+        {lightboxData && (
+          <div className="public-lightbox-overlay" onClick={() => setLightboxData(null)}>
+            <div className="public-lightbox-content" onClick={(e) => e.stopPropagation()}>
+              {/* Close Button */}
+              <button
+                type="button"
+                className="public-lightbox-close"
+                onClick={() => setLightboxData(null)}
+                aria-label="Cerrar vista ampliada"
+              >
+                <X size={22} />
+              </button>
+
+              {/* Navigation Arrows */}
+              {lightboxData.images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className="public-lightbox-nav prev"
+                    onClick={handleLightboxPrev}
+                    aria-label="Fotografía anterior"
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
+                  <button
+                    type="button"
+                    className="public-lightbox-nav next"
+                    onClick={handleLightboxNext}
+                    aria-label="Siguiente fotografía"
+                  >
+                    <ChevronRight size={28} />
+                  </button>
+                </>
+              )}
+
+              {/* Main Visual */}
+              <div className="public-lightbox-img-wrap">
+                <img
+                  src={lightboxData.images[lightboxData.activeIndex]}
+                  alt={lightboxData.project.nombre}
+                  className="public-lightbox-img"
+                />
+              </div>
+
+              {/* Caption Bar */}
+              <div className="public-lightbox-caption">
+                <div className="public-lightbox-tags">
+                  <span className="public-lightbox-category">
+                    {lightboxData.project.codigo} • {lightboxData.project.estado}
+                  </span>
+                  <span className="public-lightbox-counter">
+                    {lightboxData.activeIndex + 1} de {lightboxData.images.length}
+                  </span>
+                </div>
+                <h3 className="public-lightbox-title">{lightboxData.project.nombre}</h3>
+                <p className="public-lightbox-desc">
+                  {lightboxData.project.descripcion || 'Obra civil de alta especificación técnica y control de calidad.'}
+                </p>
+                <div className="public-lightbox-loc">
+                  <MapPin size={14} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                  <span>{lightboxData.project.ubicacion}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </section>

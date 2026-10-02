@@ -168,12 +168,13 @@ export const DEFAULT_CLIENTS = [
     nombre: 'Lic. Roberto Garza Sada',
     empresa: 'Inversiones Inmobiliarias del Valle S.A.',
     email: 'cliente@constructa.com',
+    aliasEmail: 'cliente.a@constructa.com',
     telefono: '+52 55 4920 1832',
     ciudad: 'Ciudad de México',
     pais: 'México',
     usuario: 'cliente',
     clave: 'Cliente2026!',
-    aliases: ['cliente123', 'cliente'],
+    aliases: ['cliente123', 'cliente', 'cliente.a@constructa.com'],
     rol: 'Cliente',
     avatar: 'RG',
     estadoVerificacion: 'Verificada',
@@ -182,6 +183,27 @@ export const DEFAULT_CLIENTS = [
     proyectosAsociados: ['PRJ-001'],
     notificaciones: [
       { id: 'NOT-1', fecha: '2026-03-27', leida: false, titulo: 'Evaluación técnica en curso', mensaje: 'El Ing. Carlos Mendoza ha tomado la evaluación de tu solicitud SOL-001.' }
+    ]
+  },
+  {
+    id: 'CLI-002',
+    nombre: 'Arq. Beatriz Morales Garza',
+    empresa: 'Desarrollos Residenciales del Norte',
+    email: 'cliente.b@constructa.com',
+    telefono: '+52 81 8320 9944',
+    ciudad: 'Monterrey, N.L.',
+    pais: 'México',
+    usuario: 'cliente.b',
+    clave: 'Cliente2026!',
+    aliases: ['clienteb'],
+    rol: 'Cliente',
+    avatar: 'BM',
+    estadoVerificacion: 'Verificada',
+    codigoVerificacion: '654321',
+    fechaRegistro: '2026-03-02',
+    proyectosAsociados: ['PRJ-002'],
+    notificaciones: [
+      { id: 'NOT-2', fecha: '2026-03-28', leida: false, titulo: 'Bienvenido a CONSTRUCTA', mensaje: 'Tu cuenta ya está activa en el portal privado.' }
     ]
   }
 ];
@@ -368,6 +390,35 @@ export const DEFAULT_CLIENT_CONVERSATIONS = [
         fecha: '2026-03-29',
         hora: '10:30',
         estado: 'Enviado'
+      }
+    ]
+  },
+  {
+    id: 'CONV-003',
+    clienteId: 'CLI-002',
+    clienteNombre: 'Arq. Beatriz Morales Garza',
+    clienteEmail: 'cliente.b@constructa.com',
+    proyectoId: 'PRJ-002',
+    proyectoNombre: 'Complejo Corporativo Nexus',
+    solicitudId: null,
+    asunto: 'Coordinación ejecutiva y seguimiento de obra Nexus',
+    responsable: 'Ing. Carlos Mendoza Rivas',
+    responsableRol: 'Gerente de Construcción',
+    estado: 'Abierta',
+    fechaCreacion: '2026-03-28',
+    ultimaActualizacion: '2026-03-28 11:20',
+    noLeidosCliente: 0,
+    noLeidosAdmin: 0,
+    mensajes: [
+      {
+        id: 'MSG-004',
+        remitente: 'Arq. Beatriz Morales Garza',
+        remitenteRol: 'Cliente',
+        remitenteTipo: 'cliente',
+        contenido: 'Mensaje privado B: Buenos días Ingeniero Carlos, confirmamos el avance de colado en Torre Nexus.',
+        fecha: '2026-03-28',
+        hora: '11:20',
+        estado: 'Leído'
       }
     ]
   }
@@ -974,7 +1025,11 @@ export const dataService = {
     // 2. Buscar coincidencia en la lista de Clientes registrados
     const clients = this.getClients();
     const matchedClient = clients.find(
-      (c) => c.email.toLowerCase() === cleanId || (c.usuario && c.usuario.toLowerCase() === cleanId)
+      (c) =>
+        c.email.toLowerCase() === cleanId ||
+        (c.aliasEmail && c.aliasEmail.toLowerCase() === cleanId) ||
+        (c.usuario && c.usuario.toLowerCase() === cleanId) ||
+        (Array.isArray(c.aliases) && c.aliases.map((a) => a.toLowerCase()).includes(cleanId))
     );
 
     if (matchedClient) {
@@ -3378,20 +3433,24 @@ export const dataService = {
 
   saveClient(clientData) {
     const list = this.getClients();
-    const existing = list.find((c) => c.email.toLowerCase() === clientData.email.toLowerCase().trim());
-    if (existing) {
-      throw new Error('Ya existe una cuenta registrada con este correo electrónico.');
+    const cleanEmail = clientData.email.toLowerCase().trim();
+    const existingClient = list.find((c) => c.email.toLowerCase() === cleanEmail);
+    const systemUsers = this.getUsers ? this.getUsers() : SYSTEM_USERS;
+    const existingUser = systemUsers.find((u) => u.email.toLowerCase() === cleanEmail);
+
+    if (existingClient || existingUser) {
+      throw new Error('Ya existe una cuenta asociada a este correo electrónico.');
     }
 
     const newClient = {
       id: generateNextId(list, 'CLI'),
       nombre: clientData.nombre.trim(),
       empresa: clientData.empresa?.trim() || '',
-      email: clientData.email.toLowerCase().trim(),
+      email: cleanEmail,
       telefono: clientData.telefono.trim(),
       ciudad: clientData.ciudad?.trim() || '',
       pais: clientData.pais?.trim() || 'México',
-      usuario: clientData.email.toLowerCase().trim(),
+      usuario: cleanEmail,
       clave: clientData.password || clientData.clave,
       rol: 'Cliente',
       avatar: clientData.nombre.trim().slice(0, 2).toUpperCase(),
@@ -3405,13 +3464,51 @@ export const dataService = {
           fecha: new Date().toISOString().split('T')[0],
           leida: false,
           titulo: 'Bienvenido a CONSTRUCTA',
-          mensaje: 'Tu cuenta ha sido creada. Completa la verificación para solicitar proyectos y reuniones.'
+          mensaje: 'Tu cuenta ya está activa. Desde tu portal podrás consultar tus proyectos, realizar solicitudes, compartir documentación y comunicarte con el equipo responsable de tu proyecto.'
         }
       ]
     };
 
     const updated = [...list, newClient];
     storageService.set(KEYS.CLIENTS, updated);
+
+    // Preparar mensaje de bienvenida privado en Mesa de Ayuda y Soporte
+    try {
+      const allConvs = storageService.get(KEYS.CLIENT_CONVERSATIONS, DEFAULT_CLIENT_CONVERSATIONS);
+      const welcomeConv = {
+        id: generateNextId(allConvs, 'CONV'),
+        clienteId: newClient.id,
+        clienteNombre: newClient.nombre,
+        clienteEmail: newClient.email,
+        proyectoId: null,
+        proyectoNombre: 'Mesa de Ayuda y Soporte',
+        solicitudId: null,
+        asunto: 'Bienvenido a CONSTRUCTA',
+        responsable: 'Equipo CONSTRUCTA',
+        responsableRol: 'Administrador',
+        estado: 'Abierta',
+        fechaCreacion: newClient.fechaRegistro,
+        ultimaActualizacion: `${newClient.fechaRegistro} 09:00`,
+        noLeidosCliente: 1,
+        noLeidosAdmin: 0,
+        mensajes: [
+          {
+            id: 'MSG-' + Date.now().toString().slice(-6),
+            remitente: 'Soporte CONSTRUCTA',
+            remitenteRol: 'Administrador',
+            remitenteTipo: 'equipo',
+            contenido: 'Tu cuenta ya está activa. Desde tu portal podrás consultar tus proyectos, realizar solicitudes, compartir documentación y comunicarte con el equipo responsable de tu proyecto.\n\nEstamos disponibles para orientarte durante el proceso.',
+            fecha: newClient.fechaRegistro,
+            hora: '09:00',
+            estado: 'Enviado'
+          }
+        ]
+      };
+      storageService.set(KEYS.CLIENT_CONVERSATIONS, [welcomeConv, ...allConvs]);
+    } catch (e) {
+      console.warn('Error al sembrar conversación de bienvenida:', e);
+    }
+
     this.addHistoryEntry('Registro de Cliente', `Nueva cuenta de cliente registrada: ${newClient.nombre} (${newClient.email})`);
     return newClient;
   },

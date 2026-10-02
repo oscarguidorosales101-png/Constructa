@@ -29,6 +29,7 @@ const MODULES_MAP = {
   empresa: { id: 'empresa', label: 'Empresa', icon: Building2 },
   especialidades: { id: 'especialidades', label: 'Especialidades', icon: Layers },
   proyectos: { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
+  'proyectos-publicos': { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
   video: { id: 'video', label: 'Video', icon: Video },
   logros: { id: 'logros', label: 'Logros', icon: Award },
   galeria: { id: 'galeria', label: 'Galería', icon: ImageIcon },
@@ -87,10 +88,12 @@ export default function PublicLanding({ config = COMPANY_CONFIG, initialModule =
   // Manejador centralizado de cambio de módulo
   const handleNavigateSection = (moduleId) => {
     const target = moduleId.toLowerCase();
-    if (MODULES_MAP[target]) {
-      setActiveModule(target);
-      if (window.location.hash !== `#${target}`) {
-        window.location.hash = target;
+    const effectiveModule = target === 'proyectos-publicos' ? 'proyectos' : target;
+    if (MODULES_MAP[effectiveModule]) {
+      setActiveModule(effectiveModule);
+      const targetHash = effectiveModule === 'proyectos' ? 'proyectos-publicos' : effectiveModule;
+      if (window.location.hash !== `#${targetHash}`) {
+        window.location.hash = targetHash;
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (target === 'login') {

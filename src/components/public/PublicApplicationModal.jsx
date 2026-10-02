@@ -31,50 +31,71 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [createdApplicantId, setCreatedApplicantId] = useState('');
   const [errors, setErrors] = useState({});
+  const [validationAlert, setValidationAlert] = useState(null); // { step, message }
 
-  // Form State
-  const [formData, setFormData] = useState({
-    nombre: '',
-    dni: '',
-    email: '',
-    telefono: '',
-    ubicacion: '',
-    puestoSolicitado: vacancy?.puesto || '',
-    profesion: 'Ingeniería Civil / Edificación',
-    area: vacancy?.area || 'Operaciones en Obra',
-    disponibilidad: 'Inmediata',
-    tipoJornada: vacancy?.tipoJornada || 'Tiempo Completo',
-    experienciaAnios: '3 a 5 años',
-    perfilProfesional: '',
-    experiencias: [
-      {
-        puesto: '',
-        empresa: '',
-        fechaInicio: '',
-        fechaFin: '',
-        responsabilidades: '',
-        referenciaContacto: ''
+  // Form State with Draft Persistence
+  const [formData, setFormData] = useState(() => {
+    try {
+      const savedDraft = sessionStorage.getItem('constructa_candidate_draft');
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft);
+        return {
+          ...parsed,
+          puestoSolicitado: vacancy?.puesto || parsed.puestoSolicitado || '',
+          area: vacancy?.area || parsed.area || 'Operaciones en Obra'
+        };
       }
-    ],
-    formacion: [
-      {
-        titulo: '',
-        institucion: '',
-        anio: '',
-        tipo: 'Universitaria'
-      }
-    ],
-    habilidadesInput: '',
-    habilidades: ['Supervisión de Obra', 'Interpretación de Planos', 'Control de Calidad'],
-    certificaciones: [
-      {
-        titulo: '',
-        institucion: '',
-        anio: ''
-      }
-    ],
-    documentos: []
+    } catch (_) {}
+    return {
+      nombre: '',
+      dni: '',
+      email: '',
+      telefono: '',
+      ubicacion: '',
+      puestoSolicitado: vacancy?.puesto || '',
+      profesion: 'Ingeniería Civil / Edificación',
+      area: vacancy?.area || 'Operaciones en Obra',
+      disponibilidad: 'Inmediata',
+      tipoJornada: vacancy?.tipoJornada || 'Tiempo Completo',
+      experienciaAnios: '3 a 5 años',
+      perfilProfesional: '',
+      experiencias: [
+        {
+          puesto: '',
+          empresa: '',
+          fechaInicio: '',
+          fechaFin: '',
+          responsabilidades: '',
+          referenciaContacto: ''
+        }
+      ],
+      formacion: [
+        {
+          titulo: '',
+          institucion: '',
+          anio: '',
+          tipo: 'Universitaria'
+        }
+      ],
+      habilidadesInput: '',
+      habilidades: ['Supervisión de Obra', 'Interpretación de Planos', 'Control de Calidad'],
+      certificaciones: [
+        {
+          titulo: '',
+          institucion: '',
+          anio: ''
+        }
+      ],
+      documentos: []
+    };
   });
+
+  // Keep draft updated in sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('constructa_candidate_draft', JSON.stringify(formData));
+    } catch (_) {}
+  }, [formData]);
 
   useEffect(() => {
     if (vacancy) {
@@ -134,17 +155,41 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
       }
     }
 
+    if (step === 4) {
+      if (!formData.habilidades || formData.habilidades.length === 0) {
+        newErrors.habilidades = 'Agrega al menos una habilidad o competencia técnica.';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateAll = () => {
+    if (!validateStep(1)) {
+      return { valid: false, step: 1, message: 'Falta información en Datos personales.' };
+    }
+    if (!validateStep(2)) {
+      return { valid: false, step: 2, message: 'Falta información en Perfil.' };
+    }
+    if (!validateStep(3)) {
+      return { valid: false, step: 3, message: 'Falta información en Experiencia.' };
+    }
+    if (!validateStep(4)) {
+      return { valid: false, step: 4, message: 'Falta información en Formación y Habilidades.' };
+    }
+    return { valid: true };
+  };
+
   const handleNext = () => {
     if (validateStep(currentStep)) {
+      setValidationAlert(null);
       setCurrentStep((prev) => Math.min(prev + 1, 6));
     }
   };
 
   const handlePrev = () => {
+    setValidationAlert(null);
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
@@ -284,9 +329,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
   // Final Submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+    const check = validateAll();
+    if (!check.valid) {
+      setValidationAlert(check);
       return;
     }
+    setValidationAlert(null);
 
     const cleanExperiencias = formData.experiencias.filter((e) => e.puesto || e.empresa);
     const cleanFormacion = formData.formacion.filter((f) => f.titulo || f.institucion);
@@ -331,9 +379,15 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
       const saved = saveApplicant(payload);
       const generatedId = (Array.isArray(saved) ? saved[0]?.id : saved?.id) || 'POS-REC';
       setCreatedApplicantId(generatedId);
+      try {
+        sessionStorage.removeItem('constructa_candidate_draft');
+      } catch (_) {}
       setIsSubmitted(true);
     } catch (err) {
       console.error('Error al registrar postulación:', err);
+      try {
+        sessionStorage.removeItem('constructa_candidate_draft');
+      } catch (_) {}
       setIsSubmitted(true);
     }
   };
@@ -354,9 +408,14 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
         {/* Modal Header */}
         <div className="modal-header">
           <div>
-            <span style={{ color: 'var(--accent-amber, #f59e0b)', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.5px' }}>
-              BOLSA DE TRABAJO CONSTRUCTA
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+              <span style={{ color: 'var(--accent-amber, #f59e0b)', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.5px' }}>
+                BOLSA DE TRABAJO CONSTRUCTA
+              </span>
+              <span style={{ background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.35)', color: '#fbbf24', fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: '4px' }}>
+                Borrador de postulación
+              </span>
+            </div>
             <h3 className="modal-title" style={{ fontSize: '1.25rem', marginTop: '2px' }}>
               {vacancy ? `Postulación: ${vacancy.puesto}` : 'Postulación Abierta de Candidato'}
             </h3>
@@ -432,12 +491,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
             {/* Stepper Progresivo de 6 Pasos */}
             <div className="public-steps-nav">
               {[
-                { num: 1, label: 'Datos Personales', code: '01' },
-                { num: 2, label: 'Perfil', code: '02' },
-                { num: 3, label: 'Experiencia', code: '03' },
-                { num: 4, label: 'Formación', code: '04' },
-                { num: 5, label: 'Documentos', code: '05' },
-                { num: 6, label: 'Revisión', code: '06' }
+                { num: 1, label: '1 Datos personales', code: '01' },
+                { num: 2, label: '2 Perfil', code: '02' },
+                { num: 3, label: '3 Experiencia', code: '03' },
+                { num: 4, label: '4 Formación', code: '04' },
+                { num: 5, label: '5 Documentos', code: '05' },
+                { num: 6, label: '6 Revisión', code: '06' }
               ].map((step) => (
                 <div
                   key={step.num}
@@ -972,8 +1031,49 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
               {/* BLOQUE 6: REVISIÓN PREVIA AL ENVÍO */}
               {currentStep === 6 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.25rem', color: '#ffffff', margin: '0 0 4px 0', fontWeight: 700 }}>
+                      Revisa tu postulación
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-muted, #94a3b8)' }}>
+                      Verifica la exactitud de tu información antes de realizar el envío definitivo. Cada sección puede editarse individualmente.
+                    </p>
+                  </div>
+
+                  {/* Validation Alert si faltan campos obligatorios */}
+                  {validationAlert && (
+                    <div
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        border: '1px solid rgba(239, 68, 68, 0.35)',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', fontSize: '0.88rem', fontWeight: 500 }}>
+                        <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                        <span>{validationAlert.message}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => {
+                          setCurrentStep(validationAlert.step);
+                          setValidationAlert(null);
+                        }}
+                        style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.4)', padding: '4px 12px', fontSize: '0.82rem' }}
+                      >
+                        Revisar
+                      </button>
+                    </div>
+                  )}
+
                   <div className="public-review-summary-box">
-                    {/* Header Datos Personales */}
+                    {/* Tarjeta 1: Datos Personales */}
                     <div className="public-review-section">
                       <div className="public-review-section-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1018,12 +1118,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       </div>
                     </div>
 
-                    {/* Header Perfil */}
+                    {/* Tarjeta 2: Perfil Profesional */}
                     <div className="public-review-section">
                       <div className="public-review-section-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Briefcase size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
-                          <h4 className="public-review-title">2. Perfil Profesional</h4>
+                          <h4 className="public-review-title">2. Perfil</h4>
                         </div>
                         <button
                           type="button"
@@ -1060,12 +1160,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       )}
                     </div>
 
-                    {/* Header Experiencia */}
+                    {/* Tarjeta 3: Experiencia Laboral */}
                     <div className="public-review-section">
                       <div className="public-review-section-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Briefcase size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
-                          <h4 className="public-review-title">3. Experiencia Laboral ({formData.experiencias.filter(e => e.puesto || e.empresa).length})</h4>
+                          <h4 className="public-review-title">3. Experiencia ({formData.experiencias.filter(e => e.puesto || e.empresa).length})</h4>
                         </div>
                         <button
                           type="button"
@@ -1088,12 +1188,12 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                       </div>
                     </div>
 
-                    {/* Header Formación y Habilidades */}
+                    {/* Tarjeta 4: Formación */}
                     <div className="public-review-section">
                       <div className="public-review-section-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <GraduationCap size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
-                          <h4 className="public-review-title">4. Formación y Habilidades</h4>
+                          <h4 className="public-review-title">4. Formación Académica</h4>
                         </div>
                         <button
                           type="button"
@@ -1103,26 +1203,49 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                           Editar
                         </button>
                       </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {formData.formacion.filter(f => f.titulo).length === 0 ? (
+                          <span style={{ fontSize: '0.84rem', color: 'var(--text-muted, #94a3b8)' }}>No se especificó formación académica formal.</span>
+                        ) : (
+                          formData.formacion.filter(f => f.titulo).map((f, idx) => (
+                            <div key={idx} style={{ fontSize: '0.84rem', color: 'var(--text-secondary, #94a3b8)' }}>
+                              <strong style={{ color: '#ffffff' }}>{f.titulo}</strong> — {f.institucion} {f.anio ? `(${f.anio})` : ''}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tarjeta 5: Habilidades */}
+                    <div className="public-review-section">
+                      <div className="public-review-section-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Award size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                          <h4 className="public-review-title">5. Habilidades y Competencias</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className="public-btn-edit-step"
+                          onClick={() => setCurrentStep(4)}
+                        >
+                          Editar
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                         {formData.habilidades.map((h, idx) => (
                           <span key={idx} className="public-skill-tag" style={{ fontSize: '0.78rem', padding: '3px 8px' }}>
                             {h}
                           </span>
                         ))}
                       </div>
-                      {formData.formacion.filter(f => f.titulo).map((f, idx) => (
-                        <div key={idx} style={{ fontSize: '0.84rem', color: 'var(--text-secondary, #94a3b8)' }}>
-                          <strong style={{ color: '#ffffff' }}>{f.titulo}</strong> — {f.institucion} {f.anio ? `(${f.anio})` : ''}
-                        </div>
-                      ))}
                     </div>
 
-                    {/* Header Documentos */}
+                    {/* Tarjeta 6: Documentos */}
                     <div className="public-review-section" style={{ borderBottom: 'none' }}>
                       <div className="public-review-section-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <FileText size={16} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
-                          <h4 className="public-review-title">5. Documentos Anexados ({formData.documentos.length})</h4>
+                          <h4 className="public-review-title">6. Documentos ({formData.documentos.length})</h4>
                         </div>
                         <button
                           type="button"
@@ -1165,7 +1288,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                     onClick={handlePrev}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
-                    <ArrowLeft size={14} /> Anterior
+                    <ArrowLeft size={14} /> ← Atrás
                   </button>
                 )}
               </div>
@@ -1186,7 +1309,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                     onClick={handleNext}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
-                    Siguiente <ArrowRight size={14} />
+                    Continuar → <ArrowRight size={14} />
                   </button>
                 ) : (
                   <button
@@ -1194,7 +1317,7 @@ export default function PublicApplicationModal({ vacancy, isOpen, onClose }) {
                     className="btn btn-primary"
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
-                    <Send size={15} /> Confirmar y Enviar Postulación
+                    <Send size={15} /> Enviar postulación
                   </button>
                 )}
               </div>

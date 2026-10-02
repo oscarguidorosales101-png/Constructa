@@ -50,10 +50,11 @@ export const ClientRegister = ({ onNavigate }) => {
 
   // Modales de Términos y Privacidad
   const [legalModal, setLegalModal] = useState(null); // 'privacy' | 'terms' | null
+  const [forgotModal, setForgotModal] = useState(false);
 
-  // Validación de contraseña en tiempo real
+  // Validación de contraseña en tiempo real (mínimo 8 caracteres)
   const passwordCriteria = {
-    length: formData.password.length >= 6,
+    length: formData.password.length >= 8,
     hasNumber: /\d/.test(formData.password),
     hasLetter: /[a-zA-Z]/.test(formData.password),
     match: formData.password && formData.password === formData.confirmPassword,
@@ -62,7 +63,7 @@ export const ClientRegister = ({ onNavigate }) => {
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null }));
+      setErrors((prev) => ({ ...prev, [field]: null, isDuplicate: false }));
     }
   };
 
@@ -82,8 +83,8 @@ export const ClientRegister = ({ onNavigate }) => {
     }
     if (!formData.password) {
       newErrors.password = 'Define una contraseña segura.';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres.';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'La contraseña debe contener al menos 8 caracteres.';
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden.';
@@ -119,7 +120,17 @@ export const ClientRegister = ({ onNavigate }) => {
         setSimulatedCode(res.cliente.codigoVerificacion);
         setStep('verify');
       } else {
-        setErrors({ email: res.error || 'No se pudo completar el registro.' });
+        const errorMsg = res.error || 'No se pudo completar el registro.';
+        const isDuplicate =
+          errorMsg.toLowerCase().includes('ya existe') ||
+          errorMsg.toLowerCase().includes('registrada') ||
+          errorMsg.toLowerCase().includes('asociada');
+        setErrors({
+          email: isDuplicate
+            ? 'Ya existe una cuenta asociada a este correo electrónico.'
+            : errorMsg,
+          isDuplicate: isDuplicate,
+        });
       }
     }, 400);
   };
@@ -137,13 +148,10 @@ export const ClientRegister = ({ onNavigate }) => {
       setIsSubmitting(false);
 
       if (res.ok) {
-        // Iniciar sesión automáticamente tras verificación exitosa
-        login(registeredEmail, formData.password);
-        if (onNavigate) {
-          onNavigate('portal-cliente');
-        } else {
-          window.location.hash = 'portal-cliente';
-        }
+        // Redirección y confirmación después del registro según regla de usuario:
+        // NO iniciar sesión automáticamente. Mostrar confirmación y llevar al Login.
+        sessionStorage.setItem('constructa_registered_email', registeredEmail);
+        setStep('success');
       } else {
         showAlert(res.error || 'Código incorrecto. Revisa el código proporcionado.', 'error');
       }
@@ -195,12 +203,18 @@ export const ClientRegister = ({ onNavigate }) => {
             <HardHat size={28} />
           </div>
           <h1 className="login-title" style={{ fontSize: '1.5rem' }}>
-            {step === 'form' ? 'Registro de Cuenta Cliente' : 'Verificación de Cuenta'}
+            {step === 'form'
+              ? 'Registro de Cuenta Cliente'
+              : step === 'verify'
+              ? 'Verificación de Cuenta'
+              : 'Cuenta Creada Correctamente'}
           </h1>
           <p className="login-subtitle">
             {step === 'form'
               ? 'Acceda a presupuestos formales, seguimiento de obra y documentación de su proyecto.'
-              : 'Verifique su identidad para proteger la confidencialidad de sus obras y contratos.'}
+              : step === 'verify'
+              ? 'Verifique su identidad para proteger la confidencialidad de sus obras y contratos.'
+              : 'Su cuenta ha sido registrada en CONSTRUCTA con máxima privacidad de datos.'}
           </p>
         </div>
 
@@ -210,21 +224,26 @@ export const ClientRegister = ({ onNavigate }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '1rem',
+            gap: '0.75rem',
             marginBottom: '1.5rem',
-            padding: '0.6rem',
+            padding: '0.6rem 0.85rem',
             background: 'rgba(255, 255, 255, 0.03)',
             borderRadius: '8px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: step === 'form' ? '#f59e0b' : '#10b981', fontWeight: 700, fontSize: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: step === 'form' ? '#f59e0b' : '#10b981', fontWeight: 700, fontSize: '0.78rem' }}>
             <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: step === 'form' ? '#f59e0b' : '#10b981', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>1</span>
-            Datos del Cliente
+            Datos
           </div>
-          <div style={{ width: '30px', height: '1px', background: 'rgba(255, 255, 255, 0.15)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: step === 'verify' ? '#f59e0b' : '#64748b', fontWeight: 700, fontSize: '0.8rem' }}>
-            <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: step === 'verify' ? '#f59e0b' : 'rgba(255, 255, 255, 0.1)', color: step === 'verify' ? '#000' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>2</span>
-            Verificación de Seguridad
+          <div style={{ width: '20px', height: '1px', background: 'rgba(255, 255, 255, 0.15)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: step === 'verify' ? '#f59e0b' : step === 'success' ? '#10b981' : '#64748b', fontWeight: 700, fontSize: '0.78rem' }}>
+            <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: step === 'verify' ? '#f59e0b' : step === 'success' ? '#10b981' : 'rgba(255, 255, 255, 0.1)', color: step === 'verify' || step === 'success' ? '#000' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>2</span>
+            Verificación
+          </div>
+          <div style={{ width: '20px', height: '1px', background: 'rgba(255, 255, 255, 0.15)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: step === 'success' ? '#10b981' : '#64748b', fontWeight: 700, fontSize: '0.78rem' }}>
+            <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: step === 'success' ? '#10b981' : 'rgba(255, 255, 255, 0.1)', color: step === 'success' ? '#000' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>3</span>
+            Confirmación
           </div>
         </div>
 
@@ -266,6 +285,45 @@ export const ClientRegister = ({ onNavigate }) => {
                   <Mail size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 </div>
                 {errors.email && <span className="form-error">{errors.email}</span>}
+                {errors.isDuplicate && (
+                  <div style={{ marginTop: '6px', display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.78rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sessionStorage.setItem('constructa_registered_email', formData.email.trim());
+                        if (onNavigate) onNavigate('login');
+                        else window.location.hash = 'login';
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#f59e0b',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Iniciar sesión
+                    </button>
+                    <span style={{ color: '#64748b' }}>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setForgotModal(true)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#94a3b8',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Recuperar contraseña
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -315,7 +373,7 @@ export const ClientRegister = ({ onNavigate }) => {
                     style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                   />
                   <Lock size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <button
@@ -361,7 +419,7 @@ export const ClientRegister = ({ onNavigate }) => {
               <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>Requisitos de seguridad:</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '0.7rem' }}>
                 <span style={{ color: passwordCriteria.length ? '#10b981' : '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle2 size={12} /> Al menos 6 caracteres
+                  <CheckCircle2 size={12} /> Al menos 8 caracteres
                 </span>
                 <span style={{ color: passwordCriteria.hasNumber ? '#10b981' : '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <CheckCircle2 size={12} /> Incluye un número
@@ -511,7 +569,89 @@ export const ClientRegister = ({ onNavigate }) => {
             </div>
           </form>
         )}
+
+        {/* ===================== PASO 3: CONFIRMACIÓN Y REDIRECCIÓN A LOGIN ===================== */}
+        {step === 'success' && (
+          <div style={{ textAlign: 'center', padding: '1.25rem 0' }}>
+            <div
+              style={{
+                width: '68px',
+                height: '68px',
+                borderRadius: '50%',
+                background: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                color: '#10b981',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.25rem',
+              }}
+            >
+              <CheckCircle2 size={40} />
+            </div>
+
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#f8fafc', marginBottom: '0.75rem' }}>
+              Cuenta creada correctamente
+            </h2>
+
+            <p style={{ fontSize: '0.92rem', color: '#cbd5e1', lineHeight: 1.6, maxWidth: '460px', margin: '0 auto 1.75rem' }}>
+              Tu cuenta de Cliente fue creada correctamente. Ahora puedes iniciar sesión para acceder a tu portal y gestionar tus solicitudes, proyectos y comunicación con CONSTRUCTA.
+            </p>
+
+            <Button
+              type="button"
+              variant="primary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              icon={ArrowRight}
+              onClick={() => {
+                sessionStorage.setItem('constructa_registered_email', registeredEmail || formData.email.trim());
+                if (onNavigate) {
+                  onNavigate('login');
+                } else {
+                  window.location.hash = 'login';
+                }
+              }}
+            >
+              Ir a Iniciar sesión
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* MODAL DE RECUPERAR CONTRASEÑA */}
+      {forgotModal && (
+        <div className="client-modal-overlay" onClick={() => setForgotModal(false)}>
+          <div className="client-modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px' }}>
+            <div className="client-modal-header">
+              <h3>Recuperación de Contraseña</h3>
+              <button
+                type="button"
+                onClick={() => setForgotModal(false)}
+                style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '1.4rem', cursor: 'pointer' }}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="client-modal-body" style={{ fontSize: '0.88rem', lineHeight: 1.6, color: '#cbd5e1' }}>
+              <p>
+                Para restablecer el acceso a su cuenta corporativa o privada de Cliente, por favor comuníquese con el departamento de soporte y seguridad de <strong>CONSTRUCTA</strong>:
+              </p>
+              <div style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '0.75rem', borderRadius: '6px', margin: '0.75rem 0' }}>
+                <p style={{ margin: 0, color: '#f59e0b' }}><strong>Correo de Soporte:</strong> soporte@constructa.com</p>
+                <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}><strong>Conmutador:</strong> +52 81 8345 6789 (Ext. 104)</p>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: 0 }}>
+                Un administrador validará su identidad y emitirá un enlace temporal de restablecimiento seguro.
+              </p>
+            </div>
+            <div className="client-modal-footer">
+              <Button variant="primary" onClick={() => setForgotModal(false)}>
+                Entendido
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL DE AVISO DE PRIVACIDAD / TÉRMINOS */}
       {legalModal && (

@@ -49,6 +49,7 @@ export const ClientRequestsManager = ({ onNavigate }) => {
   // Rol del usuario actual: Administrador o Gerente de Construcción
   const isGerente = currentUser?.rol === 'Gerente de Construcción';
   const isAdmin = currentUser?.rol === 'Administrador';
+  const isRRHH = currentUser?.rol === 'RRHH / Reclutamiento';
 
   // Pestaña principal: 'solicitudes' | 'mensajeria'
   const [activeMainTab, setActiveMainTab] = useState('solicitudes');
@@ -82,6 +83,21 @@ export const ClientRequestsManager = ({ onNavigate }) => {
     fechaInicio: new Date().toISOString().split('T')[0],
     fechaFin: new Date(Date.now() + 86400000 * 365).toISOString().split('T')[0],
   });
+
+  // Conversaciones filtradas para Mesa de Ayuda (Aislamiento por Rol)
+  const allConversations = useMemo(() => {
+    const list = conversations || [];
+    if (isGerente) {
+      // El Gerente sólo accede a conversaciones técnicas u operativas que le correspondan
+      return list.filter((c) =>
+        c.responsableRol === 'Gerente de Construcción' ||
+        c.responsable?.toLowerCase().includes('carlos mendoza') ||
+        c.responsable?.toLowerCase().includes('gerente') ||
+        (c.proyectoId && ['PRJ-001', 'PRJ-002'].includes(c.proyectoId))
+      );
+    }
+    return list;
+  }, [conversations, isGerente]);
 
   // Lista de Solicitudes Filtradas
   const filteredRequests = useMemo(() => {
@@ -123,7 +139,6 @@ export const ClientRequestsManager = ({ onNavigate }) => {
   }, [clientRequests, viewScope, statusFilter, searchTerm, currentUser]);
 
   // Conversaciones filtradas para Mesa de Ayuda
-  const allConversations = conversations || [];
   const adminUnreadCount = typeof unreadMessagesCount === 'number' ? unreadMessagesCount : 0;
 
   const filteredConversations = useMemo(() => {
@@ -279,6 +294,19 @@ export const ClientRequestsManager = ({ onNavigate }) => {
     setIsConvertToProjectModalOpen(false);
     setSelectedRequest(null);
   };
+
+  if (isRRHH) {
+    return (
+      <div className="module-container" style={{ padding: '3rem 2rem', textAlign: 'center', color: '#94a3b8' }}>
+        <div style={{ maxWidth: '520px', margin: '0 auto', background: 'rgba(255, 255, 255, 0.03)', padding: '2rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <h2 style={{ color: '#ffffff', marginBottom: '0.75rem', fontSize: '1.25rem' }}>Acceso Restringido</h2>
+          <p style={{ lineHeight: 1.6, fontSize: '0.9rem', color: '#cbd5e1' }}>
+            El módulo de Solicitudes Comerciales y Mensajería con Clientes es exclusivo de Administración y Gerencia de Construcción. Recursos Humanos gestiona de forma aislada la selección de postulantes y citas laborales.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="module-container" style={{ padding: '1.5rem 2rem' }}>

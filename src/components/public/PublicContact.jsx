@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { COMPANY_CONFIG } from '../../config/companyConfig';
+import { useConstructa } from '../../context/ConstructaContext';
+import { sendContactEmail } from '../../services/emailjsService';
 import {
   MapPin,
   Phone,
@@ -15,6 +17,7 @@ import {
 
 export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSection }) {
   const { contact, identity } = config;
+  const { saveClientRequest } = useConstructa();
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -24,6 +27,8 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
   });
   const [errors, setErrors] = useState({});
   const [isSent, setIsSent] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState(null);
 
   const validate = () => {
     const errs = {};
@@ -38,10 +43,49 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      setIsSent(true);
+    if (!validate()) return;
+
+    setIsSending(true);
+    setSendError(null);
+
+    try {
+      // 1. Persistencia local de la solicitud
+      if (typeof saveClientRequest === 'function') {
+        saveClientRequest({
+          clienteNombre: formData.nombre.trim(),
+          clienteEmail: formData.email.trim(),
+          clienteTelefono: formData.telefono.trim(),
+          tipo: formData.asunto,
+          titulo: `[Web] ${formData.asunto} - ${formData.nombre.trim()}`,
+          descripcion: formData.mensaje.trim(),
+          ubicacion: 'Contacto Web Público',
+          origen: 'Formulario Web'
+        });
+      }
+
+      // 2. Envío a través de EmailJS con fallback seguro
+      const result = await sendContactEmail({
+        nombre: formData.nombre.trim(),
+        email: formData.email.trim(),
+        telefono: formData.telefono.trim(),
+        asunto: formData.asunto,
+        mensaje: formData.mensaje.trim()
+      });
+
+      if (result.success) {
+        setIsSent(true);
+      } else {
+        setSendError('Revisa los datos e inténtalo nuevamente.');
+      }
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('[PublicContact] Error procesando contacto:', err);
+      }
+      setSendError('Revisa los datos e inténtalo nuevamente.');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -173,9 +217,9 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                 <div className="public-sent-icon-circle">
                   <CheckCircle2 size={44} />
                 </div>
-                <h3 className="public-sent-title">Mensaje enviado exitosamente</h3>
+                <h3 className="public-sent-title">Mensaje enviado correctamente</h3>
                 <p className="public-sent-desc">
-                  Hemos recibido tu consulta técnica o solicitud comercial. Un asesor de ingeniería de CONSTRUCTA se pondrá en contacto contigo en un plazo menor a 24 horas hábiles.
+                  Recibimos tu solicitud. Nuestro equipo revisará la información y se pondrá en contacto contigo.
                 </p>
                 <button
                   type="button"
@@ -200,6 +244,31 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                 <p className="public-form-subtitle">
                   Describe tu proyecto o requerimiento constructivo y te responderemos a la brevedad.
                 </p>
+
+                {sendError && (
+                  <div
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      border: '1px solid rgba(239, 68, 68, 0.35)',
+                      borderRadius: '8px',
+                      padding: '12px 16px',
+                      marginBottom: '1.25rem',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '10px'
+                    }}
+                  >
+                    <AlertCircle size={20} style={{ color: '#f87171', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <strong style={{ color: '#f87171', display: 'block', fontSize: '0.9rem', marginBottom: '2px' }}>
+                        No pudimos enviar el mensaje
+                      </strong>
+                      <span style={{ fontSize: '0.84rem', color: '#cbd5e1' }}>
+                        {sendError}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <div
                   style={{
@@ -302,9 +371,21 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                   {errors.mensaje && <span className="public-form-error">{errors.mensaje}</span>}
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.85rem 1.5rem', fontSize: '0.95rem' }}>
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '0.85rem 1.5rem',
+                    fontSize: '0.95rem',
+                    opacity: isSending ? 0.7 : 1,
+                    cursor: isSending ? 'not-allowed' : 'pointer'
+                  }}
+                >
                   <Send size={16} />
-                  <span>Enviar Mensaje a Operaciones</span>
+                  <span>{isSending ? 'Enviando...' : 'Enviar Mensaje a Operaciones'}</span>
                 </button>
               </form>
             )}
