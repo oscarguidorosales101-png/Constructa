@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Sun,
   Moon,
-  Monitor,
   Type,
   Eye,
   Volume2,
@@ -17,10 +16,15 @@ import {
   Info,
   Sliders,
   Sparkles,
-  ZapOff
+  ZapOff,
+  Gauge,
+  Contrast,
+  CheckCircle2,
+  XCircle,
+  AlertCircle
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
-import accessibilityService from '../../services/accessibilityService.js';
+import accessibilityService, { SPEECH_RATES } from '../../services/accessibilityService.js';
 
 export const AccessibilityModal = () => {
   const {
@@ -37,667 +41,949 @@ export const AccessibilityModal = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
-  const [speechPitch, setSpeechPitch] = useState(1);
-  const [speechVolume, setSpeechVolume] = useState(1);
-  const [testText, setTestText] = useState(accessibilityService.SAMPLE_TEXT);
-  const [activeTab, setActiveTab] = useState('apariencia'); // 'apariencia' | 'texto' | 'vision' | 'voz'
+  const [activeTab, setActiveTab] = useState('apariencia'); // 'apariencia' | 'texto' | 'vision' | 'movimiento' | 'voz'
   const [isSaving, setIsSaving] = useState(false);
 
-  // Cargar voces del navegador
+  const modalRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  // Guardar elemento que tenía foco antes de abrir para restaurarlo al cerrar
+  useEffect(() => {
+    if (isAccessibilityModalOpen) {
+      triggerRef.current = document.activeElement;
+    } else if (triggerRef.current && typeof triggerRef.current.focus === 'function') {
+      triggerRef.current.focus();
+    }
+  }, [isAccessibilityModalOpen]);
+
+  // Cargar voces del navegador con orden preferente
   useEffect(() => {
     const loadVoices = () => {
-      const realVoices = accessibilityService.getVoices();
+      const realVoices = accessibilityService.getAvailableVoices();
       setVoices(realVoices);
-      if (settings?.voiceURI) {
-        setSelectedVoiceUri(settings.voiceURI);
+      if (settings?.voice?.voiceURI) {
+        setSelectedVoiceUri(settings.voice.voiceURI);
       } else if (realVoices.length > 0) {
-        const defaultV = realVoices.find((v) => v.default || v.lang.startsWith('es')) || realVoices[0];
-        setSelectedVoiceUri(defaultV.voiceURI);
+        const defaultSpanish = realVoices.find((v) => v.isSpanish) || realVoices[0];
+        setSelectedVoiceUri(defaultSpanish.voiceURI);
       }
     };
 
     loadVoices();
-    accessibilityService.onVoicesChanged(loadVoices);
-  }, [settings?.voiceURI]);
+    const cleanup = accessibilityService.onVoicesChanged(loadVoices);
+    return cleanup;
+  }, [settings?.voice?.voiceURI]);
 
-  // Sincronizar estado local con settings globales
+  // Sincronizar estado local con settings y servicio de voz
   useEffect(() => {
     if (settings) {
-      if (settings.voiceRate) setSpeechRate(settings.voiceRate);
-      if (settings.voicePitch) setSpeechPitch(settings.voicePitch);
-      if (settings.voiceVolume) setSpeechVolume(settings.voiceVolume);
-      if (settings.voiceURI) setSelectedVoiceUri(settings.voiceURI);
+      if (settings.voice?.rate) setSpeechRate(settings.voice.rate);
+      if (settings.voice?.voiceURI) setSelectedVoiceUri(settings.voice.voiceURI);
     }
   }, [settings]);
 
+  // Suscribirse al estado reactivo del servicio de voz
+  useEffect(() => {
+    const unsub = accessibilityService.subscribe((state) => {
+      setIsSpeaking(state.isSpeaking);
+      setIsPaused(state.isPaused);
+    });
+    return unsub;
+  }, []);
+
+  // Manejo de foco atrapado y tecla ESC
+  useEffect(() => {
+    if (!isAccessibilityModalOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeAccessibilityModal();
+        return;
+      }
+
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isAccessibilityModalOpen, closeAccessibilityModal]);
+
   if (!isAccessibilityModalOpen) return null;
 
-  // Manejador de cambio inmediato de tema
+  // Manejadores de cambios
   const handleThemeChange = async (theme) => {
     setIsSaving(true);
     await updateSettings({ theme });
     setIsSaving(false);
   };
 
-  // Manejador de cambio de tamaño de fuente
-  const handleFontSizeChange = async (fontSize) => {
+  const handleContrastChange = async (highContrast) => {
     setIsSaving(true);
-    await updateSettings({ fontSize });
+    await updateSettings({ highContrast });
     setIsSaving(false);
   };
 
-  // Manejador de cambio de visión de color / daltonismo
+  const handleTextSizeChange = async (textSize) => {
+    setIsSaving(true);
+    await updateSettings({ textSize, fontSize: textSize });
+    setIsSaving(false);
+  };
+
   const handleColorVisionChange = async (colorVision) => {
     setIsSaving(true);
     await updateSettings({ colorVision });
     setIsSaving(false);
   };
 
-  // Manejador de cambio de reducción de movimiento
   const handleReducedMotionChange = async (reducedMotion) => {
     setIsSaving(true);
     await updateSettings({ reducedMotion });
     setIsSaving(false);
   };
 
-  // Controles de Voz Nativos
+  const handleVoiceToggle = async (enabled) => {
+    setIsSaving(true);
+    if (!enabled) {
+      accessibilityService.stop();
+    }
+    await updateSettings({
+      voice: {
+        ...(settings?.voice || {}),
+        enabled
+      }
+    });
+    setIsSaving(false);
+    if (enabled) {
+      accessibilityService.speak('Asistencia de voz activada en CONSTRUCTA.', { rate: speechRate, voiceURI: selectedVoiceUri });
+    }
+  };
+
+  const handleVoiceUriChange = async (uri) => {
+    setSelectedVoiceUri(uri);
+    setIsSaving(true);
+    await updateSettings({
+      voice: {
+        ...(settings?.voice || {}),
+        voiceURI: uri
+      }
+    });
+    setIsSaving(false);
+  };
+
+  const handleRateChange = async (rateVal) => {
+    const rate = Number(rateVal);
+    setSpeechRate(rate);
+    setIsSaving(true);
+    await updateSettings({
+      voice: {
+        ...(settings?.voice || {}),
+        rate
+      }
+    });
+    setIsSaving(false);
+  };
+
+  // Controles de audio
   const handlePlayVoice = () => {
     if (isPaused) {
       accessibilityService.resume();
-      setIsPaused(false);
-      setIsSpeaking(true);
       return;
     }
 
-    setIsSpeaking(true);
-    setIsPaused(false);
-
-    accessibilityService.speak(testText, {
+    accessibilityService.speak(accessibilityService.SAMPLE_TEXT, {
       voiceURI: selectedVoiceUri,
       rate: speechRate,
-      pitch: speechPitch,
-      volume: speechVolume,
-      onEnd: () => {
-        setIsSpeaking(false);
-        setIsPaused(false);
-      },
       onError: (err) => {
-        setIsSpeaking(false);
-        setIsPaused(false);
-        showAlert('No se pudo reproducir la voz: ' + (err.message || 'Error del sintetizador'), 'error');
+        showAlert?.('No se pudo reproducir la voz: ' + (err.message || 'Error del sintetizador'), 'error');
       }
     });
   };
 
   const handlePauseVoice = () => {
     accessibilityService.pause();
-    setIsPaused(true);
   };
 
   const handleStopVoice = () => {
     accessibilityService.stop();
-    setIsSpeaking(false);
-    setIsPaused(false);
   };
 
-  const handleVoiceSelect = async (uri) => {
-    setSelectedVoiceUri(uri);
-    await updateSettings({ voiceURI: uri });
+  const handleResetToDefaults = async () => {
+    accessibilityService.stop();
+    setIsSaving(true);
+    await updateSettings({
+      theme: 'dark',
+      textSize: 'normal',
+      fontSize: 'normal',
+      highContrast: false,
+      colorVision: 'normal',
+      reducedMotion: false,
+      voice: {
+        enabled: false,
+        voiceURI: '',
+        rate: 1,
+        pitch: 1,
+        volume: 1
+      }
+    });
+    setIsSaving(false);
+    showAlert?.('Preferencias de accesibilidad restablecidas a los valores de fábrica.', 'success');
   };
 
-  const handleRateChange = async (rate) => {
-    const val = parseFloat(rate);
-    setSpeechRate(val);
-    await updateSettings({ voiceRate: val });
-  };
-
-  const handleToggleVoiceEnabled = async () => {
-    const newEnabled = !settings.voiceEnabled;
-    if (!newEnabled) {
-      handleStopVoice();
-    }
-    await updateSettings({ voiceEnabled: newEnabled });
-  };
+  const activeTextSize = settings?.textSize || settings?.fontSize || 'normal';
+  const isHighContrast = Boolean(settings?.highContrast);
+  const activeColorVision = settings?.colorVision || 'normal';
+  const isReducedMotion = Boolean(settings?.reducedMotion);
+  const isVoiceActive = Boolean(settings?.voice?.enabled);
 
   return (
-    <div className="modal-overlay" onClick={closeAccessibilityModal}>
+    <div
+      className="accessibility-modal-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeAccessibilityModal();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="accessibility-modal-title"
+      aria-describedby="accessibility-modal-desc"
+    >
       <div
-        className="modal-content modal-lg"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '780px', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
+        ref={modalRef}
+        className="accessibility-modal-container"
+        style={{
+          width: '94%',
+          maxWidth: '740px',
+          maxHeight: '90vh',
+          background: 'var(--bg-card, #131922)',
+          borderRadius: 'var(--radius-lg, 16px)',
+          border: '1px solid var(--border-card, rgba(255,255,255,0.12))',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
       >
         {/* Cabecera del Modal */}
-        <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        <div
+          style={{
+            padding: '1.25rem 1.5rem',
+            borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'var(--bg-card, #131922)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '8px',
-                background: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
+                background: 'rgba(245, 158, 11, 0.12)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#0b0f17'
+                color: 'var(--accent-amber, #f59e0b)'
               }}
             >
               <Sliders size={20} />
             </div>
             <div>
-              <h2 className="modal-title" style={{ fontSize: '1.2rem', margin: 0 }}>Centro de Accesibilidad & Preferencias</h2>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Configuraciones globales con persistencia real en db.json
+              <h2
+                id="accessibility-modal-title"
+                style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-primary, #ffffff)' }}
+              >
+                Centro de Accesibilidad y Adaptabilidad
+              </h2>
+              <p
+                id="accessibility-modal-desc"
+                style={{ fontSize: '0.8rem', color: 'var(--text-muted, #94a3b8)', margin: 0 }}
+              >
+                Personaliza la apariencia, tamaño, contraste, colores y asistencia por voz de forma no destructiva.
               </p>
             </div>
           </div>
-          <button className="btn-icon" onClick={closeAccessibilityModal} title="Cerrar modal">
+
+          <button
+            type="button"
+            className="btn-icon"
+            onClick={closeAccessibilityModal}
+            aria-label="Cerrar ventana de accesibilidad"
+            style={{ color: 'var(--text-secondary, #94a3b8)' }}
+          >
             <X size={20} />
           </button>
         </div>
 
-        {/* Pestañas de Navegación del Centro de Accesibilidad */}
+        {/* Barra de Pestañas Accesibles */}
         <div
           style={{
             display: 'flex',
-            borderBottom: '1px solid var(--border-subtle)',
-            background: 'var(--bg-card)',
+            borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
+            background: 'var(--bg-app, #0b0f14)',
             padding: '0.4rem 1.25rem 0',
-            gap: '0.5rem',
+            gap: '0.35rem',
             overflowX: 'auto'
           }}
+          role="tablist"
+          aria-label="Categorías de accesibilidad"
         >
           <button
+            role="tab"
+            aria-selected={activeTab === 'apariencia'}
             onClick={() => setActiveTab('apariencia')}
             style={{
-              padding: '0.65rem 1rem',
-              fontSize: '0.88rem',
+              padding: '0.65rem 0.9rem',
+              fontSize: '0.86rem',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               gap: '0.45rem',
-              color: activeTab === 'apariencia' ? 'var(--accent-amber)' : 'var(--text-secondary)',
-              borderBottom: activeTab === 'apariencia' ? '2px solid var(--accent-amber)' : '2px solid transparent'
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              color: activeTab === 'apariencia' ? 'var(--accent-amber, #f59e0b)' : 'var(--text-secondary, #94a3b8)',
+              borderBottom: activeTab === 'apariencia' ? '2px solid var(--accent-amber, #f59e0b)' : '2px solid transparent'
             }}
           >
-            <Sun size={16} /> Apariencia
+            <Sun size={15} /> Apariencia & Contraste
           </button>
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'texto'}
             onClick={() => setActiveTab('texto')}
             style={{
-              padding: '0.65rem 1rem',
-              fontSize: '0.88rem',
+              padding: '0.65rem 0.9rem',
+              fontSize: '0.86rem',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               gap: '0.45rem',
-              color: activeTab === 'texto' ? 'var(--accent-amber)' : 'var(--text-secondary)',
-              borderBottom: activeTab === 'texto' ? '2px solid var(--accent-amber)' : '2px solid transparent'
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              color: activeTab === 'texto' ? 'var(--accent-amber, #f59e0b)' : 'var(--text-secondary, #94a3b8)',
+              borderBottom: activeTab === 'texto' ? '2px solid var(--accent-amber, #f59e0b)' : '2px solid transparent'
             }}
           >
-            <Type size={16} /> Tamaño de Letra
+            <Type size={15} /> Tamaño de Letra
           </button>
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'vision'}
             onClick={() => setActiveTab('vision')}
             style={{
-              padding: '0.65rem 1rem',
-              fontSize: '0.88rem',
+              padding: '0.65rem 0.9rem',
+              fontSize: '0.86rem',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               gap: '0.45rem',
-              color: activeTab === 'vision' ? 'var(--accent-amber)' : 'var(--text-secondary)',
-              borderBottom: activeTab === 'vision' ? '2px solid var(--accent-amber)' : '2px solid transparent'
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              color: activeTab === 'vision' ? 'var(--accent-amber, #f59e0b)' : 'var(--text-secondary, #94a3b8)',
+              borderBottom: activeTab === 'vision' ? '2px solid var(--accent-amber, #f59e0b)' : '2px solid transparent'
             }}
           >
-            <Eye size={16} /> Visión y Daltonismo
+            <Eye size={15} /> Daltonismo & Percepción
           </button>
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'voz'}
             onClick={() => setActiveTab('voz')}
             style={{
-              padding: '0.65rem 1rem',
-              fontSize: '0.88rem',
+              padding: '0.65rem 0.9rem',
+              fontSize: '0.86rem',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               gap: '0.45rem',
-              color: activeTab === 'voz' ? 'var(--accent-amber)' : 'var(--text-secondary)',
-              borderBottom: activeTab === 'voz' ? '2px solid var(--accent-amber)' : '2px solid transparent'
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              color: activeTab === 'voz' ? 'var(--accent-amber, #f59e0b)' : 'var(--text-secondary, #94a3b8)',
+              borderBottom: activeTab === 'voz' ? '2px solid var(--accent-amber, #f59e0b)' : '2px solid transparent'
             }}
           >
-            <Volume2 size={16} /> Voz y Lectura Nativa
+            <Volume2 size={15} /> Voz y Lectura
+          </button>
+
+          <button
+            role="tab"
+            aria-selected={activeTab === 'movimiento'}
+            onClick={() => setActiveTab('movimiento')}
+            style={{
+              padding: '0.65rem 0.9rem',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              color: activeTab === 'movimiento' ? 'var(--accent-amber, #f59e0b)' : 'var(--text-secondary, #94a3b8)',
+              borderBottom: activeTab === 'movimiento' ? '2px solid var(--accent-amber, #f59e0b)' : '2px solid transparent'
+            }}
+          >
+            <ZapOff size={15} /> Movimiento
           </button>
         </div>
 
-        {/* Cuerpo del Modal */}
-        <div className="modal-body" style={{ flex: 1, padding: '1.4rem' }}>
-          {/* ================= PESTAÑA: APARIENCIA ================= */}
+        {/* Cuerpo del Modal con scroll */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '1.4rem' }}>
+          {/* ================= 1. PESTAÑA: APARIENCIA & CONTRASTE ================= */}
           {activeTab === 'apariencia' && (
-            <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-                Tema Global de la Aplicación
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                Afecta centralizadamente fondos, paneles, tarjetas, formularios, tablas, modales y textos.
-              </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <h3 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-primary)' }}>
+                  Tema Global (Modo Oscuro / Claro)
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                  El modo oscuro conserva la identidad obsidiana de CONSTRUCTA; el modo claro utiliza tokens semánticos de alto contraste evitando páginas blancas desprovistas de jerarquía.
+                </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
-                {/* Opción Oscuro */}
-                <div
-                  onClick={() => handleThemeChange('dark')}
-                  style={{
-                    padding: '1.25rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: `2px solid ${settings?.theme === 'dark' ? 'var(--accent-amber)' : 'var(--border-card)'}`,
-                    background: '#0d121c',
-                    color: '#f8fafc',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    position: 'relative'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Moon size={20} color="#f59e0b" />
-                      <span style={{ fontWeight: 700 }}>Tema Oscuro</span>
-                    </div>
-                    {settings?.theme === 'dark' && <Check size={18} color="#f59e0b" />}
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: 0 }}>
-                    Negro empresarial elegante con acentos ámbar. Reduce la fatiga visual.
-                  </p>
-                </div>
-
-                {/* Opción Claro */}
-                <div
-                  onClick={() => handleThemeChange('light')}
-                  style={{
-                    padding: '1.25rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: `2px solid ${settings?.theme === 'light' ? 'var(--accent-amber)' : 'var(--border-card)'}`,
-                    background: '#ffffff',
-                    color: '#0f172a',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    position: 'relative',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Sun size={20} color="#d97706" />
-                      <span style={{ fontWeight: 700 }}>Tema Claro</span>
-                    </div>
-                    {settings?.theme === 'light' && <Check size={18} color="#d97706" />}
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: '#475569', margin: 0 }}>
-                    Superficies blancas con máxima legibilidad y tipografía contrastante.
-                  </p>
-                </div>
-
-                {/* Opción Automático / Sistema */}
-                <div
-                  onClick={() => handleThemeChange('system')}
-                  style={{
-                    padding: '1.25rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: `2px solid ${settings?.theme === 'system' ? 'var(--accent-amber)' : 'var(--border-card)'}`,
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Monitor size={20} color="var(--accent-blue)" />
-                      <span style={{ fontWeight: 700 }}>Automático (SO)</span>
-                    </div>
-                    {settings?.theme === 'system' && <Check size={18} color="var(--accent-amber)" />}
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
-                    Sincroniza la apariencia con las preferencias de tu sistema operativo.
-                  </p>
-                </div>
-              </div>
-
-              {/* Reducción de Movimiento */}
-              <div
-                style={{
-                  padding: '1.15rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '1rem'
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    <ZapOff size={18} color="var(--accent-amber)" />
-                    Reducción de Movimiento
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>
-                    Desactiva transiciones y animaciones intensas para evitar mareos o distracciones.
-                  </p>
-                </div>
-                <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={!!settings?.reducedMotion}
-                    onChange={(e) => handleReducedMotionChange(e.target.checked)}
-                    style={{ width: '20px', height: '20px', accentColor: 'var(--accent-amber)', cursor: 'pointer' }}
-                  />
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* ================= PESTAÑA: TAMAÑO DE TEXTO ================= */}
-          {activeTab === 'texto' && (
-            <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-                Escala Tipográfica Global
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                Escala de manera proporcional botones, tablas, formularios y navegación sin romper la interfaz ni provocar desbordamiento horizontal.
-              </p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.85rem', marginBottom: '1.75rem' }}>
-                {[
-                  { id: 'small', label: 'Pequeña', px: '14px', desc: 'Compacto' },
-                  { id: 'normal', label: 'Normal', px: '16px', desc: 'Estándar recomendado' },
-                  { id: 'large', label: 'Grande', px: '18px', desc: 'Lectura cómoda' },
-                  { id: 'xlarge', label: 'Muy grande', px: '20px', desc: 'Máxima visibilidad' }
-                ].map((item) => (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
+                  {/* Tema Oscuro */}
                   <div
-                    key={item.id}
-                    onClick={() => handleFontSizeChange(item.id)}
+                    onClick={() => handleThemeChange('dark')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleThemeChange('dark')}
                     style={{
-                      padding: '1.15rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: `2px solid ${settings?.fontSize === item.id ? 'var(--accent-amber)' : 'var(--border-card)'}`,
-                      background: 'var(--bg-card)',
+                      padding: '1.1rem',
+                      borderRadius: 'var(--radius-md, 10px)',
+                      border: `2px solid ${settings?.theme === 'dark' ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                      background: '#0b0f14',
+                      color: '#ffffff',
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      textAlign: 'center'
+                      transition: 'all 0.15s ease',
+                      position: 'relative'
                     }}
                   >
-                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent-amber)', marginBottom: '0.25rem' }}>
-                      Aa
+                    {settings?.theme === 'dark' && (
+                      <span style={{ position: 'absolute', top: '10px', right: '10px', color: 'var(--accent-amber, #f59e0b)' }}>
+                        <Check size={18} />
+                      </span>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                      <Moon size={18} style={{ color: 'var(--accent-amber, #f59e0b)' }} />
+                      <strong style={{ fontSize: '0.9rem' }}>Modo Oscuro (Predeterminado)</strong>
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                      {item.label}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      Base: {item.px}
-                    </div>
+                    <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block' }}>
+                      Fondo obsidiana, superficies antracita y acentos ámbar corporativos.
+                    </span>
                   </div>
-                ))}
-              </div>
 
-              {/* Vista previa de texto */}
-              <div
-                style={{
-                  padding: '1.15rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                  Vista Previa en Tiempo Real
-                </div>
-                <h4 style={{ margin: '0 0 0.5rem', color: 'var(--text-primary)' }}>
-                  CONSTRUCTA — Gestión y Obras Inteligentes
-                </h4>
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                  La tipografía escala con unidades rem preservando las márgenes de los contenedores y el aislamiento de las tablas de datos.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* ================= PESTAÑA: VISIÓN Y DALTONISMO ================= */}
-          {activeTab === 'vision' && (
-            <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-                Filtros de Color & Alto Contraste
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                Ajusta las paletas para daltonismo y garantiza que los estados no dependan únicamente del color.
-              </p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem', marginBottom: '1.5rem' }}>
-                {[
-                  { id: 'normal', name: 'Normal', desc: 'Paleta completa original' },
-                  { id: 'high-contrast', name: 'Alto contraste', desc: 'Bordes nítidos y contraste reforzado' },
-                  { id: 'protanopia', name: 'Protanopia', desc: 'Ajuste para debilidad al rojo' },
-                  { id: 'deuteranopia', name: 'Deuteranopia', desc: 'Ajuste para debilidad al verde' },
-                  { id: 'tritanopia', name: 'Tritanopia', desc: 'Ajuste para debilidad al azul' }
-                ].map((item) => (
+                  {/* Tema Claro */}
                   <div
-                    key={item.id}
-                    onClick={() => handleColorVisionChange(item.id)}
+                    onClick={() => handleThemeChange('light')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleThemeChange('light')}
+                    style={{
+                      padding: '1.1rem',
+                      borderRadius: 'var(--radius-md, 10px)',
+                      border: `2px solid ${settings?.theme === 'light' ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                      background: '#ffffff',
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      position: 'relative'
+                    }}
+                  >
+                    {settings?.theme === 'light' && (
+                      <span style={{ position: 'absolute', top: '10px', right: '10px', color: '#d97706' }}>
+                        <Check size={18} />
+                      </span>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                      <Sun size={18} style={{ color: '#d97706' }} />
+                      <strong style={{ fontSize: '0.9rem', color: '#0f172a' }}>Modo Claro Corporativo</strong>
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: '#475569', display: 'block' }}>
+                      Fondo gris slate suave con tarjetas blancas y tipografía de máxima legibilidad.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección Contraste */}
+              <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+                <h3 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-primary)' }}>
+                  Nivel de Contraste
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                  El alto contraste acentúa bordes, textos secundarios, inputs y botones sin destruir el diseño estructural.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
+                  <div
+                    onClick={() => handleContrastChange(false)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleContrastChange(false)}
                     style={{
                       padding: '1rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: `2px solid ${settings?.colorVision === item.id ? 'var(--accent-amber)' : 'var(--border-card)'}`,
-                      background: 'var(--bg-card)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
+                      borderRadius: 'var(--radius-md, 10px)',
+                      border: `2px solid ${!isHighContrast ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                      background: 'var(--bg-surface, rgba(255,255,255,0.03))',
+                      cursor: 'pointer'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.name}</span>
-                      {settings?.colorVision === item.id && <Check size={16} color="var(--accent-amber)" />}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>Contraste Normal</strong>
+                      {!isHighContrast && <Check size={16} style={{ color: 'var(--accent-amber)' }} />}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      {item.desc}
-                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      Gradientes sutiles y bordes refinados estándar.
+                    </span>
                   </div>
-                ))}
-              </div>
 
-              {/* Muestra de estados universales independientes del color */}
-              <div
-                style={{
-                  padding: '1.15rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
-                  Garantía de Estados Accesibles (Iconos + Texto + Símbolos)
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
-                  <div className="badge badge-success" style={{ padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
-                    <span className="status-symbol">✓</span> Éxito / Operación completada
-                  </div>
-                  <div className="badge badge-warning" style={{ padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
-                    <span className="status-symbol">!</span> Advertencia / Revisar
-                  </div>
-                  <div className="badge badge-danger" style={{ padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
-                    <span className="status-symbol">×</span> Error / Acción requerida
-                  </div>
-                  <div className="badge badge-info" style={{ padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
-                    <span className="status-symbol">i</span> Información general
+                  <div
+                    onClick={() => handleContrastChange(true)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleContrastChange(true)}
+                    style={{
+                      padding: '1rem',
+                      borderRadius: 'var(--radius-md, 10px)',
+                      border: `2px solid ${isHighContrast ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                      background: 'var(--bg-surface, rgba(255,255,255,0.03))',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>Alto Contraste</strong>
+                      {isHighContrast && <Check size={16} style={{ color: 'var(--accent-amber)' }} />}
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      Bordes reforzados a 2px y texto con luminancia optimizada.
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ================= PESTAÑA: VOZ Y LECTURA NATIVA ================= */}
-          {activeTab === 'voz' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
-                    Síntesis de Voz Nativa del Navegador
-                  </h3>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0' }}>
-                    Usa window.speechSynthesis (sin librerías externas). Detecta voces reales instaladas en su dispositivo.
-                  </p>
-                </div>
-                <button
-                  onClick={handleToggleVoiceEnabled}
-                  className={`btn ${settings?.voiceEnabled ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ minHeight: '34px', fontSize: '0.82rem' }}
-                >
-                  {settings?.voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                  {settings?.voiceEnabled ? 'Voz Activada' : 'Voz Desactivada'}
-                </button>
-              </div>
+          {/* ================= 2. PESTAÑA: TAMAÑO DE LETRA ================= */}
+          {activeTab === 'texto' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-primary)' }}>
+                  Escala Tipográfica Controlada (Sin rompimiento visual)
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+                  El ajuste de tamaño utiliza multiplicadores jerárquicos basados en variables CSS controladas. No utiliza <code>transform: scale</code> ni <code>zoom</code>, respetando el ancho de columnas, tarjetas y tablas.
+                </p>
 
-              {/* Selector de Voz Real */}
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">
-                  Voces Detectadas en su Dispositivo ({voices.length})
-                </label>
-                <select
-                  value={selectedVoiceUri}
-                  onChange={(e) => handleVoiceSelect(e.target.value)}
-                  className="constructa-input"
-                  disabled={!settings?.voiceEnabled}
-                >
-                  {voices.map((v) => {
-                    const genderTag = v.genderGuess !== 'Indeterminado' ? ` [${v.genderGuess}]` : '';
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                  {[
+                    { id: 'small', label: '1. Pequeño', scale: '0.88x', desc: 'Para pantallas compactas con alta densidad de datos' },
+                    { id: 'normal', label: '2. Normal', scale: '1.00x', desc: 'Tamaño estándar equilibrado' },
+                    { id: 'large', label: '3. Grande', scale: '1.14x', desc: 'Mayor legibilidad y descanso visual' },
+                    { id: 'xlarge', label: '4. Muy grande', scale: '1.30x', desc: 'Máxima escala accesible para baja visión' }
+                  ].map((lvl) => {
+                    const isSelected = activeTextSize === lvl.id;
                     return (
-                      <option key={v.voiceURI} value={v.voiceURI}>
-                        {v.name} ({v.lang}){genderTag} {v.default ? '★ Recomendada' : ''}
-                      </option>
+                      <button
+                        key={lvl.id}
+                        type="button"
+                        onClick={() => handleTextSizeChange(lvl.id)}
+                        style={{
+                          padding: '1rem 0.85rem',
+                          borderRadius: 'var(--radius-md, 10px)',
+                          border: `2px solid ${isSelected ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                          background: isSelected ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-surface, rgba(255,255,255,0.03))',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.3rem',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            {lvl.label}
+                          </span>
+                          {isSelected && <Check size={16} style={{ color: 'var(--accent-amber)' }} />}
+                        </div>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--accent-amber)', fontWeight: 600 }}>
+                          Multiplicador {lvl.scale}
+                        </span>
+                        <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                          {lvl.desc}
+                        </span>
+                      </button>
                     );
                   })}
-                </select>
-                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
-                  Nota técnica: La clasificación Hombre/Mujer solo se muestra si los metadatos reales del sistema la confirman. No se inventan voces sintéticas.
-                </span>
-              </div>
-
-              {/* Velocidad y Parámetros */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
-                <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
-                    <label className="form-label">Velocidad de Lectura</label>
-                    <span style={{ color: 'var(--accent-amber)', fontWeight: 700 }}>{speechRate}x</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2"
-                    step="0.1"
-                    value={speechRate}
-                    onChange={(e) => handleRateChange(e.target.value)}
-                    disabled={!settings?.voiceEnabled}
-                    style={{ width: '100%', accentColor: 'var(--accent-amber)' }}
-                  />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    <span>0.5x (Lento)</span>
-                    <span>1.0x (Normal)</span>
-                    <span>2.0x (Rápido)</span>
-                  </div>
                 </div>
 
-                <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
-                    <label className="form-label">Volumen</label>
-                    <span style={{ color: 'var(--accent-amber)', fontWeight: 700 }}>{Math.round(speechVolume * 100)}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={speechVolume}
-                    onChange={(e) => setSpeechVolume(parseFloat(e.target.value))}
-                    disabled={!settings?.voiceEnabled}
-                    style={{ width: '100%', accentColor: 'var(--accent-amber)' }}
-                  />
-                </div>
-              </div>
-
-              {/* Texto de Prueba Oficial */}
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                  <label className="form-label">Texto de Prueba Oficial</label>
-                  <button
-                    type="button"
-                    onClick={() => setTestText(accessibilityService.SAMPLE_TEXT)}
-                    style={{ fontSize: '0.75rem', color: 'var(--accent-amber)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                  >
-                    <RotateCcw size={12} /> Restaurar texto
-                  </button>
-                </div>
-                <textarea
-                  className="constructa-input"
-                  rows={3}
-                  value={testText}
-                  onChange={(e) => setTestText(e.target.value)}
-                  disabled={!settings?.voiceEnabled}
-                />
-              </div>
-
-              {/* Botones de Control de Reproducción */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {!isSpeaking || isPaused ? (
-                  <button
-                    type="button"
-                    onClick={handlePlayVoice}
-                    disabled={!settings?.voiceEnabled}
-                    className="btn btn-primary"
-                    style={{ minWidth: '130px' }}
-                  >
-                    <Play size={16} /> {isPaused ? 'Continuar' : 'Escuchar'}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handlePauseVoice}
-                    disabled={!settings?.voiceEnabled}
-                    className="btn btn-secondary"
-                    style={{ minWidth: '130px' }}
-                  >
-                    <Pause size={16} /> Pausar
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleStopVoice}
-                  disabled={!settings?.voiceEnabled || (!isSpeaking && !isPaused)}
-                  className="btn btn-outline"
+                {/* Previsualización en tiempo real */}
+                <div
+                  style={{
+                    padding: '1.25rem',
+                    borderRadius: 'var(--radius-md, 10px)',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-app, #0b0f14)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.65rem'
+                  }}
                 >
-                  <Square size={16} /> Detener
-                </button>
+                  <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent-amber)', fontWeight: 700 }}>
+                    Vista Previa en Vivo (Nivel Actual: {activeTextSize.toUpperCase()})
+                  </span>
+                  <h4 style={{ margin: 0, fontSize: 'var(--font-h3, 1.25rem)', color: 'var(--text-primary)', fontWeight: 700 }}>
+                    Construcción de Infraestructura Hospitalaria Norte
+                  </h4>
+                  <p style={{ margin: 0, fontSize: 'var(--font-body, 0.92rem)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    El presupuesto autorizado presenta un 72% de ejecución física con 4 cuadrillas activas en obra civil y cero desviaciones críticas.
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    <span className="symbol-tag symbol-success">[✓] OBRA AL DÍA</span>
+                    <span className="symbol-tag symbol-warning">[!] REVISIÓN PENDIENTE</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-                {isSpeaking && !isPaused && (
-                  <span style={{ fontSize: '0.82rem', color: 'var(--accent-amber)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
-                    <Volume2 size={16} /> Reproduciendo audio nativo...
+          {/* ================= 3. PESTAÑA: DALTONISMO & PERCEPCIÓN ================= */}
+          {activeTab === 'vision' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-primary)' }}>
+                  Perfiles Semánticos de Percepción del Color
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+                  No utiliza filtros destructivos (como <code>hue-rotate</code> o inversión) sobre fotografías ni planos. Adapta semánticamente los indicadores de estado, badges y gráficos, combinando además color con símbolos textuales e iconografía.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem', marginBottom: '1.5rem' }}>
+                  {[
+                    { id: 'normal', label: '1. Visión Normal', desc: 'Paleta corporativa estándar (Ámbar, Verde, Rojo, Azul)' },
+                    { id: 'red-green', label: '2. Rojo - Verde', desc: 'Sustituye verdes y rojos confusos por ámbar y cian de alto contraste' },
+                    { id: 'green-red', label: '3. Verde - Rojo', desc: 'Diferenciación reforzada para deuteranomalía con texturas semánticas' },
+                    { id: 'blue-yellow', label: '4. Azul - Amarillo', desc: 'Esquema adaptado para tritanomalía evitando confusión cromática' }
+                  ].map((p) => {
+                    const isSelected = activeColorVision === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => handleColorVisionChange(p.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && handleColorVisionChange(p.id)}
+                        style={{
+                          padding: '1rem',
+                          borderRadius: 'var(--radius-md, 10px)',
+                          border: `2px solid ${isSelected ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                          background: isSelected ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-surface, rgba(255,255,255,0.03))',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.35rem',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>{p.label}</strong>
+                          {isSelected && <Check size={16} style={{ color: 'var(--accent-amber)' }} />}
+                        </div>
+                        <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>{p.desc}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Demostración de accesibilidad sin dependencia exclusiva del color */}
+                <div
+                  style={{
+                    padding: '1.25rem',
+                    borderRadius: 'var(--radius-md, 10px)',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-app, #0b0f14)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem'
+                  }}
+                >
+                  <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
+                    Comprobación de Estados Accesibles (Símbolo + Texto + Color adaptado):
+                  </strong>
+                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                    <span className="symbol-tag symbol-success">
+                      <CheckCircle2 size={13} /> [✓] COMPLETADO AL 100%
+                    </span>
+                    <span className="symbol-tag symbol-warning">
+                      <AlertTriangle size={13} /> [!] ATENCIÓN: STOCK BAJO
+                    </span>
+                    <span className="symbol-tag symbol-danger">
+                      <XCircle size={13} /> [×] DESVIACIÓN CRÍTICA
+                    </span>
+                    <span className="symbol-tag symbol-info">
+                      <AlertCircle size={13} /> [i] EN PROCESO DE AUDITORÍA
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Cualquier persona puede identificar el significado del estado gracias al tag explícito y al icono, sin requerir discriminación visual de longitud de onda.
                   </span>
-                )}
-                {isPaused && (
-                  <span style={{ fontSize: '0.82rem', color: 'var(--accent-blue)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
-                    <Pause size={16} /> Audio en pausa
-                  </span>
-                )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= 4. PESTAÑA: VOZ Y LECTURA NATIVA ================= */}
+          {activeTab === 'voz' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <h3 style={{ fontSize: '0.96rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                    Sistema Global de Asistencia por Voz (Web Speech API)
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceToggle(!isVoiceActive)}
+                    style={{
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: 'var(--radius-sm, 6px)',
+                      border: `1px solid ${isVoiceActive ? 'var(--accent-amber)' : 'var(--border-card)'}`,
+                      background: isVoiceActive ? 'var(--accent-amber)' : 'rgba(255,255,255,0.06)',
+                      color: isVoiceActive ? '#0b0f14' : 'var(--text-primary)',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                  >
+                    {isVoiceActive ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                    {isVoiceActive ? '🔊 Lectura activada' : 'Lectura desactivada'}
+                  </button>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+                  Permite escuchar títulos, botones, tarjetas o textos seleccionados al tocarlos o hacer clic sobre ellos, utilizando el sintetizador nativo de tu dispositivo.
+                </p>
+
+                {/* Controles de Configuración de Voz */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--bg-app)', padding: '1.25rem', borderRadius: 'var(--radius-md, 10px)', border: '1px solid var(--border-subtle)' }}>
+                  {/* Selector de Voz */}
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '0.4rem' }}>
+                      Voz Nativa del Sistema (Prioridad Español: México, España, Latinoamérica):
+                    </label>
+                    <select
+                      className="constructa-input"
+                      value={selectedVoiceUri}
+                      onChange={(e) => handleVoiceUriChange(e.target.value)}
+                      style={{ width: '100%', fontSize: '0.85rem' }}
+                    >
+                      {voices.length === 0 ? (
+                        <option value="">Cargando voces del navegador...</option>
+                      ) : (
+                        voices.map((v) => (
+                          <option key={v.voiceURI} value={v.voiceURI}>
+                            {v.name} ({v.lang}) — {v.gender} {v.isSpanish ? '★ Español' : ''}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  {/* Selector de Velocidad */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        Velocidad de Reproducción:
+                      </label>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--accent-amber)', fontWeight: 700 }}>
+                        {speechRate}x
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {SPEECH_RATES.map((rate) => (
+                        <button
+                          key={rate}
+                          type="button"
+                          onClick={() => handleRateChange(rate)}
+                          style={{
+                            flex: 1,
+                            minWidth: '50px',
+                            padding: '0.5rem 0',
+                            borderRadius: 'var(--radius-sm, 6px)',
+                            border: `1px solid ${speechRate === rate ? 'var(--accent-amber)' : 'var(--border-card)'}`,
+                            background: speechRate === rate ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.04)',
+                            color: speechRate === rate ? 'var(--accent-amber)' : 'var(--text-primary)',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {rate}x
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Botones de Prueba y Control */}
+                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', paddingTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={handlePlayVoice}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+                    >
+                      <Play size={15} /> Probar Voz con Muestra
+                    </button>
+
+                    {isSpeaking && (
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={handlePauseVoice}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+                      >
+                        <Pause size={15} /> Pausar
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={handleStopVoice}
+                      disabled={!isSpeaking}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+                    >
+                      <Square size={14} /> Detener
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= 5. PESTAÑA: MOVIMIENTO ================= */}
+          {activeTab === 'movimiento' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-primary)' }}>
+                  Preferencia de Movimiento y Animaciones
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+                  Reduce o elimina transiciones y efectos de movimiento para evitar mareos o fatiga visual en usuarios con trastornos vestibulares.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
+                  <div
+                    onClick={() => handleReducedMotionChange(false)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleReducedMotionChange(false)}
+                    style={{
+                      padding: '1rem',
+                      borderRadius: 'var(--radius-md, 10px)',
+                      border: `2px solid ${!isReducedMotion ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                      background: 'var(--bg-surface, rgba(255,255,255,0.03))',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>Animaciones Normales</strong>
+                      {!isReducedMotion && <Check size={16} style={{ color: 'var(--accent-amber)' }} />}
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      Microinteracciones fluidas y transiciones corporativas completas.
+                    </span>
+                  </div>
+
+                  <div
+                    onClick={() => handleReducedMotionChange(true)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleReducedMotionChange(true)}
+                    style={{
+                      padding: '1rem',
+                      borderRadius: 'var(--radius-md, 10px)',
+                      border: `2px solid ${isReducedMotion ? 'var(--accent-amber, #f59e0b)' : 'var(--border-card)'}`,
+                      background: 'var(--bg-surface, rgba(255,255,255,0.03))',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>Movimiento Reducido</strong>
+                      {isReducedMotion && <Check size={16} style={{ color: 'var(--accent-amber)' }} />}
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      Elimina traslaciones y animaciones continuas; mantiene transiciones instantáneas.
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
         </div>
 
         {/* Pie del Modal */}
-        <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            {isSaving ? 'Guardando en db.json...' : '✓ Preferencias sincronizadas con db.json'}
-          </div>
-          <button className="btn btn-primary" onClick={closeAccessibilityModal}>
-            Cerrar y Aplicar
+        <div
+          style={{
+            padding: '1rem 1.5rem',
+            borderTop: '1px solid var(--border-subtle)',
+            background: 'var(--bg-card)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.75rem'
+          }}
+        >
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={handleResetToDefaults}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+          >
+            <RotateCcw size={14} /> Restablecer Fábrica
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={closeAccessibilityModal}
+          >
+            Aceptar y Guardar
           </button>
         </div>
       </div>

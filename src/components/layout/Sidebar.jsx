@@ -180,18 +180,20 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
         })}
 
         <div style={{ padding: '8px 0 0 0', borderTop: '1px solid var(--border-subtle)', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() => {
-              openAIAssistantModal();
-              if (onClose) onClose();
-            }}
-            style={{ color: 'var(--accent-blue)' }}
-          >
-            <Bot size={18} />
-            <span>Asistente IA</span>
-          </button>
+          {currentUser?.rol === 'Administrador' && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => {
+                openAIAssistantModal();
+                if (onClose) onClose();
+              }}
+              style={{ color: 'var(--accent-blue)' }}
+            >
+              <Bot size={18} />
+              <span>Asistente IA</span>
+            </button>
+          )}
 
           <button
             type="button"

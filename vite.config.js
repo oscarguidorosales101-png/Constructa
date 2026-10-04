@@ -124,6 +124,74 @@ function dbApiPlugin() {
           }
         }
 
+        // Endpoint seguro para Gemini AI - La API Key reside únicamente en el servidor (process.env.GEMINI_API_KEY)
+        if (req.url === '/api/ai/analyze' && req.method === 'POST') {
+          parseJsonBody()
+            .then(async (body) => {
+              const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '';
+              const { prompt, systemPrompt } = body;
+
+              if (!geminiKey || !geminiKey.trim()) {
+                return sendJson(200, {
+                  ok: false,
+                  noKey: true,
+                  error: 'El análisis no está disponible en este momento.'
+                });
+              }
+
+              try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.trim()}`;
+                const response = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    system_instruction: {
+                      parts: [{ text: systemPrompt || 'Eres el Analista de IA Corporativo de CONSTRUCTA.' }]
+                    },
+                    contents: [
+                      {
+                        parts: [{ text: prompt || 'Analiza la situación actual de las obras.' }]
+                      }
+                    ],
+                    generationConfig: {
+                      temperature: 0.3,
+                      maxOutputTokens: 1024
+                    }
+                  })
+                });
+
+                if (!response.ok) {
+                  return sendJson(200, {
+                    ok: false,
+                    error: 'El análisis no está disponible en este momento.'
+                  });
+                }
+
+                const data = await response.json();
+                const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!generatedText) {
+                  return sendJson(200, {
+                    ok: false,
+                    error: 'El análisis no está disponible en este momento.'
+                  });
+                }
+
+                return sendJson(200, {
+                  ok: true,
+                  text: generatedText.trim(),
+                  provider: 'Google Gemini'
+                });
+              } catch (_) {
+                return sendJson(200, {
+                  ok: false,
+                  error: 'El análisis no está disponible en este momento.'
+                });
+              }
+            })
+            .catch(() => sendJson(400, { ok: false, error: 'El análisis no está disponible en este momento.' }));
+          return;
+        }
+
         next();
       });
     },

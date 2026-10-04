@@ -151,7 +151,7 @@ export default function PublicLanding({ config = COMPANY_CONFIG, initialModule =
       />
 
       {/* Contenedor Principal con Transición Suave y Aislada */}
-      <main id="main-corporate-content" className="public-site-main">
+      <main id="main-content" className="public-site-main" tabIndex="-1">
         <div 
           key={activeModule} 
           className="public-module-wrapper public-module-fade-enter"

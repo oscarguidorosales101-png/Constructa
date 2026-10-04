@@ -472,7 +472,9 @@ select option:hover {
 
 /* 8. MODAL RESPONSIVE EN PRIMER PLANO */
 .modal-overlay,
-.constructa-modal-overlay {
+.constructa-modal-overlay,
+.accessibility-modal-backdrop,
+.ai-modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.82);
@@ -795,5 +797,14 @@ select option:hover {
     grid-template-columns: 1fr;
     gap: 8px;
   }
+}
+
+.spin-animation {
+  animation: spin-kf 1s linear infinite;
+}
+
+@keyframes spin-kf {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 

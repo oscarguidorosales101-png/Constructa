@@ -44,7 +44,7 @@ export const MainLayout = ({ currentRoute, onNavigate, children }) => {
           onNavigate={navigate}
         />
 
-        <main className="content-area">{children}</main>
+        <main id="main-content" className="content-area" tabIndex="-1">{children}</main>
       </div>
 
       {/* Global Modals & Notifications */}

@@ -75,16 +75,9 @@ export const AIAssistantModal = () => {
       return;
     }
 
-    if (!providerStatus.anyConfigured) {
+    if (!providerStatus.anyConfigured || !currentProviderConfigured) {
       setErrorMessage(
-        'No hay ningún proveedor de IA configurado en las variables de entorno. Para habilitar IA real, configura VITE_GEMINI_API_KEY o VITE_OPENAI_API_KEY en tu archivo .env.'
-      );
-      return;
-    }
-
-    if (!currentProviderConfigured) {
-      setErrorMessage(
-        `El proveedor seleccionado (${selectedProvider.toUpperCase()}) no tiene una API key configurada en las variables de entorno.`
+        'El análisis no está disponible en este momento.'
       );
       return;
     }

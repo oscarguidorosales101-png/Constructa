@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useConstructa } from '../../context/ConstructaContext';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -6,6 +6,8 @@ import ProgressBar from '../../components/common/ProgressBar';
 import SearchInput from '../../components/common/SearchInput';
 import EmptyState from '../../components/common/EmptyState';
 import { matchSearch } from '../../utils/searchUtils';
+import aiService from '../../services/aiService';
+import accessibilityService from '../../services/accessibilityService';
 import { 
   FileSpreadsheet, 
   Download, 
@@ -25,13 +27,54 @@ import {
   Truck,
   AlertTriangle,
   CreditCard,
+  Sparkles,
+  RefreshCw,
+  Volume2,
+  ShieldCheck,
+  ArrowUpRight
 } from 'lucide-react';
 
 export default function Reports() {
-  const { data, metrics, formatCurrency = (v) => '$' + Number(v || 0).toLocaleString(), formatDate = (d) => d } = useConstructa();
-  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'projects' | 'expenses' | 'procurement' | 'materials' | 'employees' | 'history'
+  const { currentUser, data, metrics, formatCurrency = (v) => '$' + Number(v || 0).toLocaleString(), formatDate = (d) => d } = useConstructa();
+  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'projects' | 'expenses' | 'procurement' | 'materials' | 'employees' | 'history' | 'ai-analysis'
   const [projectFilter, setProjectFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Estados de IA para Administrador
+  const [aiReport, setAiReport] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [lastAnalysisDate, setLastAnalysisDate] = useState(null);
+
+  const runAnalysis = useCallback(async () => {
+    setIsAiLoading(true);
+    setAiError('');
+    try {
+      const res = await aiService.analyzeOperationalData({
+        projects: data.projects,
+        expenses: data.expenses,
+        materials: data.materials,
+        schedule: data.schedule,
+        metrics
+      });
+      if (res && res.ok) {
+        setAiReport(res);
+        setLastAnalysisDate(new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      } else {
+        setAiError(res?.error || 'El análisis no está disponible en este momento.');
+      }
+    } catch (_) {
+      setAiError('El análisis no está disponible en este momento.');
+    } finally {
+      setIsAiLoading(false);
+    }
+  }, [data.projects, data.expenses, data.materials, data.schedule, metrics]);
+
+  useEffect(() => {
+    if (activeTab === 'ai-analysis' && !aiReport && !isAiLoading && currentUser?.rol === 'Administrador') {
+      runAnalysis();
+    }
+  }, [activeTab, aiReport, isAiLoading, currentUser?.rol, runAnalysis]);
 
   // Filtered data based on project and search
   const filteredProjects = useMemo(() => {
@@ -378,6 +421,9 @@ export default function Reports() {
       }}>
         {[
           { id: 'summary', label: 'Resumen Ejecutivo', icon: <FileSpreadsheet size={15} /> },
+          ...(currentUser?.rol === 'Administrador'
+            ? [{ id: 'ai-analysis', label: 'Análisis Inteligente', icon: <Sparkles size={15} style={{ color: 'var(--accent-amber)' }} /> }]
+            : []),
           { id: 'projects', label: 'Proyectos y Avance', icon: <Building2 size={15} /> },
           { id: 'expenses', label: 'Costos y Gastos', icon: <DollarSign size={15} /> },
           { id: 'procurement', label: 'Compras y Abastecimiento', icon: <Truck size={15} /> },
@@ -1248,6 +1294,248 @@ export default function Reports() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* TAB 9: ANÁLISIS INTELIGENTE (EXCLUSIVO ADMINISTRADOR) */}
+      {activeTab === 'ai-analysis' && currentUser?.rol === 'Administrador' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Cabecera del Análisis Inteligente */}
+          <div
+            className="constructa-card"
+            style={{
+              padding: '20px 24px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '16px',
+              borderLeft: '4px solid var(--accent-amber, #f59e0b)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '10px',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--accent-amber, #f59e0b)'
+                }}
+              >
+                <Sparkles size={24} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                  Análisis Inteligente Operativo & Financiero
+                </h2>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+                  Auditoría automática de obras, proyecciones presupuestarias y detección temprana de cuellos de botella con datos reales.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              {lastAnalysisDate && (
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Actualizado: {lastAnalysisDate}
+                </span>
+              )}
+              {aiReport?.text && !isAiLoading && (
+                <Button
+                  variant="outline"
+                  icon={<Volume2 size={16} />}
+                  onClick={() => accessibilityService.speak(aiReport.text)}
+                  title="Escuchar este informe con el sintetizador nativo de voz"
+                >
+                  Escuchar Informe
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                icon={<RefreshCw size={16} className={isAiLoading ? 'spin-animation' : ''} />}
+                onClick={runAnalysis}
+                disabled={isAiLoading}
+              >
+                {isAiLoading ? 'Analizando información...' : 'Actualizar análisis'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Estado de carga */}
+          {isAiLoading && (
+            <div
+              className="constructa-card"
+              style={{
+                padding: '40px 24px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px'
+              }}
+            >
+              <RefreshCw size={32} className="spin-animation" style={{ color: 'var(--accent-amber)' }} />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                Analizando información...
+              </h3>
+              <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', maxWidth: '500px', margin: 0 }}>
+                Examinando en tiempo real las partidas presupuestarias, estado de inventario en almacén y cronogramas de obras activas.
+              </p>
+            </div>
+          )}
+
+          {/* Estado de error limpio (sin mostrar stack traces ni código técnico) */}
+          {!isAiLoading && aiError && (
+            <div
+              className="constructa-card"
+              style={{
+                padding: '24px',
+                borderLeft: '4px solid #ef4444',
+                background: 'rgba(239, 68, 68, 0.05)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '14px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <AlertTriangle size={24} style={{ color: '#ef4444' }} />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                    {aiError}
+                  </h4>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    El servicio de análisis volverá a estar disponible en unos momentos.
+                  </span>
+                </div>
+              </div>
+              <Button variant="secondary" onClick={runAnalysis}>
+                Reintentar
+              </Button>
+            </div>
+          )}
+
+          {/* Contenido del Reporte de IA cuando hay datos */}
+          {!isAiLoading && !aiError && aiReport && (
+            <>
+              {/* 5 Tarjetas Ejecutivas de Diagnóstico Operativo */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                {/* 1. Salud General de Proyectos */}
+                <div className="constructa-card" style={{ padding: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Salud General de Proyectos</span>
+                    <Building2 size={16} style={{ color: 'var(--accent-amber)' }} />
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                    {aiReport.facts?.activeProjectsCount || data.projects?.length || 0} Obras Activas
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="symbol-tag symbol-success">[✓] OPERACIÓN NORMAL</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      {aiReport.facts?.totalProjects || 0} en cartera
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Riesgo Presupuestario */}
+                <div className="constructa-card" style={{ padding: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Riesgo Presupuestario</span>
+                    <DollarSign size={16} style={{ color: (aiReport.facts?.budgetConsumptionPct > 85) ? '#ef4444' : '#10b981' }} />
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                    {aiReport.facts?.budgetConsumptionPct || 0}% Ejercido
+                  </div>
+                  <div>
+                    {aiReport.facts?.budgetConsumptionPct > 85 ? (
+                      <span className="symbol-tag symbol-warning">[!] PRECAUCIÓN</span>
+                    ) : (
+                      <span className="symbol-tag symbol-success">[✓] CONTROLADO</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. Riesgo de Retraso */}
+                <div className="constructa-card" style={{ padding: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Riesgo de Retraso</span>
+                    <Clock size={16} style={{ color: 'var(--accent-amber)' }} />
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                    {aiReport.facts?.overBudgetCount > 0 ? `${aiReport.facts.overBudgetCount} en supervisión` : 'Bajo Riesgo'}
+                  </div>
+                  <div>
+                    {aiReport.facts?.overBudgetCount > 0 ? (
+                      <span className="symbol-tag symbol-warning">[!] REVISIÓN DE HITOS</span>
+                    ) : (
+                      <span className="symbol-tag symbol-success">[✓] SIN CRITICIDAD</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 4. Inventario de Materiales */}
+                <div className="constructa-card" style={{ padding: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Inventario de Insumos</span>
+                    <Package size={16} style={{ color: (aiReport.facts?.lowStockCount > 0) ? '#f59e0b' : '#10b981' }} />
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                    {aiReport.facts?.lowStockCount > 0 ? `${aiReport.facts.lowStockCount} Insumos mínimos` : 'Abastecido'}
+                  </div>
+                  <div>
+                    {aiReport.facts?.lowStockCount > 0 ? (
+                      <span className="symbol-tag symbol-warning">[!] GENERAR REPOSICIÓN</span>
+                    ) : (
+                      <span className="symbol-tag symbol-success">[✓] NIVELES ÓPTIMOS</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 5. Tendencia de Avance */}
+                <div className="constructa-card" style={{ padding: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Tendencia de Avance</span>
+                    <TrendingUp size={16} style={{ color: 'var(--accent-amber)' }} />
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                    +{aiReport.facts?.avgProgress || 0}% Ponderado
+                  </div>
+                  <div>
+                    <span className="symbol-tag symbol-info">[i] RITMO ESTABLE</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contenido Estructurado del Análisis */}
+              <div
+                className="constructa-card"
+                style={{
+                  padding: '24px',
+                  lineHeight: '1.7',
+                  fontSize: '0.92rem',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+                  <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--accent-amber)', fontWeight: 700 }}>
+                    Diagnóstico Ejecutivo & Proyecciones de Obra
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Fuente: {aiReport.provider || 'Motor Analítico CONSTRUCTA'}
+                  </span>
+                </div>
+
+                <div style={{ whiteSpace: 'pre-line', color: 'var(--text-secondary)' }}>
+                  {aiReport.text}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

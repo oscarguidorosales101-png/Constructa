@@ -2581,10 +2581,10 @@
     }
   ],
   "settings": {
-    "theme": "light",
-    "fontSize": "normal",
-    "colorVision": "high-contrast",
-    "reducedMotion": true,
+    "theme": "dark",
+    "fontSize": "xlarge",
+    "colorVision": "red-green",
+    "reducedMotion": false,
     "voice": {
       "enabled": false,
       "voiceURI": "",
@@ -2592,9 +2592,11 @@
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-02T20:34:46.542Z",
+    "updatedAt": "2026-10-04T01:37:30.896Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
-    "voiceURI": "Google UK English Male"
+    "voiceURI": "Google UK English Male",
+    "textSize": "xlarge",
+    "highContrast": false
   }
 }

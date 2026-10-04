@@ -10,6 +10,7 @@ import ToastContainer from '../components/common/ToastContainer';
 import ConfirmModal from '../components/common/ConfirmModal';
 import AccessibilityModal from '../components/accessibility/AccessibilityModal';
 import AIAssistantModal from '../components/ai/AIAssistantModal';
+import VoiceReaderWidget from '../components/common/VoiceReaderWidget';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 
 export const AppRoutes = () => {
@@ -127,6 +128,11 @@ export const AppRoutes = () => {
 
   return (
     <>
+      {/* Enlace de accesibilidad para saltar al contenido principal */}
+      <a href="#main-content" className="skip-link">
+        Pasar al contenido principal
+      </a>
+
       <ErrorBoundary title="Error al cargar la vista">
         {content}
       </ErrorBoundary>
@@ -146,9 +152,16 @@ export const AppRoutes = () => {
       <ErrorBoundary fallback={null}>
         <AccessibilityModal />
       </ErrorBoundary>
-      <ErrorBoundary fallback={null}>
-        <AIAssistantModal />
-      </ErrorBoundary>
+
+      {/* Asistente IA exclusivo para Administrador */}
+      {currentUser?.rol === 'Administrador' && (
+        <ErrorBoundary fallback={null}>
+          <AIAssistantModal />
+        </ErrorBoundary>
+      )}
+
+      {/* Barra y control de asistencia de voz nativa */}
+      <VoiceReaderWidget />
     </>
   );
 };
