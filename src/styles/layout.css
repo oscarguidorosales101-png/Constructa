@@ -58,7 +58,7 @@
   font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #ffffff;
+  color: var(--text-primary);
   line-height: 1.1;
 }
 
@@ -108,8 +108,8 @@
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
+  background: var(--bg-card-hover, rgba(255, 255, 255, 0.04));
+  color: var(--text-primary);
 }
 
 .nav-item.active {
@@ -133,7 +133,7 @@
 .sidebar-footer {
   padding: 0.85rem;
   border-top: 1px solid var(--border-subtle);
-  background: #0b0f17;
+  background: var(--bg-sidebar);
   flex-shrink: 0;
 }
 
@@ -142,8 +142,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.6rem 0.75rem;
-  background: #111724;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface-elevated, var(--bg-card));
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
 }
 
@@ -242,7 +242,7 @@
 .header-title-group h1 {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -271,7 +271,7 @@
   gap: 0.45rem;
   font-size: 0.78rem;
   color: var(--text-secondary);
-  background: #141b29;
+  background: var(--bg-surface-elevated, var(--bg-card));
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
@@ -293,7 +293,7 @@
   display: none;
   align-items: center;
   gap: 0.4rem;
-  background: #141b29;
+  background: var(--bg-surface-elevated, var(--bg-card));
   padding: 0.25rem 0.5rem 0.25rem 0.35rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--border-subtle);
@@ -315,7 +315,7 @@
 .user-short-name {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 /* CONTENIDO PRINCIPAL */

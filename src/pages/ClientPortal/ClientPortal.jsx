@@ -179,10 +179,13 @@ export const ClientPortal = ({ onNavigate }) => {
     return (projects || []).filter((p) => {
       // Vinculado explícitamente en el perfil del cliente
       if (directLinked.includes(p.id)) return true;
-      // Vinculado por clienteId
-      if (currentUser?.id && (p.clienteId === currentUser.id || p.cliente === currentUser.nombre)) return true;
+      // Vinculado por clienteId o clientId
+      const currentId = currentUser?.id;
+      const currentCliId = currentUser?.clienteId;
+      if (currentId && (p.clienteId === currentId || p.clientId === currentId || p.cliente === currentUser.nombre)) return true;
+      if (currentCliId && (p.clienteId === currentCliId || p.clientId === currentCliId)) return true;
       // Vinculado por correo del cliente
-      if (clientEmail && p.clienteEmail?.toLowerCase() === clientEmail.toLowerCase()) return true;
+      if (clientEmail && (p.clienteEmail?.toLowerCase() === clientEmail.toLowerCase() || p.clientEmail?.toLowerCase() === clientEmail.toLowerCase())) return true;
       return false;
     });
   }, [projects, currentUser, clientEmail]);

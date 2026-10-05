@@ -900,6 +900,55 @@ export const DEFAULT_SUPPLIER_COMMUNICATIONS = [
 ];
 
 export const dataService = {
+  /**
+   * Puente de persistencia asíncrona hacia el backend simulado /api/db (db.json)
+   */
+  async _persistToDb(collectionKey, data) {
+    if (typeof window === 'undefined' || typeof fetch === 'undefined') return;
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [collectionKey]: data }),
+      });
+    } catch (err) {
+      console.warn(`[dataService] Error al sincronizar ${collectionKey} con db.json:`, err);
+    }
+  },
+
+  /**
+   * Sincroniza el almacenamiento local con el estado más reciente de db.json
+   */
+  async syncFromDb() {
+    if (typeof window === 'undefined' || typeof fetch === 'undefined') return;
+    try {
+      const res = await fetch('/api/db');
+      if (res.ok) {
+        const liveDb = await res.json();
+        if (Array.isArray(liveDb.projects)) storageService.set(KEYS.PROJECTS, liveDb.projects);
+        if (Array.isArray(liveDb.employees)) storageService.set(KEYS.EMPLOYEES, liveDb.employees);
+        if (Array.isArray(liveDb.materials)) storageService.set(KEYS.MATERIALS, liveDb.materials);
+        if (Array.isArray(liveDb.suppliers)) storageService.set(KEYS.SUPPLIERS, liveDb.suppliers);
+        if (Array.isArray(liveDb.expenses)) storageService.set(KEYS.EXPENSES, liveDb.expenses);
+        if (Array.isArray(liveDb.schedule)) storageService.set(KEYS.SCHEDULE, liveDb.schedule);
+        if (Array.isArray(liveDb.inventoryMovements)) storageService.set(KEYS.MOVEMENTS, liveDb.inventoryMovements);
+        if (Array.isArray(liveDb.history)) storageService.set(KEYS.HISTORY, liveDb.history);
+        if (Array.isArray(liveDb.applicants)) storageService.set(KEYS.APPLICANTS, liveDb.applicants);
+        if (Array.isArray(liveDb.interviews)) storageService.set(KEYS.INTERVIEWS, liveDb.interviews);
+        if (Array.isArray(liveDb.agenda)) storageService.set(KEYS.AGENDA, liveDb.agenda);
+        if (Array.isArray(liveDb.materialRequests)) storageService.set(KEYS.MATERIAL_REQUESTS, liveDb.materialRequests);
+        if (Array.isArray(liveDb.purchaseOrders)) storageService.set(KEYS.PURCHASE_ORDERS, liveDb.purchaseOrders);
+        if (Array.isArray(liveDb.supplierInvoices)) storageService.set(KEYS.SUPPLIER_INVOICES, liveDb.supplierInvoices);
+        if (Array.isArray(liveDb.supplierCommunications)) storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, liveDb.supplierCommunications);
+        if (Array.isArray(liveDb.clients)) storageService.set(KEYS.CLIENTS, liveDb.clients);
+        if (Array.isArray(liveDb.requests)) storageService.set(KEYS.CLIENT_REQUESTS, liveDb.requests);
+        if (Array.isArray(liveDb.clientMeetings)) storageService.set(KEYS.CLIENT_MEETINGS, liveDb.clientMeetings);
+        if (Array.isArray(liveDb.clientConversations)) storageService.set(KEYS.CLIENT_CONVERSATIONS, liveDb.clientConversations);
+        return liveDb;
+      }
+    } catch (_) {}
+  },
+
   // Inicialización de la capa de datos
   init() {
     const isInitialized = storageService.get(KEYS.INITIALIZED, false);
@@ -916,14 +965,19 @@ export const dataService = {
       storageService.set(KEYS.HISTORY, db.history || []);
       storageService.set(KEYS.APPLICANTS, db.applicants || []);
       storageService.set(KEYS.INTERVIEWS, db.interviews || []);
-      storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
-      storageService.set(KEYS.MATERIAL_REQUESTS, DEFAULT_MATERIAL_REQUESTS);
-      storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
-      storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
-      storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
+      storageService.set(KEYS.AGENDA, db.agenda || DEFAULT_AGENDA_ACTIVITIES);
+      storageService.set(KEYS.MATERIAL_REQUESTS, db.materialRequests || DEFAULT_MATERIAL_REQUESTS);
+      storageService.set(KEYS.PURCHASE_ORDERS, db.purchaseOrders || DEFAULT_PURCHASE_ORDERS);
+      storageService.set(KEYS.SUPPLIER_INVOICES, db.supplierInvoices || DEFAULT_SUPPLIER_INVOICES);
+      storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, db.supplierCommunications || DEFAULT_SUPPLIER_COMMUNICATIONS);
+      storageService.set(KEYS.CLIENTS, db.clients && db.clients.length > 0 ? db.clients : DEFAULT_CLIENTS);
+      storageService.set(KEYS.CLIENT_REQUESTS, db.requests && db.requests.length > 0 ? db.requests : DEFAULT_CLIENT_REQUESTS);
+      storageService.set(KEYS.CLIENT_MEETINGS, db.clientMeetings && db.clientMeetings.length > 0 ? db.clientMeetings : DEFAULT_CLIENT_MEETINGS);
+      storageService.set(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
+      storageService.set(KEYS.CLIENT_CONVERSATIONS, db.clientConversations && db.clientConversations.length > 0 ? db.clientConversations : DEFAULT_CLIENT_CONVERSATIONS);
       storageService.set(KEYS.INITIALIZED, true);
     } else {
-      // Si por alguna razón alguna colección estuviera ausente o vacía en el almacenamiento local, se recupera
+      // Si ya estaba inicializado, comprobar si alguna colección falta en localStorage y recuperar
       if (!storageService.get(KEYS.PROJECTS)) storageService.set(KEYS.PROJECTS, db.projects || []);
       if (!storageService.get(KEYS.EMPLOYEES)) storageService.set(KEYS.EMPLOYEES, db.employees || []);
       if (!storageService.get(KEYS.MATERIALS)) storageService.set(KEYS.MATERIALS, db.materials || []);
@@ -934,17 +988,20 @@ export const dataService = {
       if (!storageService.get(KEYS.HISTORY)) storageService.set(KEYS.HISTORY, db.history || []);
       if (!storageService.get(KEYS.APPLICANTS)) storageService.set(KEYS.APPLICANTS, db.applicants || []);
       if (!storageService.get(KEYS.INTERVIEWS)) storageService.set(KEYS.INTERVIEWS, db.interviews || []);
-      if (!storageService.get(KEYS.AGENDA)) storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
-      if (!storageService.get(KEYS.MATERIAL_REQUESTS)) storageService.set(KEYS.MATERIAL_REQUESTS, DEFAULT_MATERIAL_REQUESTS);
-      if (!storageService.get(KEYS.PURCHASE_ORDERS)) storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
-      if (!storageService.get(KEYS.SUPPLIER_INVOICES)) storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
-      if (!storageService.get(KEYS.SUPPLIER_COMMUNICATIONS)) storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
-      if (!storageService.get(KEYS.CLIENTS)) storageService.set(KEYS.CLIENTS, DEFAULT_CLIENTS);
-      if (!storageService.get(KEYS.CLIENT_REQUESTS)) storageService.set(KEYS.CLIENT_REQUESTS, DEFAULT_CLIENT_REQUESTS);
-      if (!storageService.get(KEYS.CLIENT_MEETINGS)) storageService.set(KEYS.CLIENT_MEETINGS, DEFAULT_CLIENT_MEETINGS);
+      if (!storageService.get(KEYS.AGENDA)) storageService.set(KEYS.AGENDA, db.agenda || DEFAULT_AGENDA_ACTIVITIES);
+      if (!storageService.get(KEYS.MATERIAL_REQUESTS)) storageService.set(KEYS.MATERIAL_REQUESTS, db.materialRequests || DEFAULT_MATERIAL_REQUESTS);
+      if (!storageService.get(KEYS.PURCHASE_ORDERS)) storageService.set(KEYS.PURCHASE_ORDERS, db.purchaseOrders || DEFAULT_PURCHASE_ORDERS);
+      if (!storageService.get(KEYS.SUPPLIER_INVOICES)) storageService.set(KEYS.SUPPLIER_INVOICES, db.supplierInvoices || DEFAULT_SUPPLIER_INVOICES);
+      if (!storageService.get(KEYS.SUPPLIER_COMMUNICATIONS)) storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, db.supplierCommunications || DEFAULT_SUPPLIER_COMMUNICATIONS);
+      if (!storageService.get(KEYS.CLIENTS)) storageService.set(KEYS.CLIENTS, db.clients || DEFAULT_CLIENTS);
+      if (!storageService.get(KEYS.CLIENT_REQUESTS)) storageService.set(KEYS.CLIENT_REQUESTS, db.requests || DEFAULT_CLIENT_REQUESTS);
+      if (!storageService.get(KEYS.CLIENT_MEETINGS)) storageService.set(KEYS.CLIENT_MEETINGS, db.clientMeetings || DEFAULT_CLIENT_MEETINGS);
       if (!storageService.get(KEYS.CLIENT_MESSAGES)) storageService.set(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
-      if (!storageService.get(KEYS.CLIENT_CONVERSATIONS)) storageService.set(KEYS.CLIENT_CONVERSATIONS, DEFAULT_CLIENT_CONVERSATIONS);
+      if (!storageService.get(KEYS.CLIENT_CONVERSATIONS)) storageService.set(KEYS.CLIENT_CONVERSATIONS, db.clientConversations || DEFAULT_CLIENT_CONVERSATIONS);
     }
+
+    // Sincronizar asíncronamente con /api/db para recuperar cualquier cambio externo
+    this.syncFromDb();
   },
 
   // Restablecer datos a los valores iniciales de db.json y compras
@@ -959,18 +1016,19 @@ export const dataService = {
     storageService.set(KEYS.HISTORY, db.history || []);
     storageService.set(KEYS.APPLICANTS, db.applicants || []);
     storageService.set(KEYS.INTERVIEWS, db.interviews || []);
-    storageService.set(KEYS.AGENDA, DEFAULT_AGENDA_ACTIVITIES);
-    storageService.set(KEYS.MATERIAL_REQUESTS, DEFAULT_MATERIAL_REQUESTS);
-    storageService.set(KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
-    storageService.set(KEYS.SUPPLIER_INVOICES, DEFAULT_SUPPLIER_INVOICES);
-    storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, DEFAULT_SUPPLIER_COMMUNICATIONS);
-    storageService.set(KEYS.CLIENTS, DEFAULT_CLIENTS);
-    storageService.set(KEYS.CLIENT_REQUESTS, DEFAULT_CLIENT_REQUESTS);
-    storageService.set(KEYS.CLIENT_MEETINGS, DEFAULT_CLIENT_MEETINGS);
+    storageService.set(KEYS.AGENDA, db.agenda || DEFAULT_AGENDA_ACTIVITIES);
+    storageService.set(KEYS.MATERIAL_REQUESTS, db.materialRequests || DEFAULT_MATERIAL_REQUESTS);
+    storageService.set(KEYS.PURCHASE_ORDERS, db.purchaseOrders || DEFAULT_PURCHASE_ORDERS);
+    storageService.set(KEYS.SUPPLIER_INVOICES, db.supplierInvoices || DEFAULT_SUPPLIER_INVOICES);
+    storageService.set(KEYS.SUPPLIER_COMMUNICATIONS, db.supplierCommunications || DEFAULT_SUPPLIER_COMMUNICATIONS);
+    storageService.set(KEYS.CLIENTS, db.clients || DEFAULT_CLIENTS);
+    storageService.set(KEYS.CLIENT_REQUESTS, db.requests || DEFAULT_CLIENT_REQUESTS);
+    storageService.set(KEYS.CLIENT_MEETINGS, db.clientMeetings || DEFAULT_CLIENT_MEETINGS);
     storageService.set(KEYS.CLIENT_MESSAGES, DEFAULT_CLIENT_MESSAGES);
-    storageService.set(KEYS.CLIENT_CONVERSATIONS, DEFAULT_CLIENT_CONVERSATIONS);
+    storageService.set(KEYS.CLIENT_CONVERSATIONS, db.clientConversations || DEFAULT_CLIENT_CONVERSATIONS);
     storageService.set(KEYS.INITIALIZED, true);
   },
+
 
   // ----------------------------------------------------
   // GESTIÓN DE SESIÓN Y AUTENTICACIÓN MULTI-ROL
@@ -1035,12 +1093,13 @@ export const dataService = {
     if (matchedClient) {
       const validPasswords = [
         matchedClient.clave,
+        matchedClient.password,
         ...(matchedClient.aliases || []),
         'cliente123',
         'Cliente2026!',
         'cliente'
       ];
-      if (validPasswords.includes(cleanPass)) {
+      if (validPasswords.filter(Boolean).includes(cleanPass)) {
         if (matchedClient.estadoVerificacion === 'Bloqueada') {
           return {
             ok: false,
@@ -1173,6 +1232,7 @@ export const dataService = {
     }
 
     storageService.set(KEYS.PROJECTS, updated);
+    this._persistToDb('projects', updated);
     return updated;
   },
 
@@ -1181,6 +1241,7 @@ export const dataService = {
     const target = list.find((p) => p.id === id);
     const updated = list.filter((p) => p.id !== id);
     storageService.set(KEYS.PROJECTS, updated);
+    this._persistToDb('projects', updated);
 
     if (target) {
       this.addHistoryEntry('Proyecto Eliminado', `Cierre de registro de obra: ${target.nombre}`, target.nombre);
@@ -1204,6 +1265,7 @@ export const dataService = {
       return p;
     });
     storageService.set(KEYS.PROJECTS, updated);
+    this._persistToDb('projects', updated);
 
     if (target) {
       this.addHistoryEntry(
@@ -1252,6 +1314,7 @@ export const dataService = {
     }
 
     storageService.set(KEYS.EMPLOYEES, updated);
+    this._persistToDb('employees', updated);
     return updated;
   },
 
@@ -1260,6 +1323,7 @@ export const dataService = {
     const target = list.find((e) => e.id === id);
     const updated = list.filter((e) => e.id !== id);
     storageService.set(KEYS.EMPLOYEES, updated);
+    this._persistToDb('employees', updated);
 
     if (target) {
       this.addHistoryEntry('Baja de Personal', `Desvinculación de personal: ${target.nombre}`);
@@ -1333,6 +1397,7 @@ export const dataService = {
     }
 
     storageService.set(KEYS.MATERIALS, updated);
+    this._persistToDb('materials', updated);
     return updated;
   },
 
@@ -1341,6 +1406,7 @@ export const dataService = {
     const target = list.find((m) => m.id === id);
     const updated = list.filter((m) => m.id !== id);
     storageService.set(KEYS.MATERIALS, updated);
+    this._persistToDb('materials', updated);
 
     if (target) {
       this.addHistoryEntry('Material Retirado', `Baja de catálogo: ${target.nombre}`);
@@ -1383,6 +1449,7 @@ export const dataService = {
       m.id === materialId ? { ...m, stock: newStock, stockActual: newStock } : m
     );
     storageService.set(KEYS.MATERIALS, updatedMaterials);
+    this._persistToDb('materials', updatedMaterials);
 
     // Guardar movimiento
     const movements = this.getInventoryMovements();
@@ -1405,6 +1472,7 @@ export const dataService = {
 
     const nextMovements = [newMov, ...movements];
     storageService.set(KEYS.MOVEMENTS, nextMovements);
+    this._persistToDb('inventoryMovements', nextMovements);
 
     // Historial
     const actionDesc =
@@ -1496,6 +1564,7 @@ export const dataService = {
     }
 
     storageService.set(KEYS.SUPPLIERS, updated);
+    this._persistToDb('suppliers', updated);
     return updated;
   },
 
@@ -1504,6 +1573,7 @@ export const dataService = {
     const target = list.find((s) => s.id === id);
     const updated = list.filter((s) => s.id !== id);
     storageService.set(KEYS.SUPPLIERS, updated);
+    this._persistToDb('suppliers', updated);
 
     if (target) {
       this.addHistoryEntry('Proveedor Retirado', `Baja de proveedor: ${target.nombre || target.nombreComercial}`);
@@ -1570,6 +1640,7 @@ export const dataService = {
     }
 
     storageService.set(KEYS.EXPENSES, updated);
+    this._persistToDb('expenses', updated);
     return updated;
   },
 
@@ -1578,6 +1649,7 @@ export const dataService = {
     const target = list.find((g) => g.id === id);
     const updated = list.filter((g) => g.id !== id);
     storageService.set(KEYS.EXPENSES, updated);
+    this._persistToDb('expenses', updated);
 
     if (target) {
       const desc = target.concepto || target.descripcion || 'Gasto';
@@ -3471,6 +3543,7 @@ export const dataService = {
 
     const updated = [...list, newClient];
     storageService.set(KEYS.CLIENTS, updated);
+    this._persistToDb('clients', updated);
 
     // Preparar mensaje de bienvenida privado en Mesa de Ayuda y Soporte
     try {
@@ -3531,6 +3604,7 @@ export const dataService = {
       };
       list[idx] = verifiedClient;
       storageService.set(KEYS.CLIENTS, list);
+      this._persistToDb('clients', list);
       
       const currentSession = this.getSession();
       if (currentSession?.usuario?.email?.toLowerCase() === cleanEmail) {
@@ -3550,6 +3624,7 @@ export const dataService = {
     if (idx === -1) return null;
     list[idx] = { ...list[idx], ...updates, id };
     storageService.set(KEYS.CLIENTS, list);
+    this._persistToDb('clients', list);
     return list[idx];
   },
 
@@ -3600,6 +3675,7 @@ export const dataService = {
 
     const updated = [newRequest, ...list];
     storageService.set(KEYS.CLIENT_REQUESTS, updated);
+    this._persistToDb('requests', updated);
     this.addHistoryEntry('Solicitud de Cliente', `Nueva solicitud recibida: ${newRequest.titulo} de ${data.clienteNombre}`);
     return newRequest;
   },
@@ -3623,6 +3699,7 @@ export const dataService = {
     };
     list[idx] = updated;
     storageService.set(KEYS.CLIENT_REQUESTS, list);
+    this._persistToDb('requests', list);
     return updated;
   },
 
@@ -3902,5 +3979,10 @@ export const dataService = {
 
 // Auto-inicializar almacenamiento en el primer uso
 dataService.init();
+
+export { supplierService } from './supplierService.js';
+export { employeeService } from './employeeService.js';
+export { projectService } from './projectService.js';
+export { clientService } from './clientService.js';
 
 export default dataService;

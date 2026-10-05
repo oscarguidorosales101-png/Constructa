@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import dataService from '../services/dataService.js';
 import clientService from '../services/clientService.js';
+import supplierService from '../services/supplierService.js';
+import employeeService from '../services/employeeService.js';
+import projectService from '../services/projectService.js';
 import settingsService from '../services/settingsService.js';
 import accessibilityService from '../services/accessibilityService.js';
 import aiService from '../services/aiService.js';
@@ -79,7 +82,28 @@ export const ConstructaProvider = ({ children }) => {
           console.warn('[ConstructaContext] Error al inicializar settings:', err);
         });
     }
+
+    // Sincronizar entidades con backend simulado db.json
+    if (dataService && typeof dataService.syncFromDb === 'function') {
+      dataService.syncFromDb()
+        .then((liveDb) => {
+          if (liveDb) {
+            if (Array.isArray(liveDb.projects)) setProjects(liveDb.projects);
+            if (Array.isArray(liveDb.employees)) setEmployees(liveDb.employees);
+            if (Array.isArray(liveDb.materials)) setMaterials(liveDb.materials);
+            if (Array.isArray(liveDb.suppliers)) setSuppliers(liveDb.suppliers);
+            if (Array.isArray(liveDb.expenses)) setExpenses(liveDb.expenses);
+            if (Array.isArray(liveDb.clients)) setClients(liveDb.clients);
+            if (Array.isArray(liveDb.requests)) setClientRequests(liveDb.requests);
+            if (Array.isArray(liveDb.clientMeetings)) setClientMeetings(liveDb.clientMeetings);
+            if (Array.isArray(liveDb.clientConversations)) setConversations(liveDb.clientConversations);
+            setMetrics(dataService.calculateMetrics());
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
+
 
   const updateSettings = useCallback(async (newSettings) => {
     try {
@@ -206,23 +230,44 @@ export const ConstructaProvider = ({ children }) => {
   // ----------------------------------------------------
   
   // PROYECTOS
-  const saveProject = (projectData) => {
-    const updated = dataService.saveProject(projectData);
-    setProjects(updated);
-    refreshMetrics();
-    showAlert(
-      projectData.id ? 'Proyecto actualizado correctamente.' : 'Proyecto registrado exitosamente.',
-      'exito'
-    );
-    return true;
+  const saveProject = async (projectData) => {
+    try {
+      const res = await projectService.saveProject(projectData);
+      if (res && res.ok) {
+        setProjects(res.projects);
+        refreshMetrics();
+        showAlert(
+          projectData.id ? 'Proyecto actualizado correctamente.' : 'Proyecto registrado exitosamente.',
+          'exito'
+        );
+        return { ok: true, project: res.project, projects: res.projects };
+      } else {
+        const errMsg = res?.error || 'No se pudo guardar la información. Verifica la conexión con el sistema.';
+        showAlert(errMsg, 'error');
+        return { ok: false, error: errMsg };
+      }
+    } catch (err) {
+      const errMsg = 'No se pudo guardar la información. Verifica la conexión con el sistema.';
+      showAlert(errMsg, 'error');
+      return { ok: false, error: errMsg };
+    }
   };
 
-  const deleteProject = (id) => {
-    const updated = dataService.deleteProject(id);
-    setProjects(updated);
-    refreshMetrics();
-    showAlert('Proyecto eliminado correctamente.', 'info');
-    return true;
+  const deleteProject = async (id) => {
+    try {
+      const res = await projectService.deleteProject(id);
+      if (res && res.ok) {
+        setProjects(res.projects);
+        refreshMetrics();
+        showAlert('Proyecto eliminado correctamente.', 'info');
+        return true;
+      }
+      showAlert('No se pudo eliminar el proyecto. Verifica la conexión con el sistema.', 'error');
+      return false;
+    } catch (err) {
+      showAlert('No se pudo eliminar el proyecto. Verifica la conexión con el sistema.', 'error');
+      return false;
+    }
   };
 
   const updateProjectProgress = (id, progress) => {
@@ -233,24 +278,45 @@ export const ConstructaProvider = ({ children }) => {
     return true;
   };
 
-  // EMPLEADOS (62 Colaboradores)
-  const saveEmployee = (employeeData) => {
-    const updated = dataService.saveEmployee(employeeData);
-    setEmployees(updated);
-    refreshMetrics();
-    showAlert(
-      employeeData.id ? 'Ficha de colaborador actualizada.' : 'Colaborador registrado exitosamente.',
-      'exito'
-    );
-    return true;
+  // EMPLEADOS (Persistencia real mediante employeeService y db.json)
+  const saveEmployee = async (employeeData) => {
+    try {
+      const res = await employeeService.saveEmployee(employeeData);
+      if (res && res.ok) {
+        setEmployees(res.employees);
+        refreshMetrics();
+        showAlert(
+          employeeData.id ? 'Ficha de colaborador actualizada.' : 'Colaborador registrado exitosamente.',
+          'exito'
+        );
+        return { ok: true, employee: res.employee, employees: res.employees };
+      } else {
+        const errMsg = res?.error || 'No se pudo guardar la información. Verifica la conexión con el sistema.';
+        showAlert(errMsg, 'error');
+        return { ok: false, error: errMsg };
+      }
+    } catch (err) {
+      const errMsg = 'No se pudo guardar la información. Verifica la conexión con el sistema.';
+      showAlert(errMsg, 'error');
+      return { ok: false, error: errMsg };
+    }
   };
 
-  const deleteEmployee = (id) => {
-    const updated = dataService.deleteEmployee(id);
-    setEmployees(updated);
-    refreshMetrics();
-    showAlert('Registro de personal retirado.', 'info');
-    return true;
+  const deleteEmployee = async (id) => {
+    try {
+      const res = await employeeService.deleteEmployee(id);
+      if (res && res.ok) {
+        setEmployees(res.employees);
+        refreshMetrics();
+        showAlert('Registro de personal retirado.', 'info');
+        return true;
+      }
+      showAlert('No se pudo retirar el colaborador. Verifica la conexión con el sistema.', 'error');
+      return false;
+    } catch (err) {
+      showAlert('No se pudo retirar el colaborador. Verifica la conexión con el sistema.', 'error');
+      return false;
+    }
   };
 
   // MATERIALES (22 Insumos con Renders 3D)
@@ -287,24 +353,45 @@ export const ConstructaProvider = ({ children }) => {
     }
   };
 
-  // PROVEEDORES
-  const saveSupplier = (supplierData) => {
-    const updated = dataService.saveSupplier(supplierData);
-    setSuppliers(updated);
-    refreshMetrics();
-    showAlert(
-      supplierData.id ? 'Proveedor actualizado con éxito.' : 'Proveedor registrado exitosamente.',
-      'exito'
-    );
-    return true;
+  // PROVEEDORES (Persistencia real mediante supplierService y db.json)
+  const saveSupplier = async (supplierData) => {
+    try {
+      const res = await supplierService.saveSupplier(supplierData);
+      if (res && res.ok) {
+        setSuppliers(res.suppliers);
+        refreshMetrics();
+        showAlert(
+          supplierData.id ? 'Proveedor actualizado con éxito.' : 'Proveedor registrado exitosamente.',
+          'exito'
+        );
+        return { ok: true, supplier: res.supplier, suppliers: res.suppliers };
+      } else {
+        const errMsg = res?.error || 'No se pudo guardar la información. Verifica la conexión con el sistema.';
+        showAlert(errMsg, 'error');
+        return { ok: false, error: errMsg };
+      }
+    } catch (err) {
+      const errMsg = 'No se pudo guardar la información. Verifica la conexión con el sistema.';
+      showAlert(errMsg, 'error');
+      return { ok: false, error: errMsg };
+    }
   };
 
-  const deleteSupplier = (id) => {
-    const updated = dataService.deleteSupplier(id);
-    setSuppliers(updated);
-    refreshMetrics();
-    showAlert('Proveedor eliminado del registro.', 'info');
-    return true;
+  const deleteSupplier = async (id) => {
+    try {
+      const res = await supplierService.deleteSupplier(id);
+      if (res && res.ok) {
+        setSuppliers(res.suppliers);
+        refreshMetrics();
+        showAlert('Proveedor eliminado del registro.', 'info');
+        return true;
+      }
+      showAlert('No se pudo eliminar el proveedor. Verifica la conexión con el sistema.', 'error');
+      return false;
+    } catch (err) {
+      showAlert('No se pudo eliminar el proveedor. Verifica la conexión con el sistema.', 'error');
+      return false;
+    }
   };
 
   // ----------------------------------------------------
@@ -693,14 +780,14 @@ export const ConstructaProvider = ({ children }) => {
 
   const saveClientRequest = (reqData) => {
     const res = dataService.saveClientRequest(reqData);
-    if (res.ok) {
+    if (res && (res.ok || res.id)) {
       setClientRequests(dataService.getClientRequests());
       refreshMetrics();
       showAlert('Solicitud enviada a la Constructora con éxito. Nuestro equipo la revisará.', 'exito');
-      return res;
+      return { ok: true, data: res.data || res, id: res.id };
     } else {
-      showAlert(res.error || 'Error al registrar la solicitud.', 'error');
-      return res;
+      showAlert(res?.error || 'Error al registrar la solicitud.', 'error');
+      return { ok: false, error: res?.error };
     }
   };
 
@@ -715,18 +802,28 @@ export const ConstructaProvider = ({ children }) => {
     return null;
   };
 
+  const linkProjectToClient = (clientId, projectId) => {
+    const updated = dataService.linkProjectToClient(clientId, projectId);
+    if (updated) {
+      setClients(dataService.getClients());
+      refreshMetrics();
+    }
+    return updated;
+  };
+
   const saveClientMeeting = (meetingData) => {
     const res = dataService.saveClientMeeting(meetingData);
-    if (res.ok) {
+    if (res && (res.ok || res.id)) {
       setClientMeetings(dataService.getClientMeetings());
       refreshMetrics();
       showAlert('Solicitud de reunión agendada. Se notificará a la coordinación.', 'exito');
-      return res;
+      return { ok: true, data: res.data || res, id: res.id };
     } else {
-      showAlert(res.error || 'Error al registrar la reunión.', 'error');
-      return res;
+      showAlert(res?.error || 'Error al registrar la reunión.', 'error');
+      return { ok: false, error: res?.error };
     }
   };
+
 
   const updateClientMeeting = (id, updates) => {
     const updated = dataService.updateClientMeeting(id, updates);
@@ -956,6 +1053,7 @@ export const ConstructaProvider = ({ children }) => {
         registerClient,
         verifyClientAccount,
         updateClientProfile,
+        linkProjectToClient,
         saveClientRequest,
         updateClientRequest,
         saveClientMeeting,

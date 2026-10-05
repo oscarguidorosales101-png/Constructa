@@ -42,6 +42,7 @@ export const ClientRequestsManager = ({ onNavigate }) => {
     updateConversation,
     unreadMessagesCount,
     saveProject,
+    linkProjectToClient,
     showAlert,
     requestConfirm
   } = useConstructa();
@@ -260,6 +261,7 @@ export const ClientRequestsManager = ({ onNavigate }) => {
   const handleConfirmConvertToProject = (e) => {
     e.preventDefault();
     const newId = `PRJ-${String(Date.now()).slice(-3)}`;
+    const targetClientId = selectedRequest?.clienteId || selectedRequest?.clientId || 'CLI-001';
 
     saveProject({
       id: newId,
@@ -271,10 +273,15 @@ export const ClientRequestsManager = ({ onNavigate }) => {
       fechaFin: projectForm.fechaFin,
       progreso: 5,
       estado: 'En Construcción',
-      clienteId: selectedRequest?.clienteId || 'CLI-001',
-      clienteNombre: selectedRequest?.clienteNombre || 'Cliente Registrado',
+      clienteId: targetClientId,
+      clientId: targetClientId,
+      clienteNombre: selectedRequest?.clienteNombre || selectedRequest?.clientName || 'Cliente Registrado',
       solicitudOrigenId: selectedRequest?.id,
     });
+
+    if (linkProjectToClient) {
+      linkProjectToClient(targetClientId, newId);
+    }
 
     // Actualizar la solicitud a "Aprobada" con contrato
     updateClientRequest(selectedRequest.id, {

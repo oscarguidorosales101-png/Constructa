@@ -78,7 +78,7 @@ export const DashboardCharts = () => {
                   borderRadius: 'var(--radius-sm)',
                   display: 'flex',
                   overflow: 'hidden',
-                  background: '#192233',
+                  background: 'var(--bg-surface-elevated, #192233)',
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)',
                 }}
               >
@@ -103,16 +103,16 @@ export const DashboardCharts = () => {
 
             {/* Desglose de importes */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-              <div style={{ background: '#0e1420', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ background: 'var(--bg-surface-elevated, var(--bg-card))', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                   Presupuesto Total
                 </span>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', marginTop: '0.2rem' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.2rem' }}>
                   {formatCurrency(metrics?.totalBudget)}
                 </div>
               </div>
 
-              <div style={{ background: '#0e1420', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
+              <div style={{ background: 'var(--bg-surface-elevated, var(--bg-card))', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-amber)' }} />
                   <span style={{ fontSize: '0.72rem', color: 'var(--accent-amber)', textTransform: 'uppercase', fontWeight: 600 }}>
@@ -124,7 +124,7 @@ export const DashboardCharts = () => {
                 </div>
               </div>
 
-              <div style={{ background: '#0e1420', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+              <div style={{ background: 'var(--bg-surface-elevated, var(--bg-card))', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-green)' }} />
                   <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', textTransform: 'uppercase', fontWeight: 600 }}>

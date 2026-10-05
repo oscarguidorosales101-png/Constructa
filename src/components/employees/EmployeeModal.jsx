@@ -92,7 +92,7 @@ export const EmployeeModal = ({ isOpen, onClose, onSave, employee = null }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -114,10 +114,15 @@ export const EmployeeModal = ({ isOpen, onClose, onSave, employee = null }) => {
       return;
     }
 
-    onSave({
+    const payload = {
       ...(employee ? { id: employee.id } : {}),
       ...formData,
-    });
+    };
+
+    const res = await onSave(payload);
+    if (res === false || (res && res.ok === false)) {
+      return;
+    }
     onClose();
   };
 

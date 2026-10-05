@@ -43,15 +43,27 @@
 }
 
 .btn-secondary {
-  background: #1e2738;
+  background: var(--bg-surface-elevated, #1e2738);
   color: var(--text-primary);
   border: 1px solid var(--border-medium);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #27334a;
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
+  background: var(--bg-card-hover, #27334a);
+  border-color: var(--accent-amber);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .btn-secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .btn-secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 
 .btn-outline {

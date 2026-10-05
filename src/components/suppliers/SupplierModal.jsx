@@ -87,7 +87,7 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -95,12 +95,17 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
       return;
     }
 
-    onSave({
+    const payload = {
       ...(supplier ? { id: supplier.id } : {}),
       ...formData,
       nombreComercial: formData.nombre,
       categoria: formData.especialidad,
-    });
+    };
+
+    const res = await onSave(payload);
+    if (res === false || (res && res.ok === false)) {
+      return;
+    }
     onClose();
   };
 

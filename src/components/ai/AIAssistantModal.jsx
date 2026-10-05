@@ -23,6 +23,7 @@ import Texting from '../common/Texting.jsx';
 
 export const AIAssistantModal = () => {
   const {
+    currentUser,
     isAIAssistantModalOpen,
     closeAIAssistantModal,
     settings,
@@ -63,7 +64,8 @@ export const AIAssistantModal = () => {
     }
   }, [isAIAssistantModalOpen, isReadingVoice]);
 
-  if (!isAIAssistantModalOpen) return null;
+  // Exclusividad estricta para Administrador
+  if (!isAIAssistantModalOpen || currentUser?.rol !== 'Administrador') return null;
 
   const currentProviderConfigured =
     (selectedProvider === 'gemini' && providerStatus.gemini.configured) ||

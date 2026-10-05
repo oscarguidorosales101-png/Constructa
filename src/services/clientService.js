@@ -122,7 +122,7 @@ export const clientService = {
         };
       }
 
-      const newClient = result.cliente;
+      const newClient = result.cliente || result.client || result.data || result.item;
 
       // 4. Sincronizar almacenamiento local y memoria de dataService
       const currentClients = dataService.getClients();
@@ -198,8 +198,36 @@ export const clientService = {
         ]
       };
 
-      storageService.set(KEYS.CLIENT_CONVERSATIONS, [welcomeConv, ...allConvs]);
+      storageService.set(STORAGE_KEYS.CLIENT_CONVERSATIONS, [welcomeConv, ...allConvs]);
     } catch (_) {}
+  },
+
+  /**
+   * Vincula un proyecto formal al cliente y persiste en db.json
+   */
+  async linkProjectToClient(clientId, projectId) {
+    try {
+      const clients = await this.getClients();
+      const idx = clients.findIndex((c) => c.id === clientId);
+      if (idx !== -1) {
+        const client = clients[idx];
+        const associated = client.proyectosAsociados || [];
+        if (!associated.includes(projectId)) {
+          client.proyectosAsociados = [...associated, projectId];
+          clients[idx] = client;
+          storageService.set(STORAGE_KEYS.CLIENTS, clients);
+          try {
+            await fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ clients })
+            });
+          } catch (_) {}
+        }
+        return client;
+      }
+    } catch (_) {}
+    return dataService.linkProjectToClient ? dataService.linkProjectToClient(clientId, projectId) : null;
   },
 
   /**
@@ -207,7 +235,19 @@ export const clientService = {
    */
   async verifyClientAccount(email, code) {
     return dataService.verifyClientAccount(email, code);
+  },
+
+  /**
+   * Alias de creación de cliente
+   */
+  async createClient(clientData) {
+    return this.registerClient(clientData);
+  },
+
+  async saveClient(clientData) {
+    return this.registerClient(clientData);
   }
 };
 
 export default clientService;
+

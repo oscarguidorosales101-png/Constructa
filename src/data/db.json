@@ -12,7 +12,9 @@
       "presupuesto": 4500000,
       "avance": 68,
       "ubicacion": "Av. Las Palmas #450, Distrito Metropolitano",
-      "descripcion": "Edificación vertical de 18 niveles habitacionales con 3 sótanos de estacionamiento estructurados en hormigón armado sismo-resistente."
+      "descripcion": "Edificación vertical de 18 niveles habitacionales con 3 sótanos de estacionamiento estructurados en hormigón armado sismo-resistente.",
+      "clientId": "CLI-001",
+      "clienteId": "CLI-001"
     },
     {
       "id": "PRJ-002",
@@ -26,7 +28,9 @@
       "presupuesto": 7800000,
       "avance": 42,
       "ubicacion": "Boulevard Empresarial Poniente #1200",
-      "descripcion": "Complejo corporativo de oficinas de alta eficiencia energética con certificación ambiental y fachada flotante de cristal templado."
+      "descripcion": "Complejo corporativo de oficinas de alta eficiencia energética con certificación ambiental y fachada flotante de cristal templado.",
+      "clientId": "CLI-002",
+      "clienteId": "CLI-002"
     },
     {
       "id": "PRJ-003",
@@ -40,7 +44,9 @@
       "presupuesto": 12500000,
       "avance": 15,
       "ubicacion": "Autopista Periférica Km 34.5",
-      "descripcion": "Paso elevado atirantado de 450 metros de longitud con cuatro carriles de circulación vehicular y accesos de aceleración pavimentados."
+      "descripcion": "Paso elevado atirantado de 450 metros de longitud con cuatro carriles de circulación vehicular y accesos de aceleración pavimentados.",
+      "clientId": "CLI-007",
+      "clienteId": "CLI-007"
     },
     {
       "id": "PRJ-004",
@@ -54,7 +60,9 @@
       "presupuesto": 3200000,
       "avance": 85,
       "ubicacion": "Camino a los Bosques #88, Sector Campestre",
-      "descripcion": "Urbanización de 45 viviendas unifamiliares de dos niveles con redes subterráneas de agua, saneamiento y cableado eléctrico."
+      "descripcion": "Urbanización de 45 viviendas unifamiliares de dos niveles con redes subterráneas de agua, saneamiento y cableado eléctrico.",
+      "clientId": "CLI-008",
+      "clienteId": "CLI-008"
     },
     {
       "id": "PRJ-005",
@@ -68,7 +76,9 @@
       "presupuesto": 5600000,
       "avance": 100,
       "ubicacion": "Parque Industrial Norte, Lote 14-B",
-      "descripcion": "Nave industrial de 22,000 metros cuadrados con pisos de concreto pulido de alta planimetría, 18 muelles de carga e iluminación automatizada."
+      "descripcion": "Nave industrial de 22,000 metros cuadrados con pisos de concreto pulido de alta planimetría, 18 muelles de carga e iluminación automatizada.",
+      "clientId": "CLI-009",
+      "clienteId": "CLI-009"
     },
     {
       "id": "PRJ-006",
@@ -82,7 +92,9 @@
       "presupuesto": 2400000,
       "avance": 30,
       "ubicacion": "Calle de la Salud #210, Zona Centro",
-      "descripcion": "Ampliación del área de emergencias, quirófanos y unidad de cuidados intensivos bajo estrictos estándares hospitalarios."
+      "descripcion": "Ampliación del área de emergencias, quirófanos y unidad de cuidados intensivos bajo estrictos estándares hospitalarios.",
+      "clientId": "CLI-010",
+      "clienteId": "CLI-010"
     }
   ],
   "suppliers": [
@@ -145,6 +157,24 @@
       "categoria": "Instalaciones Eléctricas",
       "direccion": "Paseo de la Energía #780",
       "estado": "Activo"
+    },
+    {
+      "nombre": "Aceros del Norte SA",
+      "contacto": "Ing. Roberto Almaguer",
+      "especialidad": "Acero y Estructuras Metálicas",
+      "telefono": "+52 81 8345 6789",
+      "email": "contacto@acerosdelnorte.com",
+      "direccion": "",
+      "rfc": "",
+      "estado": "Activo",
+      "condicionesPago": "Crédito 30 días",
+      "tiempoEntregaEstimado": "48 a 72 horas hábiles",
+      "metodoContactoHabitual": "Llamada telefónica",
+      "horarioAtencion": "Lunes a Viernes 08:00 - 18:00",
+      "observaciones": "",
+      "nombreComercial": "Aceros del Norte SA",
+      "categoria": "Acero y Estructuras Metálicas",
+      "id": "PRV-007"
     }
   ],
   "materials": [
@@ -901,6 +931,22 @@
   ],
   "employees": [
     {
+      "nombre": "Oscar Yabeth Guido Rosales",
+      "puesto": "Ingeniero Residente de Edificación Vertical",
+      "especialidad": "Ingeniería y Supervisión de Obra",
+      "dni": "272377366373",
+      "email": "oscarguidorosales101@gmail.com",
+      "telefono": "27263762",
+      "proyectoId": "PRJ-001",
+      "horario": "07:00 - 16:00",
+      "diasLaborales": "Lunes a Viernes",
+      "estado": "Activo",
+      "salario": null,
+      "observaciones": "Contratado mediante proceso de selección CONSTRUCTA (Expediente POS-009).",
+      "id": "EMP-064",
+      "fechaIngreso": "2026-10-05"
+    },
+    {
       "id": "EMP-001",
       "nombre": "Carlos Mendoza Cabrera",
       "puesto": "Maestro de obra",
@@ -910,7 +956,8 @@
       "telefono": "+52 55 2000-1000",
       "email": "carlos.mendoza@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-01-01"
+      "fechaIngreso": "2022-01-01",
+      "dni": "DNI-001"
     },
     {
       "id": "EMP-002",
@@ -922,7 +969,8 @@
       "telefono": "+52 55 2047-1083",
       "email": "sofia.valenzuela@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-02-02"
+      "fechaIngreso": "2023-02-02",
+      "dni": "DNI-002"
     },
     {
       "id": "EMP-003",
@@ -934,7 +982,8 @@
       "telefono": "+52 55 2094-1166",
       "email": "miguel.angel.duarte@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-03-03"
+      "fechaIngreso": "2024-03-03",
+      "dni": "DNI-003"
     },
     {
       "id": "EMP-004",
@@ -946,7 +995,8 @@
       "telefono": "+52 55 2141-1249",
       "email": "andres.castro@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-04-04"
+      "fechaIngreso": "2025-04-04",
+      "dni": "DNI-004"
     },
     {
       "id": "EMP-005",
@@ -958,7 +1008,8 @@
       "telefono": "+52 55 2188-1332",
       "email": "roberto.guillen@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-05-05"
+      "fechaIngreso": "2022-05-05",
+      "dni": "DNI-005"
     },
     {
       "id": "EMP-006",
@@ -970,7 +1021,8 @@
       "telefono": "+52 55 2235-1415",
       "email": "mateo.ortiz@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-06-06"
+      "fechaIngreso": "2023-06-06",
+      "dni": "DNI-006"
     },
     {
       "id": "EMP-007",
@@ -982,7 +1034,8 @@
       "telefono": "+52 55 2282-1498",
       "email": "valentina.herrera@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-07-07"
+      "fechaIngreso": "2024-07-07",
+      "dni": "DNI-007"
     },
     {
       "id": "EMP-008",
@@ -994,7 +1047,8 @@
       "telefono": "+52 55 2329-1581",
       "email": "alejandro.cabrera@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-08-08"
+      "fechaIngreso": "2025-08-08",
+      "dni": "DNI-008"
     },
     {
       "id": "EMP-009",
@@ -1006,7 +1060,8 @@
       "telefono": "+52 55 2376-1664",
       "email": "daniela.ramos@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-09-09"
+      "fechaIngreso": "2022-09-09",
+      "dni": "DNI-009"
     },
     {
       "id": "EMP-010",
@@ -1018,7 +1073,8 @@
       "telefono": "+52 55 2423-1747",
       "email": "javier.navarro@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-01-10"
+      "fechaIngreso": "2023-01-10",
+      "dni": "DNI-010"
     },
     {
       "id": "EMP-011",
@@ -1030,7 +1086,8 @@
       "telefono": "+52 55 2470-1830",
       "email": "gabriel.soto@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-02-11"
+      "fechaIngreso": "2024-02-11",
+      "dni": "DNI-011"
     },
     {
       "id": "EMP-012",
@@ -1042,7 +1099,8 @@
       "telefono": "+52 55 2517-1913",
       "email": "lucia.pena@constructa.com",
       "estado": "En descanso",
-      "fechaIngreso": "2025-03-12"
+      "fechaIngreso": "2025-03-12",
+      "dni": "DNI-012"
     },
     {
       "id": "EMP-013",
@@ -1054,7 +1112,8 @@
       "telefono": "+52 55 2564-1996",
       "email": "esteban.vargas@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-04-13"
+      "fechaIngreso": "2022-04-13",
+      "dni": "DNI-013"
     },
     {
       "id": "EMP-014",
@@ -1066,7 +1125,8 @@
       "telefono": "+52 55 2611-2079",
       "email": "camila.paredes@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-05-14"
+      "fechaIngreso": "2023-05-14",
+      "dni": "DNI-014"
     },
     {
       "id": "EMP-015",
@@ -1078,7 +1138,8 @@
       "telefono": "+52 55 2658-2162",
       "email": "mauricio.contreras@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-06-15"
+      "fechaIngreso": "2024-06-15",
+      "dni": "DNI-015"
     },
     {
       "id": "EMP-016",
@@ -1090,7 +1151,8 @@
       "telefono": "+52 55 2705-2245",
       "email": "natalia.salazar@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-07-16"
+      "fechaIngreso": "2025-07-16",
+      "dni": "DNI-016"
     },
     {
       "id": "EMP-017",
@@ -1102,7 +1164,8 @@
       "telefono": "+52 55 2752-2328",
       "email": "diego.villalobos@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-08-17"
+      "fechaIngreso": "2022-08-17",
+      "dni": "DNI-017"
     },
     {
       "id": "EMP-018",
@@ -1114,7 +1177,8 @@
       "telefono": "+52 55 2799-2411",
       "email": "mariana.fuentes@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-09-18"
+      "fechaIngreso": "2023-09-18",
+      "dni": "DNI-018"
     },
     {
       "id": "EMP-019",
@@ -1126,7 +1190,8 @@
       "telefono": "+52 55 2846-2494",
       "email": "fernando.cordero@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-01-19"
+      "fechaIngreso": "2024-01-19",
+      "dni": "DNI-019"
     },
     {
       "id": "EMP-020",
@@ -1138,7 +1203,8 @@
       "telefono": "+52 55 2893-2577",
       "email": "paula.palacios@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-02-20"
+      "fechaIngreso": "2025-02-20",
+      "dni": "DNI-020"
     },
     {
       "id": "EMP-021",
@@ -1150,7 +1216,8 @@
       "telefono": "+52 55 2940-2660",
       "email": "joaquin.morales@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-03-21"
+      "fechaIngreso": "2022-03-21",
+      "dni": "DNI-021"
     },
     {
       "id": "EMP-022",
@@ -1162,7 +1229,8 @@
       "telefono": "+52 55 2987-2743",
       "email": "elena.rios@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-04-22"
+      "fechaIngreso": "2023-04-22",
+      "dni": "DNI-022"
     },
     {
       "id": "EMP-023",
@@ -1174,7 +1242,8 @@
       "telefono": "+52 55 3034-2826",
       "email": "ricardo.campos@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-05-23"
+      "fechaIngreso": "2024-05-23",
+      "dni": "DNI-023"
     },
     {
       "id": "EMP-024",
@@ -1186,7 +1255,8 @@
       "telefono": "+52 55 3081-2909",
       "email": "beatriz.delgado@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-06-24"
+      "fechaIngreso": "2025-06-24",
+      "dni": "DNI-024"
     },
     {
       "id": "EMP-025",
@@ -1198,7 +1268,8 @@
       "telefono": "+52 55 3128-2992",
       "email": "sebastian.montes@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-07-25"
+      "fechaIngreso": "2022-07-25",
+      "dni": "DNI-025"
     },
     {
       "id": "EMP-026",
@@ -1210,7 +1281,8 @@
       "telefono": "+52 55 3175-3075",
       "email": "claudia.miranda@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-08-01"
+      "fechaIngreso": "2023-08-01",
+      "dni": "DNI-026"
     },
     {
       "id": "EMP-027",
@@ -1222,7 +1294,8 @@
       "telefono": "+52 55 3222-3158",
       "email": "hugo.bustamante@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-09-02"
+      "fechaIngreso": "2024-09-02",
+      "dni": "DNI-027"
     },
     {
       "id": "EMP-028",
@@ -1234,7 +1307,8 @@
       "telefono": "+52 55 3269-3241",
       "email": "patricia.figueroa@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-01-03"
+      "fechaIngreso": "2025-01-03",
+      "dni": "DNI-028"
     },
     {
       "id": "EMP-029",
@@ -1246,7 +1320,8 @@
       "telefono": "+52 55 3316-3324",
       "email": "emilio.pacheco@constructa.com",
       "estado": "En descanso",
-      "fechaIngreso": "2022-02-04"
+      "fechaIngreso": "2022-02-04",
+      "dni": "DNI-029"
     },
     {
       "id": "EMP-030",
@@ -1258,7 +1333,8 @@
       "telefono": "+52 55 3363-3407",
       "email": "adriana.cervantes@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-03-05"
+      "fechaIngreso": "2023-03-05",
+      "dni": "DNI-030"
     },
     {
       "id": "EMP-031",
@@ -1270,7 +1346,8 @@
       "telefono": "+52 55 3410-3490",
       "email": "raul.espinosa@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-04-06"
+      "fechaIngreso": "2024-04-06",
+      "dni": "DNI-031"
     },
     {
       "id": "EMP-032",
@@ -1282,7 +1359,8 @@
       "telefono": "+52 55 3457-3573",
       "email": "veronica.luna@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-05-07"
+      "fechaIngreso": "2025-05-07",
+      "dni": "DNI-032"
     },
     {
       "id": "EMP-033",
@@ -1294,7 +1372,8 @@
       "telefono": "+52 55 3504-3656",
       "email": "manuel.guzman@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-06-08"
+      "fechaIngreso": "2022-06-08",
+      "dni": "DNI-033"
     },
     {
       "id": "EMP-034",
@@ -1306,7 +1385,8 @@
       "telefono": "+52 55 3551-3739",
       "email": "carmen.rivas@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-07-09"
+      "fechaIngreso": "2023-07-09",
+      "dni": "DNI-034"
     },
     {
       "id": "EMP-035",
@@ -1318,7 +1398,8 @@
       "telefono": "+52 55 3598-3822",
       "email": "jorge.mercado@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-08-10"
+      "fechaIngreso": "2024-08-10",
+      "dni": "DNI-035"
     },
     {
       "id": "EMP-036",
@@ -1330,7 +1411,8 @@
       "telefono": "+52 55 3645-3905",
       "email": "silvia.santana@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-09-11"
+      "fechaIngreso": "2025-09-11",
+      "dni": "DNI-036"
     },
     {
       "id": "EMP-037",
@@ -1342,7 +1424,8 @@
       "telefono": "+52 55 3692-3988",
       "email": "alvaro.mejia@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-01-12"
+      "fechaIngreso": "2022-01-12",
+      "dni": "DNI-037"
     },
     {
       "id": "EMP-038",
@@ -1354,7 +1437,8 @@
       "telefono": "+52 55 3739-4071",
       "email": "lorena.alvarado@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-02-13"
+      "fechaIngreso": "2023-02-13",
+      "dni": "DNI-038"
     },
     {
       "id": "EMP-039",
@@ -1366,7 +1450,8 @@
       "telefono": "+52 55 3786-4154",
       "email": "guillermo.bravo@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-03-14"
+      "fechaIngreso": "2024-03-14",
+      "dni": "DNI-039"
     },
     {
       "id": "EMP-040",
@@ -1378,7 +1463,8 @@
       "telefono": "+52 55 3833-4237",
       "email": "monica.aguirre@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-04-15"
+      "fechaIngreso": "2025-04-15",
+      "dni": "DNI-040"
     },
     {
       "id": "EMP-041",
@@ -1390,7 +1476,8 @@
       "telefono": "+52 55 3880-4320",
       "email": "gonzalo.barrios@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-05-16"
+      "fechaIngreso": "2022-05-16",
+      "dni": "DNI-041"
     },
     {
       "id": "EMP-042",
@@ -1402,7 +1489,8 @@
       "telefono": "+52 55 3927-4403",
       "email": "andrea.cardoso@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-06-17"
+      "fechaIngreso": "2023-06-17",
+      "dni": "DNI-042"
     },
     {
       "id": "EMP-043",
@@ -1414,7 +1502,8 @@
       "telefono": "+52 55 3974-4486",
       "email": "federico.escobar@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-07-18"
+      "fechaIngreso": "2024-07-18",
+      "dni": "DNI-043"
     },
     {
       "id": "EMP-044",
@@ -1426,7 +1515,8 @@
       "telefono": "+52 55 4021-4569",
       "email": "renata.vallejo@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-08-19"
+      "fechaIngreso": "2025-08-19",
+      "dni": "DNI-044"
     },
     {
       "id": "EMP-045",
@@ -1438,7 +1528,8 @@
       "telefono": "+52 55 4068-4652",
       "email": "ignacio.orozco@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-09-20"
+      "fechaIngreso": "2022-09-20",
+      "dni": "DNI-045"
     },
     {
       "id": "EMP-046",
@@ -1450,7 +1541,8 @@
       "telefono": "+52 55 4115-4735",
       "email": "gloria.zavala@constructa.com",
       "estado": "Licencia",
-      "fechaIngreso": "2023-01-21"
+      "fechaIngreso": "2023-01-21",
+      "dni": "DNI-046"
     },
     {
       "id": "EMP-047",
@@ -1462,7 +1554,8 @@
       "telefono": "+52 55 4162-4818",
       "email": "marcos.coronado@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-02-22"
+      "fechaIngreso": "2024-02-22",
+      "dni": "DNI-047"
     },
     {
       "id": "EMP-048",
@@ -1474,7 +1567,8 @@
       "telefono": "+52 55 4209-4901",
       "email": "diana.becerra@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-03-23"
+      "fechaIngreso": "2025-03-23",
+      "dni": "DNI-048"
     },
     {
       "id": "EMP-049",
@@ -1486,7 +1580,8 @@
       "telefono": "+52 55 4256-4984",
       "email": "felipe.benitez@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-04-24"
+      "fechaIngreso": "2022-04-24",
+      "dni": "DNI-049"
     },
     {
       "id": "EMP-050",
@@ -1498,7 +1593,8 @@
       "telefono": "+52 55 4303-5067",
       "email": "teresa.salinas@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-05-25"
+      "fechaIngreso": "2023-05-25",
+      "dni": "DNI-050"
     },
     {
       "id": "EMP-051",
@@ -1510,7 +1606,8 @@
       "telefono": "+52 55 4350-5150",
       "email": "rodrigo.trejo@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-06-01"
+      "fechaIngreso": "2024-06-01",
+      "dni": "DNI-051"
     },
     {
       "id": "EMP-052",
@@ -1522,7 +1619,8 @@
       "telefono": "+52 55 4397-5233",
       "email": "carolina.carrasco@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-07-02"
+      "fechaIngreso": "2025-07-02",
+      "dni": "DNI-052"
     },
     {
       "id": "EMP-053",
@@ -1534,7 +1632,8 @@
       "telefono": "+52 55 4444-5316",
       "email": "pablo.villegas@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-08-03"
+      "fechaIngreso": "2022-08-03",
+      "dni": "DNI-053"
     },
     {
       "id": "EMP-054",
@@ -1546,7 +1645,8 @@
       "telefono": "+52 55 4491-5399",
       "email": "isabel.valencia@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-09-04"
+      "fechaIngreso": "2023-09-04",
+      "dni": "DNI-054"
     },
     {
       "id": "EMP-055",
@@ -1558,7 +1658,8 @@
       "telefono": "+52 55 4538-5482",
       "email": "arturo.naranjo@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-01-05"
+      "fechaIngreso": "2024-01-05",
+      "dni": "DNI-055"
     },
     {
       "id": "EMP-056",
@@ -1570,7 +1671,8 @@
       "telefono": "+52 55 4585-5565",
       "email": "victoria.heredia@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-02-06"
+      "fechaIngreso": "2025-02-06",
+      "dni": "DNI-056"
     },
     {
       "id": "EMP-057",
@@ -1582,7 +1684,8 @@
       "telefono": "+52 55 4632-5648",
       "email": "sergio.solano@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-03-07"
+      "fechaIngreso": "2022-03-07",
+      "dni": "DNI-057"
     },
     {
       "id": "EMP-058",
@@ -1594,7 +1697,8 @@
       "telefono": "+52 55 4679-5731",
       "email": "jimena.bermudez@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-04-08"
+      "fechaIngreso": "2023-04-08",
+      "dni": "DNI-058"
     },
     {
       "id": "EMP-059",
@@ -1606,7 +1710,8 @@
       "telefono": "+52 55 4726-5814",
       "email": "victor.castaneda@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2024-05-09"
+      "fechaIngreso": "2024-05-09",
+      "dni": "DNI-059"
     },
     {
       "id": "EMP-060",
@@ -1618,7 +1723,8 @@
       "telefono": "+52 55 4773-5897",
       "email": "clara.leal@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2025-06-10"
+      "fechaIngreso": "2025-06-10",
+      "dni": "DNI-060"
     },
     {
       "id": "EMP-061",
@@ -1630,7 +1736,8 @@
       "telefono": "+52 55 4820-5980",
       "email": "enrique.quintero@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2022-07-11"
+      "fechaIngreso": "2022-07-11",
+      "dni": "DNI-061"
     },
     {
       "id": "EMP-062",
@@ -1642,7 +1749,21 @@
       "telefono": "+52 55 4867-6063",
       "email": "rosa.pinto@constructa.com",
       "estado": "Activo",
-      "fechaIngreso": "2023-08-12"
+      "fechaIngreso": "2023-08-12",
+      "dni": "DNI-062"
+    },
+    {
+      "nombre": "Valeria Dominguez Rios",
+      "puesto": "Maestro de obra",
+      "proyectoId": "PRJ-001",
+      "horario": "Lunes a viernes — 7:00 a. m. a 4:00 p. m.",
+      "diasLaborales": "Lunes a Viernes",
+      "telefono": "+52 55 1234 5678",
+      "email": "valeria.dominguez@constructa.com",
+      "estado": "Activo",
+      "fechaIngreso": "2026-10-05",
+      "id": "EMP-063",
+      "dni": "DNI-063"
     }
   ],
   "inventoryMovements": [
@@ -2509,7 +2630,7 @@
     {
       "id": "CLI-002",
       "nombre": "Arq. Beatriz Morales Garza",
-      "empresa": "Desarrollos Residenciales del Norte",
+      "empresa": "Grupo Financiero Capital / Desarrollos Residenciales del Norte",
       "email": "cliente.b@constructa.com",
       "telefono": "+52 81 8320 9944",
       "ciudad": "Monterrey, N.L.",
@@ -2595,25 +2716,275 @@
       "codigoVerificacion": "749201",
       "fechaRegistro": "2026-10-05",
       "proyectosAsociados": []
+    },
+    {
+      "id": "CLI-007",
+      "nombre": "Ing. Javier Villalobos",
+      "empresa": "Ministerio de Obras Públicas y Transportes",
+      "email": "obras.publicas@mop.gob.mx",
+      "telefono": "+52 55 5678 1234",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "usuario": "mop.obras",
+      "clave": "Cliente2026!",
+      "rol": "Cliente",
+      "avatar": "JV",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2026-01-10",
+      "proyectosAsociados": [
+        "PRJ-003"
+      ]
+    },
+    {
+      "id": "CLI-008",
+      "nombre": "Lic. Andrea Garza Santos",
+      "empresa": "Desarrollos Residenciales del Valle",
+      "email": "andrea.garza@desarrollosvalle.com",
+      "telefono": "+52 81 8123 4567",
+      "ciudad": "Monterrey, N.L.",
+      "pais": "México",
+      "usuario": "andrea.valle",
+      "clave": "Cliente2026!",
+      "rol": "Cliente",
+      "avatar": "AG",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2026-02-01",
+      "proyectosAsociados": [
+        "PRJ-004"
+      ]
+    },
+    {
+      "id": "CLI-009",
+      "nombre": "Ing. Mauricio Treviño",
+      "empresa": "Operadora Logística Continental",
+      "email": "m.trevino@logcontinental.com",
+      "telefono": "+52 81 8345 6789",
+      "ciudad": "Apodaca, N.L.",
+      "pais": "México",
+      "usuario": "m.trevino",
+      "clave": "Cliente2026!",
+      "rol": "Cliente",
+      "avatar": "MT",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2025-11-20",
+      "proyectosAsociados": [
+        "PRJ-005"
+      ]
+    },
+    {
+      "id": "CLI-010",
+      "nombre": "Dra. Carmen Montes de Oca",
+      "empresa": "Consorcio Salud y Bienestar",
+      "email": "direccion@saludybienestar.org",
+      "telefono": "+52 55 5789 0123",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "usuario": "carmen.salud",
+      "clave": "Cliente2026!",
+      "rol": "Cliente",
+      "avatar": "CM",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2025-08-15",
+      "proyectosAsociados": [
+        "PRJ-006"
+      ]
+    },
+    {
+      "nombre": "Desarrollos Urbanos Centenario",
+      "email": "centenario@constructa.com",
+      "telefono": "+52 81 8100 2030",
+      "ciudad": "San Pedro Garza Garcia, N.L.",
+      "pais": "México",
+      "password": "Centenario2026!",
+      "id": "CLI-011",
+      "userId": "USR-011",
+      "rol": "Cliente",
+      "clave": "Centenario2026!",
+      "codigoVerificacion": "749201",
+      "estadoVerificacion": "Verificada",
+      "fechaRegistro": "2026-10-05",
+      "proyectosAsociados": [],
+      "fechaVerificacion": "2026-10-05T17:07:49.373Z"
     }
   ],
   "settings": {
-    "theme": "light",
+    "theme": "dark",
     "fontSize": "normal",
-    "colorVision": "red-green",
+    "colorVision": "blue-yellow",
     "reducedMotion": false,
     "voice": {
       "enabled": false,
-      "voiceURI": "",
+      "voiceURI": "Microsoft Sabina - Spanish (Mexico)",
       "rate": 1,
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-05T14:47:37.011Z",
+    "updatedAt": "2026-10-05T19:55:28.887Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
     "textSize": "normal",
     "highContrast": true
-  }
+  },
+  "requests": [
+    {
+      "id": "SOL-001",
+      "numero": "SOL-2026-001",
+      "clienteId": "CLI-001",
+      "clienteNombre": "Lic. Roberto Garza Sada",
+      "clienteEmail": "cliente@constructa.com",
+      "clienteTelefono": "+52 55 4920 1832",
+      "tipo": "Cotización de Obra",
+      "titulo": "Ampliación Penthouse Nivel 18 - Torre Altavista",
+      "tipoInmueble": "Vivienda",
+      "ubicacion": "Av. Las Palmas #450, Distrito Metropolitano",
+      "areaAproximada": 320,
+      "presupuestoEstimado": 1250000,
+      "plazoDeseado": "8 meses",
+      "poseeTerreno": true,
+      "poseePlanos": true,
+      "descripcion": "Ampliación de terraza panorámica y adecuación de acabados en mármol y ventanería doble vidrio hermética.",
+      "necesidadesPrincipales": "Refuerzo de losa, elevación de materiales por grúa torre y permiso de obra nocturna.",
+      "estado": "Aceptada",
+      "asignadoA": "Ing. Carlos Mendoza Rivas",
+      "asignadoRol": "Gerente de Construcción",
+      "proyectoGeneradoId": "PRJ-001",
+      "fechaCreacion": "2026-03-25",
+      "ultimaActualizacion": "2026-03-27",
+      "documentos": [
+        {
+          "id": "DOC-01",
+          "nombre": "Planos_Arquitectonicos_N18.pdf",
+          "tamanio": "12.4 MB",
+          "fecha": "2026-03-25",
+          "tipo": "PDF"
+        }
+      ],
+      "historial": [
+        {
+          "fecha": "2026-03-25 10:15",
+          "autor": "Lic. Roberto Garza Sada",
+          "accion": "Solicitud creada formalmente en el portal de cliente."
+        },
+        {
+          "fecha": "2026-03-27 12:00",
+          "autor": "Ing. Carlos Mendoza Rivas",
+          "accion": "Solicitud formalizada y aceptada vinculada a obra PRJ-001."
+        }
+      ]
+    },
+    {
+      "id": "SOL-002",
+      "numero": "SOL-2026-002",
+      "clienteId": "CLI-001",
+      "clienteNombre": "Lic. Roberto Garza Sada",
+      "clienteEmail": "cliente@constructa.com",
+      "clienteTelefono": "+52 55 4920 1832",
+      "tipo": "Construcción Nueva",
+      "titulo": "Residencia Familiar en Bosques de las Lomas",
+      "tipoInmueble": "Vivienda Unifamiliar",
+      "ubicacion": "Bosques de las Lomas, Lote 12",
+      "areaAproximada": 580,
+      "presupuestoEstimado": 3200000,
+      "plazoDeseado": "12 meses",
+      "poseeTerreno": true,
+      "poseePlanos": false,
+      "descripcion": "Proyecto residencial de 3 niveles con alberca y acabados contemporáneos en terreno con pendiente moderada.",
+      "necesidadesPrincipales": "Muro de contención previo, cálculo geotécnico y diseño bioclimático.",
+      "estado": "En revisión",
+      "asignadoA": "Ing. Fernando Mendoza",
+      "asignadoRol": "Administrador",
+      "fechaCreacion": "2026-03-28",
+      "ultimaActualizacion": "2026-03-29",
+      "documentos": [
+        {
+          "id": "DOC-02",
+          "nombre": "Topografia_Lote_12.dwg",
+          "tamanio": "4.8 MB",
+          "fecha": "2026-03-28",
+          "tipo": "DWG"
+        },
+        {
+          "id": "DOC-03",
+          "nombre": "Fotos_Terreno_Lomas.zip",
+          "tamanio": "8.1 MB",
+          "fecha": "2026-03-28",
+          "tipo": "ZIP"
+        }
+      ],
+      "historial": [
+        {
+          "fecha": "2026-03-28 16:40",
+          "autor": "Lic. Roberto Garza Sada",
+          "accion": "Solicitud enviada para nuevo proyecto unifamiliar."
+        },
+        {
+          "fecha": "2026-03-29 10:00",
+          "autor": "Ing. Fernando Mendoza",
+          "accion": "Recepción inicial en bandeja comercial."
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "USR-001",
+      "nombre": "Ing. Fernando Mendoza",
+      "cargo": "Director General de Operaciones",
+      "email": "admin@constructa.com",
+      "usuario": "admin",
+      "clave": "admin",
+      "aliases": [
+        "admin123"
+      ],
+      "rol": "Administrador",
+      "avatar": "FM",
+      "descripcion": "Control general del sistema, configuración corporativa, finanzas y supervisión global."
+    },
+    {
+      "id": "USR-002",
+      "nombre": "Ing. Carlos Mendoza Rivas",
+      "cargo": "Gerente de Construcción y Operaciones",
+      "email": "gerencia@constructa.com",
+      "aliasEmail": "gerente@constructa.com",
+      "usuario": "gerencia",
+      "clave": "Gerencia2026!",
+      "aliases": [
+        "gerente123",
+        "gerente"
+      ],
+      "rol": "Gerente de Construcción",
+      "avatar": "CM",
+      "descripcion": "Supervisión de obras, cuadrillas de personal, avance físico, control de almacén y agenda operativa."
+    },
+    {
+      "id": "USR-003",
+      "nombre": "Lic. Mariana Morales Solís",
+      "cargo": "Coordinadora de Talento y Selección",
+      "email": "rrhh@constructa.com",
+      "usuario": "rrhh",
+      "clave": "RRHH2026!",
+      "aliases": [
+        "rrhh123"
+      ],
+      "rol": "RRHH / Reclutamiento",
+      "avatar": "MM",
+      "descripcion": "Gestión de candidatos, programación de entrevistas laborales, agenda de citas y contratación."
+    },
+    {
+      "id": "USR-011",
+      "clienteId": "CLI-011",
+      "nombre": "Desarrollos Urbanos Centenario",
+      "email": "centenario@constructa.com",
+      "usuario": "centenario@constructa.com",
+      "clave": "Centenario2026!",
+      "rol": "Cliente",
+      "activo": true,
+      "fechaCreacion": "2026-10-05T17:07:15.776Z"
+    }
+  ]
 }

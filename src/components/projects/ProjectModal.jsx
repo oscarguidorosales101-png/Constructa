@@ -60,7 +60,7 @@ export const ProjectModal = ({ isOpen, onClose, onSave, project = null }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -91,12 +91,15 @@ export const ProjectModal = ({ isOpen, onClose, onSave, project = null }) => {
       return;
     }
 
-    onSave({
+    const res = await onSave({
       ...(project ? { id: project.id } : {}),
       ...formData,
       presupuesto: presNum,
       avance: avanceNum,
     });
+    if (res === false || (res && res.ok === false)) {
+      return;
+    }
     onClose();
   };
 
