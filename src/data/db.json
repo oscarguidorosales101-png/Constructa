@@ -2578,11 +2578,28 @@
       "codigoVerificacion": "749201",
       "fechaRegistro": "2026-10-02",
       "proyectosAsociados": []
+    },
+    {
+      "id": "CLI-006",
+      "nombre": "Steve salas",
+      "empresa": "",
+      "email": "oscarguideorosales101@gmail.com",
+      "telefono": "+506 60586591",
+      "ciudad": "Puntarenas",
+      "pais": "México",
+      "usuario": "oscarguideorosales101@gmail.com",
+      "clave": "Ajo28291213",
+      "rol": "Cliente",
+      "avatar": "ST",
+      "estadoVerificacion": "Verificada",
+      "codigoVerificacion": "749201",
+      "fechaRegistro": "2026-10-05",
+      "proyectosAsociados": []
     }
   ],
   "settings": {
-    "theme": "dark",
-    "fontSize": "xlarge",
+    "theme": "light",
+    "fontSize": "normal",
     "colorVision": "red-green",
     "reducedMotion": false,
     "voice": {
@@ -2592,11 +2609,11 @@
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-04T01:37:30.896Z",
+    "updatedAt": "2026-10-05T14:47:37.011Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
-    "textSize": "xlarge",
-    "highContrast": false
+    "textSize": "normal",
+    "highContrast": true
   }
 }

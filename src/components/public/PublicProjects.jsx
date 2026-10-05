@@ -151,14 +151,21 @@ export default function PublicProjects({ onNavigateSection }) {
         {/* Filter Bar */}
         <div className="public-projects-filter-bar">
           <div className="public-filter-tabs">
-            {['Todos', 'En construcción', 'Planificación', 'Finalizado'].map((tab) => (
+            {[
+              { id: 'Todos', label: 'Todos', icon: null },
+              { id: 'En construcción', label: 'En construcción', icon: '●' },
+              { id: 'Planificación', label: 'Planificación', icon: '◷' },
+              { id: 'Finalizado', label: 'Finalizado', icon: '✓' }
+            ].map((tab) => (
               <button
-                key={tab}
+                key={tab.id}
                 type="button"
-                className={`public-filter-tab ${filterStatus === tab ? 'active' : ''}`}
-                onClick={() => setFilterStatus(tab)}
+                className={`public-filter-tab ${filterStatus === tab.id ? 'active' : ''}`}
+                onClick={() => setFilterStatus(tab.id)}
+                aria-pressed={filterStatus === tab.id}
               >
-                {tab}
+                {tab.icon && <span className="public-filter-tab-icon" aria-hidden="true">{tab.icon}</span>}
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
@@ -228,7 +235,10 @@ export default function PublicProjects({ onNavigateSection }) {
                     />
                     <div className="public-proj-card-overlay">
                       <span className={`public-proj-badge ${getStatusBadgeClass(project.estado)}`}>
-                        {project.estado}
+                        {project.estado === 'En construcción' && <span className="public-status-dot" aria-hidden="true">●</span>}
+                        {project.estado === 'Planificación' && <span className="public-status-dot" aria-hidden="true">◷</span>}
+                        {project.estado === 'Finalizado' && <span className="public-status-dot" aria-hidden="true">✓</span>}
+                        <span>{project.estado}</span>
                       </span>
                       <span className="public-proj-code">{project.codigo}</span>
                       <div

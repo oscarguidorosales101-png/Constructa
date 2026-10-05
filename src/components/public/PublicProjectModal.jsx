@@ -76,10 +76,16 @@ export default function PublicProjectModal({ project, isOpen, onClose, onNavigat
                   fontWeight: 600,
                   background: statusStyle.bg,
                   border: `1px solid ${statusStyle.border}`,
-                  color: statusStyle.text
+                  color: statusStyle.text,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px'
                 }}
               >
-                {project.estado}
+                {project.estado === 'En construcción' && <span>●</span>}
+                {project.estado === 'Planificación' && <span>◷</span>}
+                {project.estado === 'Finalizado' && <span>✓</span>}
+                <span>{project.estado}</span>
               </span>
             </div>
             <h3 className="modal-title" style={{ fontSize: '1.35rem', margin: 0 }}>
