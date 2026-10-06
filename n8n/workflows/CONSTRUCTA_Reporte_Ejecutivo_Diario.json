@@ -1,0 +1,174 @@
+{
+  "name": "CONSTRUCTA — Reporte Ejecutivo Diario",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "e2f2b002-3002-4002-8002-000000000001",
+      "name": "Disparador Diario 7:00 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ ($env.CONSTRUCTA_API_BASE_URL || 'http://localhost:5173/api').replace(/\\/+$/, '') }}/db",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "e2f2b002-3002-4002-8002-000000000002",
+      "name": "Consultar Datos CONSTRUCTA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// CONSTRUCTA - CÁLCULO DE MÉTRICAS EJECUTIVAS, ESTADO GENERAL Y PROMPT IA\n// ============================================================================\n\nconst inputData = $input.first()?.json || {};\nconst now = new Date();\nconst nowIso = now.toISOString();\nconst fechaFormateada = now.toLocaleDateString('es-CR', {\n  year: 'numeric', month: 'long', day: 'numeric'\n});\nconst fechaCorta = now.toISOString().split('T')[0];\n\n// Extracción segura de colecciones (con marcadores de 'Sin registros' o 'No disponible')\nconst projects = Array.isArray(inputData.projects) ? inputData.projects : [];\nconst expenses = Array.isArray(inputData.expenses) ? inputData.expenses : [];\nconst materials = Array.isArray(inputData.materials) ? inputData.materials : [];\nconst purchaseOrders = Array.isArray(inputData.purchaseOrders) ? inputData.purchaseOrders : [];\nconst requests = Array.isArray(inputData.requests) ? inputData.requests : [];\nconst materialRequests = Array.isArray(inputData.materialRequests) ? inputData.materialRequests : [];\n\n// 1. CANTIDAD TOTAL DE PROYECTOS\nconst totalProjects = projects.length;\n\n// 2. PROYECTOS ACTIVOS\nconst activeProjectsList = projects.filter(p => {\n  const st = (p.estado || '').toLowerCase();\n  const adv = Number(p.avance || p.progreso || 0);\n  return !st.includes('finaliz') && !st.includes('terminad') && adv < 100;\n});\nconst activeProjects = activeProjectsList.length;\n\n// 3. PROYECTOS FINALIZADOS\nconst finishedProjects = projects.filter(p => {\n  const st = (p.estado || '').toLowerCase();\n  const adv = Number(p.avance || p.progreso || 0);\n  return st.includes('finaliz') || st.includes('terminad') || adv >= 100;\n}).length;\n\n// 4. PROYECTOS ATRASADOS\nconst delayedProjectsList = activeProjectsList.filter(p => {\n  const targetDateStr = p.fechaFinEstimada || p.fechaFin;\n  if (!targetDateStr) return false;\n  const targetDate = new Date(targetDateStr);\n  return !isNaN(targetDate.getTime()) && now > targetDate;\n});\nconst delayedProjects = delayedProjectsList.length;\n\n// 5. AVANCE PROMEDIO\nconst avgProgress = totalProjects > 0\n  ? Math.round(projects.reduce((acc, p) => acc + Number(p.avance || p.progreso || 0), 0) / totalProjects)\n  : 0;\n\n// PROYECTOS CON MENOR AVANCE Y MAYOR RIESGO\nconst sortedByProgress = [...activeProjectsList].sort((a, b) => Number(a.avance || 0) - Number(b.avance || 0));\nconst lowestProgressProject = sortedByProgress[0] ? `${sortedByProgress[0].nombre} (${sortedByProgress[0].avance || 0}%)` : 'Ninguno';\nconst highestRiskProject = delayedProjectsList[0] ? `${delayedProjectsList[0].nombre} (Plazo vencido)` : (sortedByProgress[0]?.nombre || 'Ninguno');\n\n// 6. PRESUPUESTO TOTAL\nconst totalBudget = projects.reduce((acc, p) => acc + (Number(p.presupuesto) || 0), 0);\n\n// 7. GASTO ACUMULADO\nconst totalSpent = expenses.reduce((acc, e) => acc + (Number(e.monto) || 0), 0);\n\n// 8. PORCENTAJE DE EJECUCIÓN PRESUPUESTARIA\nconst budgetExecutionPct = totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : '0.0';\nconst totalDeviation = totalSpent - totalBudget;\nconst deviationFormatted = totalDeviation > 0 \n  ? `+$${totalDeviation.toLocaleString()} MXN (Sobrecosto)` \n  : `-$${Math.abs(totalDeviation).toLocaleString()} MXN (Saldo a favor)`;\n\n// 9. ÓRDENES DE COMPRA PENDIENTES Y ATRASADAS\nconst pendingPOsList = purchaseOrders.filter(po => {\n  const st = (po.estado || '').toLowerCase();\n  return !st.includes('recibid') || st.includes('parcial');\n});\nconst pendingPurchaseOrders = pendingPOsList.length;\n\nconst delayedPOsList = pendingPOsList.filter(po => {\n  const dStr = po.fechaPrometida || po.fechaSolicitada;\n  if (!dStr) return false;\n  const d = new Date(dStr);\n  return !isNaN(d.getTime()) && now > d;\n});\nconst delayedPurchaseOrders = delayedPOsList.length;\n\n// 10. MATERIALES CRÍTICOS Y AGOTADOS\nconst outOfStockMaterialsList = materials.filter(m => Number(m.stockActual || 0) <= 0);\nconst criticalStockMaterialsList = materials.filter(m => {\n  const stock = Number(m.stockActual || 0);\n  const min = Number(m.stockMinimo || 0);\n  return stock > 0 && stock <= min;\n});\nconst criticalMaterials = criticalStockMaterialsList.length + outOfStockMaterialsList.length;\nconst outOfStockMaterialsCount = outOfStockMaterialsList.length;\n\n// 11. SOLICITUDES PENDIENTES Y PRIORIDAD ALTA\nconst allRequests = [...requests, ...materialRequests];\nconst pendingRequestsList = allRequests.filter(r => {\n  const st = (r.estado || '').toLowerCase();\n  return st.includes('pend') || st.includes('revis') || st.includes('urgente');\n});\nconst pendingRequests = pendingRequestsList.length;\nconst highPriorityRequests = pendingRequestsList.filter(r => {\n  const prio = (r.prioridad || r.tipo || '').toLowerCase();\n  return prio.includes('alta') || prio.includes('urgente');\n}).length;\n\n// 12 & 13. RIESGOS TOTALES Y CRÍTICOS\nlet totalRisks = 0;\nlet criticalRisks = 0;\nlet highRisks = 0;\nlet mediumRisks = 0;\n\n// Riesgos por atraso en obras\nif (delayedProjects > 0) {\n  totalRisks += delayedProjects;\n  criticalRisks += delayedProjects;\n}\n\n// Riesgos por sobrecosto presupuestario\nfor (const p of projects) {\n  const b = Number(p.presupuesto) || 0;\n  if (b > 0) {\n    const spent = expenses.filter(e => String(e.proyectoId) === String(p.id)).reduce((s, e) => s + (Number(e.monto) || 0), 0);\n    if (spent > b) {\n      totalRisks++;\n      const exc = ((spent - b) / b) * 100;\n      if (exc >= 20) criticalRisks++;\n      else if (exc >= 10) highRisks++;\n      else mediumRisks++;\n    }\n  }\n}\n\n// Riesgos por insumos agotados o atraso de compras\nif (outOfStockMaterialsCount > 0) {\n  totalRisks += outOfStockMaterialsCount;\n  criticalRisks += outOfStockMaterialsCount;\n}\nif (delayedPurchaseOrders > 0) {\n  totalRisks += delayedPurchaseOrders;\n  highRisks += delayedPurchaseOrders;\n}\n\n// DETERMINACIÓN DEL ESTADO GENERAL\nlet generalStatus = 'ESTABLE';\nif (criticalRisks > 0 || delayedProjects > 0 || Number(budgetExecutionPct) > 120) {\n  generalStatus = 'CRÍTICO';\n} else if (highRisks > 0 || criticalMaterials > 0 || delayedPurchaseOrders > 0 || Number(budgetExecutionPct) > 105) {\n  generalStatus = 'ATENCIÓN';\n}\n\n// RESUMEN DETERMINÍSTICO COMO BASE O FALLBACK\nconst deterministicSummary = `La cartera de CONSTRUCTA comprende ${totalProjects} obras con un avance físico promedio del ${avgProgress}%. ` +\n  (delayedProjects > 0 \n    ? `Se registran ${delayedProjects} proyecto(s) con fecha contractual vencida (${delayedProjectsList.map(p => p.nombre).join(', ')}). ` \n    : 'No se registran obras fuera de su fecha límite. ') +\n  `El presupuesto autorizado suma $${totalBudget.toLocaleString()} MXN, con un gasto acumulado de $${totalSpent.toLocaleString()} MXN (${budgetExecutionPct}% de ejecución). ` +\n  `En la cadena de suministros, se computan ${criticalMaterials} insumo(s) en umbral crítico y ${pendingPurchaseOrders} orden(es) de compra en curso (${delayedPurchaseOrders} con entrega retrasada).`;\n\n// PROMPT EXCLUSIVO PARA IA (Sin alucinaciones)\nconst aiPrompt = `Analiza exclusivamente los datos proporcionados.\\n` +\n  `No inventes cifras.\\n` +\n  `No inventes proyectos.\\n` +\n  `No inventes riesgos.\\n` +\n  `No inventes fechas.\\n` +\n  `Resume la situación operativa de forma ejecutiva.\\n` +\n  `Identifica las situaciones que requieren atención.\\n` +\n  `Diferencia claramente entre datos y recomendaciones.\\n\\n` +\n  `DATOS OPERATIVOS CERTIFICADOS DE CONSTRUCTA (${fechaCorta}):\\n` +\n  `- Total Proyectos: ${totalProjects} (Activos: ${activeProjects}, Finalizados: ${finishedProjects}, Atrasados: ${delayedProjects})\\n` +\n  `- Avance Promedio: ${avgProgress}%\\n` +\n  `- Presupuesto Global: $${totalBudget.toLocaleString()} MXN | Gasto Acumulado: $${totalSpent.toLocaleString()} MXN (${budgetExecutionPct}%)\\n` +\n  `- Desviación Financiera: ${deviationFormatted}\\n` +\n  `- Órdenes de Compra: ${pendingPurchaseOrders} pendientes (${delayedPurchaseOrders} retrasadas)\\n` +\n  `- Materiales Críticos: ${criticalMaterials} (Agotados: ${outOfStockMaterialsCount})\\n` +\n  `- Solicitudes: ${pendingRequests} pendientes (${highPriorityRequests} de alta prioridad)\\n` +\n  `- Riesgos Consolidados: ${totalRisks} (Críticos: ${criticalRisks}, Altos: ${highRisks}, Medios: ${mediumRisks})\\n` +\n  `- Estado General Computado: ${generalStatus}`;\n\nreturn [{\n  json: {\n    fecha: fechaFormateada,\n    fechaCorta,\n    generalStatus,\n    metrics: {\n      totalProjects,\n      activeProjects,\n      finishedProjects,\n      delayedProjects,\n      avgProgress,\n      lowestProgressProject,\n      highestRiskProject,\n      totalBudget: totalBudget.toLocaleString(),\n      totalSpent: totalSpent.toLocaleString(),\n      budgetExecutionPct,\n      deviationFormatted,\n      pendingPurchaseOrders,\n      delayedPurchaseOrders,\n      criticalMaterials,\n      outOfStockMaterialsCount,\n      pendingRequests,\n      highPriorityRequests,\n      totalRisks,\n      criticalRisks,\n      highRisks,\n      mediumRisks\n    },\n    deterministicSummary,\n    aiPrompt,\n    recipient: $env.CONSTRUCTA_REPORT_EMAIL || 'admin@constructa.com'\n  }\n}];"
+      },
+      "id": "e2f2b002-3002-4002-8002-000000000003",
+      "name": "Calcular Métricas y Estado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.CONSTRUCTA_API_BASE_URL || 'http://localhost:5173/api').replace(/\\/+$/, '') }}/ai/analyze",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {{ JSON.stringify($json.aiPrompt) }},\n  \"systemPrompt\": \"Eres el Analista Ejecutivo Corporativo de CONSTRUCTA. Genera resúmenes ejecutivos breves, objetivos y estrictamente apegados a las cifras proporcionadas.\"\n}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "e2f2b002-3002-4002-8002-000000000004",
+      "name": "Generar Resumen Ejecutivo IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        300
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// CONSTRUCTA - ENSAMBLAJE FINAL DE REPORTE HTML EJECUTIVO\n// ============================================================================\n\nlet prevNode = {};\ntry {\n  prevNode = $('Calcular Métricas y Estado').first()?.json || {};\n} catch (_) {}\n\nconst inputJson = $input.first()?.json || {};\nconst metricsNode = prevNode.metrics ? prevNode : (inputJson.metrics ? inputJson : {});\n\nconst m = metricsNode.metrics || {};\nconst fecha = metricsNode.fecha || new Date().toLocaleDateString('es-CR');\nconst fechaCorta = metricsNode.fechaCorta || new Date().toISOString().split('T')[0];\nconst estado = metricsNode.generalStatus || 'ESTABLE';\nconst recipient = metricsNode.recipient || $env.CONSTRUCTA_REPORT_EMAIL || 'admin@constructa.com';\n\n// Selección de resumen: IA si tuvo éxito, o fallback determinístico\nlet resumenEjecutivo = metricsNode.deterministicSummary || '';\nif (inputJson.ok && inputJson.text && inputJson.text.trim().length > 20) {\n  resumenEjecutivo = inputJson.text.trim();\n}\n\n// Estilos del Estado General\nconst statusColors = {\n  'CRÍTICO': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' },\n  'ATENCIÓN': { bg: '#f59e0b', text: '#ffffff', border: '#d97706' },\n  'ESTABLE': { bg: '#10b981', text: '#ffffff', border: '#059669' }\n};\nconst statusStyle = statusColors[estado] || statusColors.ESTABLE;\n\n// Recomendaciones ejecutivas automatizadas basadas en métricas\nconst acciones = [];\nif (Number(m.delayedProjects || 0) > 0) {\n  acciones.push(`Intervenir de forma prioritaria en ${m.delayedProjects} obra(s) con retraso para reprogramar cuadrillas y acordar addendas.`);\n}\nif (Number(m.delayedPurchaseOrders || 0) > 0) {\n  acciones.push(`Exigir despacho a proveedores de las ${m.delayedPurchaseOrders} órdenes de compra retrasadas para no suspender frentes.`);\n}\nif (Number(m.criticalMaterials || 0) > 0) {\n  acciones.push(`Gestionar órdenes de abastecimiento urgente para ${m.criticalMaterials} insumo(s) con stock por debajo del mínimo.`);\n}\nif (acciones.length === 0) {\n  acciones.push('Mantener el plan de avance semanal conforme a los hitos programados.');\n  acciones.push('Monitorear el ritmo de facturación y cobro de estimaciones de obra.');\n  acciones.push('Continuar con las inspecciones de seguridad y control de calidad.');\n}\n\nconst htmlBody = `\n<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"></head>\n<body style=\"font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color:#f1f5f9; margin:0; padding:25px 15px; color:#1e293b;\">\n  <div style=\"max-width:680px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);\">\n    \n    <!-- ENCABEZADO -->\n    <div style=\"background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding:28px 32px; color:#ffffff;\">\n      <h1 style=\"margin:0; font-size:24px; font-weight:800; letter-spacing:0.5px; color:#ffffff;\">CONSTRUCTA</h1>\n      <p style=\"margin:4px 0 0 0; font-size:13px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:600;\">REPORTE EJECUTIVO DIARIO</p>\n    </div>\n\n    <!-- ESTADO GENERAL Y FECHA -->\n    <div style=\"padding:20px 32px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;\">\n      <div>\n        <span style=\"font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;\">Fecha:</span>\n        <div style=\"font-size:14px; color:#0f172a; font-weight:700;\">${fecha}</div>\n      </div>\n      <div style=\"text-align:right;\">\n        <span style=\"font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;\">ESTADO GENERAL:</span>\n        <div>\n          <span style=\"display:inline-block; background:${statusStyle.bg}; color:${statusStyle.text}; font-size:12px; font-weight:800; padding:4px 14px; border-radius:20px; text-transform:uppercase;\">\n            ${estado}\n          </span>\n        </div>\n      </div>\n    </div>\n\n    <!-- RESUMEN EJECUTIVO -->\n    <div style=\"padding:24px 32px; background:#ffffff; border-bottom:1px solid #e2e8f0;\">\n      <h3 style=\"margin:0 0 10px 0; font-size:14px; color:#475569; text-transform:uppercase; letter-spacing:0.5px;\">RESUMEN EJECUTIVO</h3>\n      <div style=\"background:#f8fafc; border-left:4px solid #3b82f6; padding:14px 18px; border-radius:4px; font-size:14px; line-height:1.6; color:#1e293b;\">\n        ${resumenEjecutivo.replace(/\\n/g, '<br>')}\n      </div>\n    </div>\n\n    <!-- BLOQUES DE MÉTRICAS -->\n    <div style=\"padding:24px 32px;\">\n      \n      <!-- PROYECTOS -->\n      <div style=\"margin-bottom:20px; padding:16px 20px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#0f172a; text-transform:uppercase;\">PROYECTOS</h4>\n        <ul style=\"margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.6;\">\n          <li><strong>Total:</strong> ${m.totalProjects ?? 0}</li>\n          <li><strong>Activos:</strong> ${m.activeProjects ?? 0}</li>\n          <li><strong>Finalizados:</strong> ${m.finishedProjects ?? 0}</li>\n          <li><strong>Atrasados:</strong> <span style=\"color:${(m.delayedProjects || 0) > 0 ? '#dc2626' : '#16a34a'}; font-weight:700;\">${m.delayedProjects ?? 0}</span></li>\n        </ul>\n      </div>\n\n      <!-- AVANCE -->\n      <div style=\"margin-bottom:20px; padding:16px 20px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#0f172a; text-transform:uppercase;\">AVANCE FÍSICO</h4>\n        <ul style=\"margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.6;\">\n          <li><strong>Promedio general:</strong> <strong>${m.avgProgress ?? 0}%</strong></li>\n          <li><strong>Proyecto con menor avance:</strong> ${m.lowestProgressProject || 'N/A'}</li>\n          <li><strong>Proyecto con mayor atención:</strong> ${m.highestRiskProject || 'N/A'}</li>\n        </ul>\n      </div>\n\n      <!-- PRESUPUESTO -->\n      <div style=\"margin-bottom:20px; padding:16px 20px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#0f172a; text-transform:uppercase;\">PRESUPUESTO Y FINANZAS</h4>\n        <ul style=\"margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.6;\">\n          <li><strong>Presupuesto autorizado:</strong> $${m.totalBudget || '0'} MXN</li>\n          <li><strong>Gasto acumulado:</strong> $${m.totalSpent || '0'} MXN</li>\n          <li><strong>Ejecución financiera:</strong> <strong>${m.budgetExecutionPct || '0'}%</strong></li>\n          <li><strong>Desviación:</strong> ${m.deviationFormatted || 'Sin desviación'}</li>\n        </ul>\n      </div>\n\n      <!-- COMPRAS -->\n      <div style=\"margin-bottom:20px; padding:16px 20px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#0f172a; text-transform:uppercase;\">COMPRAS Y ABASTECIMIENTO</h4>\n        <ul style=\"margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.6;\">\n          <li><strong>Órdenes de compra pendientes:</strong> ${m.pendingPurchaseOrders ?? 0}</li>\n          <li><strong>Órdenes con entrega retrasada:</strong> <span style=\"color:${(m.delayedPurchaseOrders || 0) > 0 ? '#ea580c' : '#16a34a'}; font-weight:700;\">${m.delayedPurchaseOrders ?? 0}</span></li>\n        </ul>\n      </div>\n\n      <!-- MATERIALES -->\n      <div style=\"margin-bottom:20px; padding:16px 20px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#0f172a; text-transform:uppercase;\">INVENTARIO DE MATERIALES</h4>\n        <ul style=\"margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.6;\">\n          <li><strong>Materiales en stock crítico:</strong> ${m.criticalMaterials ?? 0}</li>\n          <li><strong>Materiales agotados:</strong> <span style=\"color:${(m.outOfStockMaterialsCount || 0) > 0 ? '#dc2626' : '#16a34a'}; font-weight:700;\">${m.outOfStockMaterialsCount ?? 0}</span></li>\n        </ul>\n      </div>\n\n      <!-- SOLICITUDES -->\n      <div style=\"margin-bottom:20px; padding:16px 20px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#0f172a; text-transform:uppercase;\">SOLICITUDES Y REQUERIMIENTOS</h4>\n        <ul style=\"margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.6;\">\n          <li><strong>Solicitudes pendientes:</strong> ${m.pendingRequests ?? 0}</li>\n          <li><strong>Solicitudes de prioridad alta:</strong> ${m.highPriorityRequests ?? 0}</li>\n        </ul>\n      </div>\n\n      <!-- RIESGOS -->\n      <div style=\"margin-bottom:20px; padding:16px 20px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#0f172a; text-transform:uppercase;\">MATRIZ DE RIESGOS</h4>\n        <ul style=\"margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.6;\">\n          <li><strong>Riesgos Críticos:</strong> <span style=\"color:#dc2626; font-weight:700;\">${m.criticalRisks ?? 0}</span></li>\n          <li><strong>Riesgos Altos:</strong> <span style=\"color:#ea580c; font-weight:700;\">${m.highRisks ?? 0}</span></li>\n          <li><strong>Riesgos Medios:</strong> ${m.mediumRisks ?? 0}</li>\n        </ul>\n      </div>\n\n      <!-- ACCIONES RECOMENDADAS -->\n      <div style=\"padding:18px 20px; background:#f0fdf4; border-radius:8px; border-left:4px solid #16a34a;\">\n        <h4 style=\"margin:0 0 10px 0; font-size:13px; color:#14532d; text-transform:uppercase;\">PRINCIPALES ACCIONES RECOMENDADAS</h4>\n        <ol style=\"margin:0; padding-left:20px; font-size:13px; color:#166534; line-height:1.6;\">\n          ${acciones.map(a => `<li>${a}</li>`).join('')}\n        </ol>\n      </div>\n    </div>\n\n    <!-- PIE DE CORREO -->\n    <div style=\"padding:20px 32px; background:#ffffff; border-top:1px solid #e2e8f0; font-size:12px; color:#64748b; text-align:center;\">\n      <p style=\"margin:0;\">Este informe fue generado de forma automática por la plataforma de gestión CONSTRUCTA.</p>\n      <p style=\"margin:4px 0 0 0; color:#94a3b8;\">Para mayor detalle técnico, consulte el portal de administración.</p>\n    </div>\n  </div>\n</body>\n</html>\n`.trim();\n\nreturn [{\n  json: {\n    fecha,\n    fechaCorta,\n    estado,\n    recipient,\n    subject: `[CONSTRUCTA] Reporte ejecutivo diario — ${fechaCorta}`,\n    htmlBody,\n    metrics: m\n  }\n}];"
+      },
+      "id": "e2f2b002-3002-4002-8002-000000000005",
+      "name": "Ensamblar Reporte HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipient || $env.CONSTRUCTA_REPORT_EMAIL || 'admin@constructa.com' }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.htmlBody }}"
+      },
+      "id": "e2f2b002-3002-4002-8002-000000000006",
+      "name": "Enviar Reporte por Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1420,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "constructa_gmail_cred",
+          "name": "Gmail CONSTRUCTA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Disparador Diario 7:00 AM": {
+      "main": [
+        [
+          {
+            "node": "Consultar Datos CONSTRUCTA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Datos CONSTRUCTA": {
+      "main": [
+        [
+          {
+            "node": "Calcular Métricas y Estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Métricas y Estado": {
+      "main": [
+        [
+          {
+            "node": "Generar Resumen Ejecutivo IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Resumen Ejecutivo IA": {
+      "main": [
+        [
+          {
+            "node": "Ensamblar Reporte HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensamblar Reporte HTML": {
+      "main": [
+        [
+          {
+            "node": "Enviar Reporte por Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Costa_Rica"
+  },
+  "active": false
+}

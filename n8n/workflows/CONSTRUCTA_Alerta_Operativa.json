@@ -1,0 +1,168 @@
+{
+  "name": "CONSTRUCTA — Alerta Operativa Automática",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "e1f1a001-3001-4001-8001-000000000001",
+      "name": "Disparador Cada 30 Minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ ($env.CONSTRUCTA_API_BASE_URL || 'http://localhost:5173/api').replace(/\\/+$/, '') }}/db",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "e1f1a001-3001-4001-8001-000000000002",
+      "name": "Consultar API CONSTRUCTA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// CONSTRUCTA - ANALIZADOR OPERATIVO DETERMINÍSTICO Y DEDUPLICADOR DE ALERTAS\n// ============================================================================\n\nconst inputData = $input.first()?.json || {};\nconst isApiError = inputData.error || inputData.statusCode >= 400 || !inputData.projects;\n\n// Acceso a almacén persistente de n8n para deduplicación\nlet staticData;\ntry {\n  staticData = $getWorkflowStaticData('global');\n} catch (e) {\n  staticData = {};\n}\nstaticData.alertTracker = staticData.alertTracker || {};\nstaticData.logs = staticData.logs || [];\n\nconst now = new Date();\nconst nowIso = now.toISOString();\n\nconst CONFIG = {\n  budgetThresholds: {\n    medium: 5,\n    high: 10,\n    critical: 20\n  },\n  reminderHours: 24,\n  stockCriticalRatio: 0.5,\n  defaultRecipient: $env.CONSTRUCTA_ALERT_EMAIL || 'admin@constructa.com'\n};\n\n// MANEJO DE ERROR DE API (No genera falsas alertas operativas)\nif (isApiError) {\n  const apiErrorLog = {\n    workflow: 'CONSTRUCTA_Alerta_Operativa',\n    fecha: nowIso,\n    cantidadRegistrosAnalizados: 0,\n    cantidadAlertas: 0,\n    cantidadCorreosEnviados: 0,\n    estado: 'API_ERROR',\n    error: inputData.error || 'No se pudo conectar con la API de CONSTRUCTA'\n  };\n  staticData.logs.push(apiErrorLog);\n  if (staticData.logs.length > 50) staticData.logs.shift();\n\n  return [{\n    json: {\n      shouldSendEmail: false,\n      hasApiError: true,\n      status: 'API_ERROR',\n      errorMessage: apiErrorLog.error,\n      logEntry: apiErrorLog,\n      alertsCount: 0\n    }\n  }];\n}\n\n// EXTRACCIÓN RESILIENTE DE COLECCIONES REALES\nconst projects = Array.isArray(inputData.projects) ? inputData.projects : [];\nconst expenses = Array.isArray(inputData.expenses) ? inputData.expenses : [];\nconst materials = Array.isArray(inputData.materials) ? inputData.materials : [];\nconst purchaseOrders = Array.isArray(inputData.purchaseOrders) ? inputData.purchaseOrders : [];\nconst materialRequests = Array.isArray(inputData.materialRequests) ? inputData.materialRequests : [];\nconst totalRecords = projects.length + expenses.length + materials.length + purchaseOrders.length + materialRequests.length;\n\nconst detectedAlerts = [];\n\n// A. EVALUACIÓN DE ATRASO DE PROYECTO\nfor (const p of projects) {\n  const isFinished = (p.estado || '').toLowerCase().includes('finaliz') || \n                     (p.estado || '').toLowerCase().includes('terminad') || \n                     Number(p.avance || p.progreso || 0) >= 100;\n  if (isFinished) continue;\n\n  const targetDateStr = p.fechaFinEstimada || p.fechaFin;\n  const currentProgress = Number(p.avance || p.progreso || 0);\n\n  if (targetDateStr) {\n    const targetDate = new Date(targetDateStr);\n    if (!isNaN(targetDate.getTime()) && now > targetDate) {\n      const daysOverdue = Math.floor((now - targetDate) / (1000 * 60 * 60 * 24));\n      detectedAlerts.push({\n        tipo: 'ATRASO_CRITICO',\n        nivel: 'CRITICO',\n        proyecto: p.nombre || p.id,\n        proyectoId: p.id,\n        identificadorProblema: `FECHA_VENCIDA_${targetDateStr}`,\n        descripcion: `La obra supera la fecha contractual prevista (${targetDateStr}) por ${daysOverdue} días, registrando un avance físico actual del ${currentProgress}%.`,\n        impacto: 'Incumplimiento contractual de plazos de entrega, riesgo de penalizaciones económicas y sobrecostos por permanencia en obra.',\n        recomendacion: 'Convocar comité técnico urgente con la supervisión de obra, redefinir cronograma de ruta crítica y evaluar addenda contractual.',\n        fecha: nowIso\n      });\n    }\n  }\n\n  // Desviación en cronograma en curso\n  if (p.fechaInicio && targetDateStr) {\n    const startDate = new Date(p.fechaInicio);\n    const targetDate = new Date(targetDateStr);\n    const totalDuration = targetDate - startDate;\n    const elapsed = now - startDate;\n    if (totalDuration > 0 && elapsed > 0 && elapsed <= totalDuration) {\n      const expectedProgress = Math.min(100, Math.round((elapsed / totalDuration) * 100));\n      const lag = expectedProgress - currentProgress;\n      if (lag >= 25) {\n        detectedAlerts.push({\n          tipo: 'DESVIACION_CRONOGRAMA',\n          nivel: 'ALTO',\n          proyecto: p.nombre || p.id,\n          proyectoId: p.id,\n          identificadorProblema: `DESFASE_${lag}PCT`,\n          descripcion: `Desfase significativo de avance: se esperaba un avance proyectado del ${expectedProgress}%, pero el avance real certificado es del ${currentProgress}% (desfase de ${lag} puntos porcentuales).`,\n          impacto: 'Desaceleración de frentes de trabajo con alta probabilidad de incumplir el hito final de entrega.',\n          recomendacion: 'Reforzar cuadrillas de mano de obra en partidas críticas y fiscalizar abastecimiento de insumos.',\n          fecha: nowIso\n        });\n      } else if (lag >= 15) {\n        detectedAlerts.push({\n          tipo: 'DESVIACION_CRONOGRAMA',\n          nivel: 'MEDIO',\n          proyecto: p.nombre || p.id,\n          proyectoId: p.id,\n          identificadorProblema: `DESFASE_${lag}PCT`,\n          descripcion: `Desviación moderada de cronograma: avance esperado del ${expectedProgress}% frente a un avance real del ${currentProgress}% (${lag}% de desfase).`,\n          impacto: 'Riesgo acumulativo de retraso en hitos intermedios.',\n          recomendacion: 'Optimizar la secuenciación de subcontratos y revisar rendimientos en bitácora.',\n          fecha: nowIso\n        });\n      }\n    }\n  }\n}\n\n// B. EVALUACIÓN DE DESVIACIÓN PRESUPUESTARIA\nfor (const p of projects) {\n  const budget = Number(p.presupuesto) || 0;\n  if (budget <= 0) continue;\n\n  const projectExpenses = expenses.filter(e => String(e.proyectoId) === String(p.id));\n  const totalSpent = projectExpenses.reduce((sum, e) => sum + (Number(e.monto) || 0), 0);\n  const desviacion = totalSpent - budget;\n  const porcentaje_desviacion = (totalSpent / budget) * 100;\n\n  if (totalSpent > budget) {\n    const excesoPct = ((totalSpent - budget) / budget) * 100;\n    let nivel = 'MEDIO';\n    if (excesoPct >= CONFIG.budgetThresholds.critical) {\n      nivel = 'CRITICO';\n    } else if (excesoPct >= CONFIG.budgetThresholds.high) {\n      nivel = 'ALTO';\n    } else if (excesoPct >= CONFIG.budgetThresholds.medium) {\n      nivel = 'MEDIO';\n    }\n\n    detectedAlerts.push({\n      tipo: 'SOBRECOSTO_PRESUPUESTO',\n      nivel: nivel,\n      proyecto: p.nombre || p.id,\n      proyectoId: p.id,\n      identificadorProblema: `EXCESO_${Math.round(excesoPct)}PCT`,\n      descripcion: `Sobrecosto presupuestario: Gasto acumulado de $${totalSpent.toLocaleString()} frente a un presupuesto autorizado de $${budget.toLocaleString()} (Exceso de $${desviacion.toLocaleString()}, +${excesoPct.toFixed(1)}%).`,\n      impacto: 'Déficit financiero directo del proyecto, absorción no autorizada de capital de trabajo y riesgo de insolvencia de la partida.',\n      recomendacion: 'Congelar emisión de nuevas órdenes de compra no esenciales y realizar auditoría de estimaciones y comprobantes contables.',\n      fecha: nowIso\n    });\n  } else if (porcentaje_desviacion >= 95 && Number(p.avance || p.progreso || 0) < 80) {\n    detectedAlerts.push({\n      tipo: 'PRESUPUESTO_CASI_AGOTADO',\n      nivel: 'MEDIO',\n      proyecto: p.nombre || p.id,\n      proyectoId: p.id,\n      identificadorProblema: `CONSUMO_${Math.round(porcentaje_desviacion)}PCT`,\n      descripcion: `Consumo presupuestario acelerado: Ya se ha ejercido el ${porcentaje_desviacion.toFixed(1)}% del presupuesto ($${totalSpent.toLocaleString()}) mientras el avance físico de la obra apenas alcanza el ${p.avance || 0}%.`,\n      impacto: 'Agotamiento prematuro de fondos antes de concluir las fases constructivas estructurales y de acabados.',\n      recomendacion: 'Revisar costos unitarios de materiales e ingeniería de valor antes de autorizar partidas subsecuentes.',\n      fecha: nowIso\n    });\n  }\n}\n\n// C. EVALUACIÓN DE MATERIALES\nfor (const m of materials) {\n  const stock = Number(m.stockActual) || 0;\n  const minStock = Number(m.stockMinimo) || 0;\n\n  if (stock <= 0) {\n    detectedAlerts.push({\n      tipo: 'MATERIAL_AGOTADO',\n      nivel: 'CRITICO',\n      proyecto: 'Almacén Central / General',\n      proyectoId: 'BODEGA_CENTRAL',\n      identificadorProblema: `AGOTADO_${m.id}`,\n      descripcion: `Insumo crítico agotado: ${m.nombre} (${m.codigo || m.id}) reporta 0 unidades disponibles (Stock mínimo requerido: ${minStock} ${m.unidad || 'unidades'}).`,\n      impacto: 'Paralización inminente de cuadrillas y frentes de trabajo por falta de material en obra.',\n      recomendacion: 'Generar orden de compra emergente con entrega exprés al proveedor preferente.',\n      fecha: nowIso\n    });\n  } else if (stock <= minStock * CONFIG.stockCriticalRatio) {\n    detectedAlerts.push({\n      tipo: 'STOCK_CRITICO',\n      nivel: 'ALTO',\n      proyecto: 'Almacén Central / General',\n      proyectoId: 'BODEGA_CENTRAL',\n      identificadorProblema: `STOCK_CRITICO_${m.id}`,\n      descripcion: `Stock en nivel crítico: ${m.nombre} cuenta con ${stock} ${m.unidad || 'uds.'} (por debajo del 50% del stock mínimo de ${minStock} ${m.unidad || 'uds.'}).`,\n      impacto: 'Riesgo inminente de desabastecimiento en las próximas 48 horas de faena.',\n      recomendacion: 'Activar reabastecimiento con el proveedor asignado y coordinar fecha de entrega.',\n      fecha: nowIso\n    });\n  }\n}\n\n// D. EVALUACIÓN DE ÓRDENES DE COMPRA\nfor (const po of purchaseOrders) {\n  const isDelivered = (po.estado || '').toLowerCase().includes('recibid') && \n                      !(po.estado || '').toLowerCase().includes('parcial') ||\n                      po.recepcion?.recibido === true;\n  if (isDelivered) continue;\n\n  const targetDateStr = po.fechaPrometida || po.fechaSolicitada;\n  if (targetDateStr) {\n    const targetDate = new Date(targetDateStr);\n    if (!isNaN(targetDate.getTime()) && now > targetDate) {\n      const daysDelayed = Math.floor((now - targetDate) / (1000 * 60 * 60 * 24));\n      detectedAlerts.push({\n        tipo: 'ORDEN_COMPRA_ATRASADA',\n        nivel: 'ALTO',\n        proyecto: po.proyectoNombre || po.proyectoId || 'General',\n        proyectoId: po.proyectoId || 'OC',\n        identificadorProblema: `OC_ATRASADA_${po.numeroOrden || po.id}`,\n        descripcion: `Orden de compra ${po.numeroOrden || po.id} con proveedor ${po.proveedorNombre || po.proveedorId} registra ${daysDelayed} días de retraso (Fecha prometida: ${targetDateStr}, Estatus: ${po.estado}).`,\n        impacto: 'Demora en la disponibilidad de materiales clave en obra y afectación en la programación de colados o montajes.',\n        recomendacion: 'Exigir al proveedor estatus de despacho inmediato o activar penalidad por demora según términos comerciales.',\n        fecha: nowIso\n      });\n    }\n  }\n}\n\n// MECANISMO DE DEDUPLICACIÓN (EVITAR SPAM)\nconst levelWeights = { 'CRITICO': 4, 'ALTO': 3, 'MEDIO': 2, 'BAJO': 1 };\nconst alertsToSend = [];\n\nfor (const alert of detectedAlerts) {\n  const alertKey = `${alert.tipo}_${alert.proyectoId}_${alert.identificadorProblema}`;\n  alert.alertKey = alertKey;\n\n  const previous = staticData.alertTracker[alertKey];\n  let shouldDispatch = false;\n\n  if (!previous) {\n    shouldDispatch = true;\n    staticData.alertTracker[alertKey] = {\n      alertKey,\n      fechaPrimeraDeteccion: nowIso,\n      fechaUltimaDeteccion: nowIso,\n      fechaUltimoEnvio: nowIso,\n      nivel: alert.nivel,\n      descripcion: alert.descripcion,\n      estado: 'ACTIVA'\n    };\n  } else {\n    previous.fechaUltimaDeteccion = nowIso;\n    const prevWeight = levelWeights[previous.nivel] || 1;\n    const currentWeight = levelWeights[alert.nivel] || 1;\n\n    if (currentWeight > prevWeight) {\n      shouldDispatch = true;\n      previous.nivel = alert.nivel;\n      previous.fechaUltimoEnvio = nowIso;\n      previous.descripcion = alert.descripcion;\n    } else if (previous.descripcion !== alert.descripcion && Math.abs(currentWeight - prevWeight) > 0) {\n      shouldDispatch = true;\n      previous.fechaUltimoEnvio = nowIso;\n      previous.descripcion = alert.descripcion;\n    } else {\n      const lastSentTime = new Date(previous.fechaUltimoEnvio || previous.fechaPrimeraDeteccion).getTime();\n      const hoursSinceLastSent = (now.getTime() - lastSentTime) / (1000 * 60 * 60);\n      if (hoursSinceLastSent >= CONFIG.reminderHours) {\n        shouldDispatch = true;\n        previous.fechaUltimoEnvio = nowIso;\n      }\n    }\n  }\n\n  if (shouldDispatch) {\n    alertsToSend.push(alert);\n  }\n}\n\nalertsToSend.sort((a, b) => (levelWeights[b.nivel] || 0) - (levelWeights[a.nivel] || 0));\n\nconst shouldSendEmail = alertsToSend.length > 0;\nconst topLevel = alertsToSend[0]?.nivel || 'MEDIO';\n\nlet subject = '';\nlet htmlBody = '';\n\nif (shouldSendEmail) {\n  subject = alertsToSend.length === 1\n    ? `[CONSTRUCTA] Alerta operativa — ${topLevel}`\n    : `[CONSTRUCTA] ${alertsToSend.length} alertas operativas detectadas`;\n\n  const badgeColors = {\n    'CRITICO': { bg: '#dc2626', text: '#ffffff' },\n    'ALTO': { bg: '#ea580c', text: '#ffffff' },\n    'MEDIO': { bg: '#d97706', text: '#ffffff' },\n    'BAJO': { bg: '#2563eb', text: '#ffffff' }\n  };\n\n  const alertItemsHtml = alertsToSend.map((alt, idx) => {\n    const col = badgeColors[alt.nivel] || badgeColors.MEDIO;\n    return `\n      <div style=\"background:#ffffff; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:20px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05);\">\n        <div style=\"padding:14px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between;\">\n          <span style=\"font-weight:700; color:#0f172a; font-size:15px;\">#${idx + 1} &bull; ${alt.proyecto}</span>\n          <span style=\"background:${col.bg}; color:${col.text}; font-size:11px; font-weight:700; padding:4px 10px; border-radius:12px; text-transform:uppercase;\">\n            ${alt.nivel}\n          </span>\n        </div>\n        <div style=\"padding:18px 20px;\">\n          <div style=\"margin-bottom:12px;\">\n            <strong style=\"color:#475569; font-size:12px; text-transform:uppercase;\">SITUACIÓN DETECTADA:</strong>\n            <p style=\"margin:4px 0 0 0; color:#1e293b; font-size:14px; line-height:1.5;\">${alt.descripcion}</p>\n          </div>\n          <div style=\"margin-bottom:12px;\">\n            <strong style=\"color:#b91c1c; font-size:12px; text-transform:uppercase;\">IMPACTO OPERATIVO:</strong>\n            <p style=\"margin:4px 0 0 0; color:#334155; font-size:13px; line-height:1.5;\">${alt.impacto}</p>\n          </div>\n          <div style=\"background:#f0fdf4; border-left:4px solid #16a34a; padding:10px 14px; border-radius:4px;\">\n            <strong style=\"color:#15803d; font-size:12px; text-transform:uppercase;\">ACCIÓN RECOMENDADA:</strong>\n            <p style=\"margin:4px 0 0 0; color:#14532d; font-size:13px; font-weight:500; line-height:1.4;\">${alt.recomendacion}</p>\n          </div>\n        </div>\n      </div>\n    `;\n  }).join('');\n\n  htmlBody = `\n<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"></head>\n<body style=\"font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color:#f1f5f9; margin:0; padding:30px 15px; color:#1e293b;\">\n  <div style=\"max-width:680px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);\">\n    <div style=\"background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding:28px 32px; color:#ffffff;\">\n      <div style=\"display:flex; justify-content:space-between; align-items:center;\">\n        <div>\n          <h1 style=\"margin:0; font-size:24px; font-weight:800; letter-spacing:0.5px; color:#ffffff;\">CONSTRUCTA</h1>\n          <p style=\"margin:4px 0 0 0; font-size:13px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:600;\">Monitoreo Operativo en Tiempo Real</p>\n        </div>\n        <div style=\"text-align:right;\">\n          <span style=\"display:inline-block; background:${badgeColors[topLevel].bg}; color:#ffffff; font-size:12px; font-weight:700; padding:6px 14px; border-radius:20px; text-transform:uppercase;\">\n            Nivel ${topLevel}\n          </span>\n        </div>\n      </div>\n    </div>\n    \n    <div style=\"padding:28px 32px; background:#fafafa; border-bottom:1px solid #e2e8f0;\">\n      <table style=\"width:100%; border-collapse:collapse; font-size:13px;\">\n        <tr>\n          <td style=\"color:#64748b; font-weight:600; padding-bottom:6px;\">Fecha de emisión:</td>\n          <td style=\"color:#0f172a; font-weight:600; text-align:right; padding-bottom:6px;\">${now.toLocaleDateString('es-CR')} ${now.toLocaleTimeString('es-CR')}</td>\n        </tr>\n        <tr>\n          <td style=\"color:#64748b; font-weight:600;\">Alertas procesadas:</td>\n          <td style=\"color:#0f172a; font-weight:700; text-align:right;\">${alertsToSend.length} eventos no repetidos</td>\n        </tr>\n      </table>\n    </div>\n\n    <div style=\"padding:28px 32px; background:#f8fafc;\">\n      <h2 style=\"margin:0 0 16px 0; font-size:16px; color:#0f172a; font-weight:700;\">Detalle de Riesgos y Desviaciones Detectadas</h2>\n      ${alertItemsHtml}\n    </div>\n\n    <div style=\"padding:20px 32px; background:#ffffff; border-top:1px solid #e2e8f0; font-size:12px; color:#64748b; text-align:center;\">\n      <p style=\"margin:0;\">Notificación automática despachada por el Sistema de Supervisión CONSTRUCTA.</p>\n      <p style=\"margin:4px 0 0 0; color:#94a3b8;\">Los datos reflejan la situación operacional certificada en base de datos.</p>\n    </div>\n  </div>\n</body>\n</html>\n  `.trim();\n}\n\nconst executionLog = {\n  workflow: 'CONSTRUCTA_Alerta_Operativa',\n  fecha: nowIso,\n  cantidadRegistrosAnalizados: totalRecords,\n  cantidadAlertas: detectedAlerts.length,\n  cantidadCorreosEnviados: shouldSendEmail ? 1 : 0,\n  estado: shouldSendEmail ? 'ALERTA_ENVIADA' : 'SIN_ALERTAS',\n  error: null\n};\n\nstaticData.logs.push(executionLog);\nif (staticData.logs.length > 50) staticData.logs.shift();\n\nreturn [{\n  json: {\n    shouldSendEmail,\n    hasApiError: false,\n    status: executionLog.estado,\n    subject,\n    htmlBody,\n    recipient: CONFIG.defaultRecipient,\n    alertsCount: alertsToSend.length,\n    topLevel,\n    logEntry: executionLog,\n    risksList: alertsToSend.map(a => ({\n      tipo: a.tipo,\n      nivel: a.nivel,\n      proyecto: a.proyecto,\n      descripcion: a.descripcion,\n      impacto: a.impacto,\n      recomendacion: a.recomendacion,\n      fecha: a.fecha\n    }))\n  }\n}];"
+      },
+      "id": "e1f1a001-3001-4001-8001-000000000003",
+      "name": "Analizar Alertas y Deduplicar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.shouldSendEmail }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "e1f1a001-3001-4001-8001-000000000004",
+      "name": "¿Hay Alertas Nuevas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        940,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipient || $env.CONSTRUCTA_ALERT_EMAIL || 'admin@constructa.com' }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.htmlBody }}"
+      },
+      "id": "e1f1a001-3001-4001-8001-000000000005",
+      "name": "Enviar Alerta por Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1180,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "constructa_gmail_cred",
+          "name": "Gmail CONSTRUCTA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Registro de finalización sin alertas nuevas\nreturn [{\n  json: {\n    resultado: 'SIN_ALERTAS_NUEVAS',\n    mensaje: 'Ejecución completada exitosamente. No se detectaron alertas operativas nuevas ni escaladas.',\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "e1f1a001-3001-4001-8001-000000000006",
+      "name": "Registrar Sin Alertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "Disparador Cada 30 Minutos": {
+      "main": [
+        [
+          {
+            "node": "Consultar API CONSTRUCTA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar API CONSTRUCTA": {
+      "main": [
+        [
+          {
+            "node": "Analizar Alertas y Deduplicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar Alertas y Deduplicar": {
+      "main": [
+        [
+          {
+            "node": "¿Hay Alertas Nuevas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay Alertas Nuevas?": {
+      "main": [
+        [
+          {
+            "node": "Enviar Alerta por Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar Sin Alertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

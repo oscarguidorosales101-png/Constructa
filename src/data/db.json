@@ -191,6 +191,27 @@
       "nombreComercial": "Aceros del Norte SA",
       "categoria": "Acero y Estructuras Metálicas",
       "id": "PRV-007"
+    },
+    {
+      "nombre": "GABRIEL STEVEN SALAS LEDEZMA",
+      "contacto": "Ing. Ricardo Benítez",
+      "especialidad": "Acabados y Pinturas",
+      "telefono": "+52 55 5410-8877",
+      "email": "oscarguidorosales101@gmail.com",
+      "direccion": "Manuel Mora",
+      "rfc": "604710538",
+      "identificacion": "604710538",
+      "tipoIdentificacion": "Física",
+      "tipoIdentificacionDescripcion": "Cédula Física",
+      "estado": "Activo",
+      "condicionesPago": "Crédito 30 días",
+      "tiempoEntregaEstimado": "48 a 72 horas hábiles",
+      "metodoContactoHabitual": "Llamada telefónica",
+      "horarioAtencion": "Lunes a Viernes 08:00 - 18:00",
+      "observaciones": "",
+      "nombreComercial": "GABRIEL STEVEN SALAS LEDEZMA",
+      "categoria": "Acabados y Pinturas",
+      "id": "PRV-008"
     }
   ],
   "materials": [
@@ -1821,6 +1842,18 @@
       "fechaIngreso": "2026-10-05",
       "id": "EMP-063",
       "dni": "DNI-063"
+    },
+    {
+      "nombre": "DANIELA DIXON CAYOLA",
+      "puesto": "Albañil de primera",
+      "proyectoId": "PRJ-001",
+      "horario": "Lunes a viernes — 7:00 a. m. a 4:00 p. m.",
+      "diasLaborales": "Lunes a Viernes",
+      "telefono": "*282773873",
+      "email": "daniel@gmail.com",
+      "estado": "Licencia",
+      "fechaIngreso": "2026-10-06",
+      "id": "EMP-065"
     }
   ],
   "inventoryMovements": [
@@ -2866,26 +2899,45 @@
       "fechaRegistro": "2026-10-05",
       "proyectosAsociados": [],
       "fechaVerificacion": "2026-10-05T17:07:49.373Z"
+    },
+    {
+      "identificacion": "605120994",
+      "tipoIdentificacion": "Física",
+      "nombre": "KENDALL MAURICIO SALAZAR VARGAS",
+      "email": "kendal@gmail.com",
+      "telefono": "+506 6058 6593",
+      "ciudad": "Puntarenas",
+      "pais": "Costa Rica",
+      "password": "Ajo28291213",
+      "id": "CLI-012",
+      "userId": "USR-012",
+      "rol": "Cliente",
+      "clave": "Ajo28291213",
+      "codigoVerificacion": "749201",
+      "estadoVerificacion": "Verificada",
+      "fechaRegistro": "2026-10-06",
+      "proyectosAsociados": [],
+      "fechaVerificacion": "2026-10-06T20:10:50.096Z"
     }
   ],
   "settings": {
     "theme": "dark",
-    "fontSize": "small",
-    "colorVision": "blue-yellow",
+    "fontSize": "normal",
+    "colorVision": "red-green",
     "reducedMotion": false,
     "voice": {
       "enabled": false,
-      "voiceURI": "Microsoft Sabina - Spanish (Mexico)",
+      "voiceURI": "",
       "rate": 1,
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-06T14:52:34.518Z",
+    "updatedAt": "2026-10-06T20:21:53.033Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
-    "textSize": "small",
-    "highContrast": true
+    "textSize": "normal",
+    "highContrast": false
   },
   "requests": [
     {
@@ -3135,6 +3187,20 @@
       "avatar": "HZ",
       "fechaCreacion": "2026-10-05T21:18:15.022Z",
       "id": "USR-012"
+    },
+    {
+      "id": "USR-012",
+      "clienteId": "CLI-012",
+      "nombre": "KENDALL MAURICIO SALAZAR VARGAS",
+      "identificacion": "605120994",
+      "tipoIdentificacion": "Física",
+      "email": "kendal@gmail.com",
+      "usuario": "kendal@gmail.com",
+      "clave": "Ajo28291213",
+      "password": "Ajo28291213",
+      "rol": "Cliente",
+      "activo": true,
+      "fechaCreacion": "2026-10-06T20:10:37.380Z"
     }
   ],
   "roles": [

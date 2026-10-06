@@ -1,0 +1,12 @@
+{
+  "name": "constructa-n8n",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Instancia y automatizaciones de supervisión n8n para CONSTRUCTA",
+  "scripts": {
+    "start": "n8n start",
+    "stop": "powershell -Command \"Get-Process | Where-Object { $_.ProcessName -match 'node' -and $_.CommandLine -match 'n8n' } | Stop-Process -Force\"",
+    "reset-password": "n8n user-management:reset",
+    "test:automation": "node tests/run_tests.js"
+  }
+}
