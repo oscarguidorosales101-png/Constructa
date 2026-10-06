@@ -29,6 +29,25 @@ export const supplierService = {
   },
 
   /**
+   * Valida los campos de un proveedor
+   */
+  validateSupplierData(supplierData) {
+    const errors = {};
+    const name = (supplierData.nombre || supplierData.nombreComercial || '').trim();
+    if (!name) {
+      errors.nombre = 'El nombre o razón social del proveedor es obligatorio.';
+    }
+    const email = (supplierData.email || '').trim().toLowerCase();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'El formato de correo no es válido.';
+    }
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors
+    };
+  },
+
+  /**
    * Crea o actualiza un proveedor en el backend simulado (db.json)
    */
   async saveSupplier(supplierData) {

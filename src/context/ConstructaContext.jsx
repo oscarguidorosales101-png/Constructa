@@ -7,6 +7,9 @@ import projectService from '../services/projectService.js';
 import settingsService from '../services/settingsService.js';
 import accessibilityService from '../services/accessibilityService.js';
 import aiService from '../services/aiService.js';
+import userService from '../services/userService.js';
+import roleService from '../services/roleService.js';
+import haciendaService from '../services/haciendaService.js';
 
 const ConstructaContext = createContext(null);
 
@@ -62,6 +65,8 @@ export const ConstructaProvider = ({ children }) => {
   const [clientMeetings, setClientMeetings] = useState(() => dataService.getClientMeetings());
   const [clientMessages, setClientMessages] = useState(() => dataService.getClientMessages());
   const [conversations, setConversations] = useState(() => dataService.getClientConversations());
+  const [users, setUsers] = useState(() => (typeof dataService?.getUsers === 'function' ? dataService.getUsers() : []));
+  const [roles, setRoles] = useState(() => (typeof dataService?.getRoles === 'function' ? dataService.getRoles() : []));
 
   // 4. Métricas Interconectadas Dinámicas
   const [metrics, setMetrics] = useState(() => dataService.calculateMetrics());
@@ -97,6 +102,8 @@ export const ConstructaProvider = ({ children }) => {
             if (Array.isArray(liveDb.requests)) setClientRequests(liveDb.requests);
             if (Array.isArray(liveDb.clientMeetings)) setClientMeetings(liveDb.clientMeetings);
             if (Array.isArray(liveDb.clientConversations)) setConversations(liveDb.clientConversations);
+            if (Array.isArray(liveDb.users)) setUsers(liveDb.users);
+            if (Array.isArray(liveDb.roles)) setRoles(liveDb.roles);
             setMetrics(dataService.calculateMetrics());
           }
         })
@@ -850,6 +857,96 @@ export const ConstructaProvider = ({ children }) => {
   };
 
   // ----------------------------------------------------
+  // GESTIÓN DE USUARIOS (PERSISTENCIA REAL EN DB.JSON)
+  // ----------------------------------------------------
+  const saveUser = async (userData) => {
+    try {
+      const saved = await userService.saveUser(userData);
+      setUsers((prev) => {
+        const exists = prev.some((u) => u.id === saved.id);
+        return exists ? prev.map((u) => (u.id === saved.id ? saved : u)) : [...prev, saved];
+      });
+      showAlert(
+        userData.id ? 'Usuario corporativo modificado correctamente.' : 'Usuario registrado y persistido en db.json.',
+        'exito'
+      );
+      return { ok: true, user: saved };
+    } catch (err) {
+      const msg = err.message || 'No se pudo guardar el usuario. Verifica la conexión con el sistema.';
+      showAlert(msg, 'error');
+      return { ok: false, error: msg };
+    }
+  };
+
+  const toggleUserStatus = async (userId) => {
+    try {
+      const updated = await userService.toggleUserStatus(userId);
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      showAlert(
+        updated.activo ? 'Usuario activado en el sistema.' : 'Usuario desactivado temporalmente.',
+        'info'
+      );
+      return { ok: true, user: updated };
+    } catch (err) {
+      showAlert(err.message || 'Error al cambiar estado del usuario.', 'error');
+      return { ok: false, error: err.message };
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    try {
+      await userService.deleteUser(userId);
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      showAlert('Usuario eliminado del sistema.', 'info');
+      return { ok: true };
+    } catch (err) {
+      showAlert(err.message || 'Error al eliminar usuario.', 'error');
+      return { ok: false, error: err.message };
+    }
+  };
+
+  // ----------------------------------------------------
+  // GESTIÓN DE ROLES Y PERMISOS (PERSISTENCIA EN DB.JSON)
+  // ----------------------------------------------------
+  const saveRole = async (roleData) => {
+    try {
+      const saved = await roleService.saveRole(roleData);
+      setRoles((prev) => {
+        const exists = prev.some((r) => r.id === saved.id);
+        return exists ? prev.map((r) => (r.id === saved.id ? saved : r)) : [...prev, saved];
+      });
+      showAlert(
+        roleData.id ? 'Rol modificado y persistido en db.json.' : 'Nuevo rol creado exitosamente.',
+        'exito'
+      );
+      return { ok: true, role: saved };
+    } catch (err) {
+      const msg = err.message || 'No se pudo guardar el rol.';
+      showAlert(msg, 'error');
+      return { ok: false, error: msg };
+    }
+  };
+
+  const deleteRole = async (roleId) => {
+    try {
+      await roleService.deleteRole(roleId);
+      setRoles((prev) => prev.filter((r) => r.id !== roleId));
+      showAlert('Rol eliminado del catálogo.', 'info');
+      return { ok: true };
+    } catch (err) {
+      showAlert(err.message || 'Error al eliminar rol.', 'error');
+      return { ok: false, error: err.message };
+    }
+  };
+
+  // ----------------------------------------------------
+  // INTEGRACIÓN HACIENDA DE COSTA RICA
+  // ----------------------------------------------------
+  const consultarHacienda = async (identificacion) => {
+    return haciendaService.consultarIdentificacion(identificacion);
+  };
+
+  // ----------------------------------------------------
   // GESTIÓN DE CONVERSACIONES Y MESA DE AYUDA PERSISTENTE
   // ----------------------------------------------------
   const createConversation = (data) => {
@@ -1039,6 +1136,19 @@ export const ConstructaProvider = ({ children }) => {
         agendaActivities,
         saveAgendaActivity,
         deleteAgendaActivity,
+        // CLIENTES
+        // USUARIOS Y ROLES (ADMINISTRACIÓN)
+        users,
+        setUsers,
+        saveUser,
+        toggleUserStatus,
+        deleteUser,
+        roles,
+        setRoles,
+        saveRole,
+        deleteRole,
+        consultarHacienda,
+        haciendaService,
         // CLIENTES
         clients,
         clientRequests,

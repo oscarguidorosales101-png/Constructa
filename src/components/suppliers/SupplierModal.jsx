@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import BackButton from '../common/BackButton';
+import { useConstructa } from '../../context/ConstructaContext.jsx';
+import { Search, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
 const SPECIALTIES = [
   'Cementos y Hormigones',
@@ -15,6 +17,8 @@ const SPECIALTIES = [
 ];
 
 export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
+  const { consultarHacienda } = useConstructa();
+
   const [formData, setFormData] = useState({
     nombre: '',
     contacto: '',
@@ -23,6 +27,9 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
     email: '',
     direccion: '',
     rfc: '',
+    identificacion: '',
+    tipoIdentificacion: '02',
+    tipoIdentificacionDescripcion: 'Cédula Jurídica',
     estado: 'Activo',
     condicionesPago: 'Crédito 30 días',
     tiempoEntregaEstimado: '48 a 72 horas hábiles',
@@ -32,6 +39,8 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
   });
 
   const [errors, setErrors] = useState({});
+  const [haciendaLoading, setHaciendaLoading] = useState(false);
+  const [haciendaResult, setHaciendaResult] = useState(null);
 
   useEffect(() => {
     if (supplier) {
@@ -42,7 +51,10 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
         telefono: supplier.telefono || '',
         email: supplier.email || '',
         direccion: supplier.direccion || '',
-        rfc: supplier.rfc || supplier.cif || '',
+        rfc: supplier.rfc || supplier.identificacion || supplier.cif || '',
+        identificacion: supplier.identificacion || supplier.rfc || '',
+        tipoIdentificacion: supplier.tipoIdentificacion || '02',
+        tipoIdentificacionDescripcion: supplier.tipoIdentificacionDescripcion || 'Cédula Jurídica',
         estado: supplier.estado || 'Activo',
         condicionesPago: supplier.condicionesPago || 'Crédito 30 días',
         tiempoEntregaEstimado: supplier.tiempoEntregaEstimado || '48 a 72 horas hábiles',
@@ -50,6 +62,7 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
         horarioAtencion: supplier.horarioAtencion || 'Lunes a Viernes 08:00 - 18:00',
         observaciones: supplier.observaciones || '',
       });
+      setHaciendaResult(null);
     } else {
       setFormData({
         nombre: '',
@@ -59,6 +72,9 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
         email: '',
         direccion: '',
         rfc: '',
+        identificacion: '',
+        tipoIdentificacion: '02',
+        tipoIdentificacionDescripcion: 'Cédula Jurídica',
         estado: 'Activo',
         condicionesPago: 'Crédito 30 días',
         tiempoEntregaEstimado: '48 a 72 horas hábiles',
@@ -66,6 +82,7 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
         horarioAtencion: 'Lunes a Viernes 08:00 - 18:00',
         observaciones: '',
       });
+      setHaciendaResult(null);
     }
     setErrors({});
   }, [supplier, isOpen]);
@@ -75,6 +92,51 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleConsultarHacienda = async () => {
+    if (!formData.identificacion || !formData.identificacion.trim()) {
+      setErrors(prev => ({
+        ...prev,
+        identificacion: 'Ingresa la cédula física o jurídica del proveedor para consultar en Hacienda.'
+      }));
+      return;
+    }
+
+    setHaciendaLoading(true);
+    setHaciendaResult(null);
+    setErrors(prev => ({ ...prev, identificacion: null }));
+
+    try {
+      const res = await consultarHacienda(formData.identificacion);
+
+      if (res && res.ok) {
+        setFormData(prev => ({
+          ...prev,
+          nombre: res.nombre || prev.nombre,
+          rfc: res.identificacion,
+          tipoIdentificacion: res.tipoIdentificacion || '02',
+          tipoIdentificacionDescripcion: res.tipoDescripcion || 'Cédula Registrada'
+        }));
+
+        setHaciendaResult({
+          success: true,
+          message: `Verificado en Hacienda CR: ${res.nombre} (${res.tipoDescripcion || 'Válido'})`
+        });
+      } else {
+        setHaciendaResult({
+          success: false,
+          message: res?.error || 'No se localizó la identificación en Hacienda. Puedes ingresar los datos manualmente.'
+        });
+      }
+    } catch (_) {
+      setHaciendaResult({
+        success: false,
+        message: 'No fue posible conectar con Hacienda. Puedes completar el registro manualmente.'
+      });
+    } finally {
+      setHaciendaLoading(false);
     }
   };
 
@@ -100,6 +162,8 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
       ...formData,
       nombreComercial: formData.nombre,
       categoria: formData.especialidad,
+      identificacion: formData.identificacion || formData.rfc,
+      rfc: formData.identificacion || formData.rfc,
     };
 
     const res = await onSave(payload);
@@ -114,11 +178,84 @@ export default function SupplierModal({ isOpen, onClose, onSave, supplier }) {
       isOpen={isOpen}
       onClose={onClose}
       title={supplier ? 'Editar Proveedor' : 'Registrar Nuevo Proveedor'}
-      maxWidth="640px"
+      maxWidth="680px"
     >
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '14px' }}>
           <BackButton onClick={onClose} label="← Regresar" />
+        </div>
+
+        {/* Sección Consulta Tributaria Hacienda */}
+        <div style={{ background: 'var(--color-bg-card-hover)', padding: '12px 14px', borderRadius: 'var(--radius-md)', marginBottom: '14px', border: '1px solid var(--color-border)' }}>
+          <label className="constructa-label" style={{ fontWeight: 700, color: 'var(--color-gold)', display: 'block', marginBottom: '4px' }}>
+            Identificación Fiscal & Consulta Hacienda (Costa Rica)
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr auto', gap: '8px', alignItems: 'flex-start' }}>
+            <div>
+              <input
+                type="text"
+                name="identificacion"
+                className={`constructa-input ${errors.identificacion ? 'input-error' : ''}`}
+                value={formData.identificacion}
+                onChange={handleChange}
+                placeholder="Ej. 3101123456"
+              />
+              {errors.identificacion && <span className="constructa-error-text">{errors.identificacion}</span>}
+            </div>
+
+            <div>
+              <select
+                name="tipoIdentificacion"
+                className="constructa-input"
+                value={formData.tipoIdentificacion}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const descMap = { '01': 'Cédula Física', '02': 'Cédula Jurídica', '03': 'DIMEX', '04': 'NITE' };
+                  setFormData(prev => ({
+                    ...prev,
+                    tipoIdentificacion: val,
+                    tipoIdentificacionDescripcion: descMap[val] || 'Identificación Tributaria'
+                  }));
+                }}
+              >
+                <option value="02">02 - Cédula Jurídica</option>
+                <option value="01">01 - Cédula Física</option>
+                <option value="03">03 - DIMEX</option>
+                <option value="04">04 - NITE</option>
+              </select>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleConsultarHacienda}
+              disabled={haciendaLoading}
+              icon={haciendaLoading ? <RefreshCw size={14} className="spin-animation" /> : <Search size={14} />}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              {haciendaLoading ? 'Consultando...' : 'Consultar Hacienda'}
+            </Button>
+          </div>
+
+          {haciendaResult && (
+            <div
+              style={{
+                marginTop: '10px',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: haciendaResult.success ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                color: haciendaResult.success ? '#10b981' : '#f87171',
+                border: `1px solid ${haciendaResult.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              }}
+            >
+              {haciendaResult.success ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              <span>{haciendaResult.message}</span>
+            </div>
+          )}
         </div>
 
         <div className="form-grid-2">

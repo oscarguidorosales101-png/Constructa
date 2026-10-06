@@ -1041,25 +1041,50 @@ export const dataService = {
     storageService.set(KEYS.AUTH, sessionData);
   },
 
+  getUsers() {
+    const cached = storageService.get('constructa_users_cache', null);
+    if (Array.isArray(cached) && cached.length > 0) {
+      return cached;
+    }
+    return db.users || SYSTEM_USERS;
+  },
+
+  getRoles() {
+    const cached = storageService.get('constructa_roles', null);
+    if (Array.isArray(cached) && cached.length > 0) {
+      return cached;
+    }
+    return db.roles || [];
+  },
+
   getSystemUsers() {
-    return SYSTEM_USERS;
+    return this.getUsers();
   },
 
   login(identifier, password) {
     const cleanId = (identifier || '').trim().toLowerCase();
     const cleanPass = (password || '').trim();
 
-    // 1. Buscar coincidencia en la lista de usuarios del sistema (Admin, Gerente, RRHH)
-    const matchedUser = SYSTEM_USERS.find(
+    // 1. Buscar coincidencia en la lista completa de usuarios del sistema
+    const allUsers = this.getUsers();
+    const matchedUser = allUsers.find(
       (u) =>
-        u.email.toLowerCase() === cleanId ||
-        u.usuario.toLowerCase() === cleanId ||
+        (u.email && u.email.toLowerCase() === cleanId) ||
+        (u.usuario && u.usuario.toLowerCase() === cleanId) ||
         (u.aliasEmail && u.aliasEmail.toLowerCase() === cleanId)
     );
 
     if (matchedUser) {
+      if (matchedUser.activo === false) {
+        return {
+          ok: false,
+          mensaje: 'Esta cuenta ha sido desactivada por la administración de CONSTRUCTA.'
+        };
+      }
+
       const validPasswords = [
         matchedUser.clave,
+        matchedUser.password,
         ...(matchedUser.aliases || []),
         `${matchedUser.usuario}123`,
         'admin123',
@@ -1067,9 +1092,11 @@ export const dataService = {
         'gerente123',
         'Gerencia2026!',
         'rrhh123',
-        'RRHH2026!'
+        'RRHH2026!',
+        'Entrevista2026!',
+        'Constructa2026!'
       ];
-      if (validPasswords.includes(cleanPass)) {
+      if (validPasswords.filter(Boolean).includes(cleanPass)) {
         const sessionData = {
           usuario: matchedUser,
           fechaInicio: new Date().toISOString(),
@@ -3984,5 +4011,8 @@ export { supplierService } from './supplierService.js';
 export { employeeService } from './employeeService.js';
 export { projectService } from './projectService.js';
 export { clientService } from './clientService.js';
+export { userService } from './userService.js';
+export { roleService } from './roleService.js';
+export { haciendaService } from './haciendaService.js';
 
 export default dataService;

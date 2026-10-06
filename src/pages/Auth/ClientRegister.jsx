@@ -14,9 +14,14 @@ import {
   Shield,
   FileText,
   KeyRound,
-  AlertCircle
+  AlertCircle,
+  Search,
+  Building2,
+  CreditCard,
+  Loader2
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
+import haciendaService from '../../services/haciendaService.js';
 import Button from '../../components/common/Button.jsx';
 import ToastContainer from '../../components/common/ToastContainer.jsx';
 
@@ -28,11 +33,13 @@ export const ClientRegister = ({ onNavigate }) => {
 
   // Datos del formulario
   const [formData, setFormData] = useState({
+    identificacion: '',
+    tipoIdentificacion: 'Física',
     nombre: '',
     email: '',
     telefono: '',
     ciudad: '',
-    pais: 'México',
+    pais: 'Costa Rica',
     password: '',
     confirmPassword: '',
     acceptTerms: false,
@@ -42,6 +49,11 @@ export const ClientRegister = ({ onNavigate }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Integración Hacienda CR
+  const [isCheckingHacienda, setIsCheckingHacienda] = useState(false);
+  const [haciendaSuccessMsg, setHaciendaSuccessMsg] = useState('');
+  const [haciendaErrorMsg, setHaciendaErrorMsg] = useState('');
 
   // Estado del paso de verificación
   const [verificationCode, setVerificationCode] = useState('');
@@ -97,6 +109,38 @@ export const ClientRegister = ({ onNavigate }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleConsultarHacienda = async () => {
+    const rawId = (formData.identificacion || '').trim().replace(/[-\s]/g, '');
+    if (!rawId) {
+      setHaciendaErrorMsg('Ingrese un número de cédula física o jurídica.');
+      return;
+    }
+    setIsCheckingHacienda(true);
+    setHaciendaErrorMsg('');
+    setHaciendaSuccessMsg('');
+
+    try {
+      const res = await haciendaService.consultar(rawId);
+      if (res.ok && res.data) {
+        setFormData((prev) => ({
+          ...prev,
+          nombre: res.data.nombre || prev.nombre,
+          tipoIdentificacion: res.data.tipoIdentificacion || prev.tipoIdentificacion,
+        }));
+        setHaciendaSuccessMsg(`✓ Verificado en Hacienda: ${res.data.nombre} (${res.data.tipoIdentificacion})`);
+        if (errors.nombre) {
+          setErrors((prev) => ({ ...prev, nombre: null }));
+        }
+      } else {
+        setHaciendaErrorMsg(res.error || 'No se localizó la identificación en Hacienda.');
+      }
+    } catch (err) {
+      setHaciendaErrorMsg('Error de conexión al consultar Hacienda.');
+    } finally {
+      setIsCheckingHacienda(false);
+    }
+  };
+
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -105,10 +149,12 @@ export const ClientRegister = ({ onNavigate }) => {
 
     try {
       const res = await registerClient({
+        identificacion: formData.identificacion.trim(),
+        tipoIdentificacion: formData.tipoIdentificacion,
         nombre: formData.nombre.trim(),
         email: formData.email.trim(),
         telefono: formData.telefono.trim(),
-        ciudad: formData.ciudad.trim() || 'Monterrey, N.L.',
+        ciudad: formData.ciudad.trim() || 'San José',
         pais: formData.pais,
         password: formData.password,
       });
@@ -256,6 +302,68 @@ export const ClientRegister = ({ onNavigate }) => {
         {/* ===================== PASO 1: FORMULARIO DE REGISTRO ===================== */}
         {step === 'form' && (
           <form onSubmit={handleRegisterSubmit} noValidate>
+            {/* Identificación Fiscal & Consulta Hacienda */}
+            <div className="form-group" style={{ marginBottom: '1.1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <label className="form-label" htmlFor="reg-id" style={{ marginBottom: 0 }}>
+                  Identificación / Cédula (Costa Rica)
+                </label>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Física (9 dig) / Jurídica (10 dig)</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input
+                    id="reg-id"
+                    type="text"
+                    className="form-input"
+                    style={{ paddingLeft: '2.5rem' }}
+                    value={formData.identificacion}
+                    onChange={(e) => {
+                      handleInputChange('identificacion', e.target.value);
+                      setHaciendaErrorMsg('');
+                      setHaciendaSuccessMsg('');
+                    }}
+                    placeholder="Ej. 109870654 o 3101123456"
+                  />
+                  <CreditCard size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleConsultarHacienda}
+                  disabled={isCheckingHacienda || !formData.identificacion.trim()}
+                  style={{
+                    padding: '0 1rem',
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    color: '#f59e0b',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    borderRadius: 'var(--radius-md, 6px)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: (isCheckingHacienda || !formData.identificacion.trim()) ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    whiteSpace: 'nowrap',
+                    opacity: (isCheckingHacienda || !formData.identificacion.trim()) ? 0.6 : 1,
+                  }}
+                >
+                  {isCheckingHacienda ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                  <span>{isCheckingHacienda ? 'Consultando...' : 'Consultar Hacienda'}</span>
+                </button>
+              </div>
+
+              {haciendaSuccessMsg && (
+                <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle2 size={13} /> {haciendaSuccessMsg}
+                </div>
+              )}
+              {haciendaErrorMsg && (
+                <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <AlertCircle size={13} /> {haciendaErrorMsg}
+                </div>
+              )}
+            </div>
+
             {/* Nombre Completo */}
             <div className="form-group">
               <label className="form-label" htmlFor="reg-nombre">Nombre Completo o Razón Social</label>

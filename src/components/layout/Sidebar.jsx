@@ -16,8 +16,9 @@ import {
   AlertTriangle,
   Globe,
   Inbox,
-  Bot,
-  Sliders
+  Sliders,
+  UserCog,
+  Sparkles
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import { hasPermission } from '../../utils/permissions.js';
@@ -65,6 +66,7 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
 
   const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'usuarios-roles', label: 'Usuarios y Roles', icon: UserCog },
     {
       id: 'solicitudes-clientes',
       label: 'Solicitudes y Soporte',
@@ -114,6 +116,7 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
     { id: 'cronograma', label: 'Cronograma', icon: CalendarDays },
     { id: 'avance', label: 'Avance de Obra', icon: TrendingUp },
     { id: 'reportes', label: 'Reportes y Estadísticas', icon: BarChart3 },
+    { id: 'proyeccion-futuro', label: 'Proyección al Futuro', icon: Sparkles },
   ];
 
   // Filtrar navegación paramétricamente según el rol del usuario conectado
@@ -180,21 +183,6 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
         })}
 
         <div style={{ padding: '8px 0 0 0', borderTop: '1px solid var(--border-subtle)', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {currentUser?.rol === 'Administrador' && (
-            <button
-              type="button"
-              className="nav-item"
-              onClick={() => {
-                openAIAssistantModal();
-                if (onClose) onClose();
-              }}
-              style={{ color: 'var(--accent-blue)' }}
-            >
-              <Bot size={18} />
-              <span>Asistente IA</span>
-            </button>
-          )}
-
           <button
             type="button"
             className="nav-item"

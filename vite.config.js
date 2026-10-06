@@ -12,7 +12,7 @@ function dbApiPlugin() {
   return {
     name: 'constructa-db-api',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
+      server.middlewares.use(async (req, res, next) => {
         const parseJsonBody = () =>
           new Promise((resolve, reject) => {
             let body = '';
@@ -98,7 +98,8 @@ function dbApiPlugin() {
           requests: { key: 'requests', prefix: 'SOL' },
           materials: { key: 'materials', prefix: 'MAT' },
           expenses: { key: 'expenses', prefix: 'GAS' },
-          users: { key: 'users', prefix: 'USR' }
+          users: { key: 'users', prefix: 'USR' },
+          roles: { key: 'roles', prefix: 'ROL' }
         };
 
         if (collectionKeys[resource]) {
@@ -161,6 +162,8 @@ function dbApiPlugin() {
                   const clientPassword = itemData.password || itemData.clave || 'Cliente2026!';
                   newItem.userId = userId;
                   newItem.rol = 'Cliente';
+                  newItem.identificacion = itemData.identificacion || '';
+                  newItem.tipoIdentificacion = itemData.tipoIdentificacion || 'Física';
                   newItem.clave = clientPassword;
                   newItem.password = clientPassword;
                   newItem.codigoVerificacion = itemData.codigoVerificacion || '749201';
@@ -174,9 +177,12 @@ function dbApiPlugin() {
                     id: userId,
                     clienteId: newId,
                     nombre: newItem.nombre,
+                    identificacion: newItem.identificacion,
+                    tipoIdentificacion: newItem.tipoIdentificacion,
                     email: newItem.email,
                     usuario: newItem.email,
                     clave: clientPassword,
+                    password: clientPassword,
                     rol: 'Cliente',
                     activo: true,
                     fechaCreacion: new Date().toISOString()
@@ -252,6 +258,86 @@ function dbApiPlugin() {
           }
         }
 
+        // Proxy para API de Hacienda de Costa Rica (https://api.hacienda.go.cr/fe/ae)
+        if (req.url.startsWith('/api/hacienda') && req.method === 'GET') {
+          const urlObj = new URL(req.url, 'http://localhost');
+          const identificacion = urlObj.searchParams.get('identificacion');
+
+          if (!identificacion || !identificacion.trim()) {
+            return sendJson(400, {
+              ok: false,
+              code: 'MISSING_PARAM',
+              error: 'El parámetro identificacion es requerido.'
+            });
+          }
+
+          const cleanId = identificacion.replace(/\D/g, '');
+          if (cleanId.length < 9 || cleanId.length > 12) {
+            return sendJson(400, {
+              ok: false,
+              code: 'INVALID_FORMAT',
+              error: 'La identificación debe tener entre 9 y 12 dígitos numéricos.'
+            });
+          }
+
+          try {
+            const haciendaUrl = `https://api.hacienda.go.cr/fe/ae?identificacion=${encodeURIComponent(cleanId)}`;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            const haciendaRes = await fetch(haciendaUrl, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'CONSTRUCTA-ERP/1.0'
+              },
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (haciendaRes.status === 404) {
+              return sendJson(404, {
+                ok: false,
+                code: 'NOT_FOUND',
+                error: 'Identificación no registrada en el padrón de Hacienda de Costa Rica.'
+              });
+            }
+
+            if (!haciendaRes.ok) {
+              return sendJson(haciendaRes.status, {
+                ok: false,
+                code: `HTTP_${haciendaRes.status}`,
+                error: 'Error al consultar el servicio tributario de Hacienda.'
+              });
+            }
+
+            const data = await haciendaRes.json();
+            const tipoMap = {
+              '01': 'Cédula Física',
+              '02': 'Cédula Jurídica',
+              '03': 'DIMEX',
+              '04': 'NITE'
+            };
+
+            return sendJson(200, {
+              ok: true,
+              identificacion: cleanId,
+              nombre: data.nombre || '',
+              tipoIdentificacion: data.tipoIdentificacion || '01',
+              tipoIdentificacionDescripcion: tipoMap[data.tipoIdentificacion] || 'Identificación Tributaria'
+            });
+          } catch (haciendaErr) {
+            const isTimeout = haciendaErr.name === 'AbortError';
+            return sendJson(504, {
+              ok: false,
+              code: isTimeout ? 'TIMEOUT' : 'CONNECTION_ERROR',
+              error: isTimeout
+                ? 'Tiempo de espera agotado al consultar Hacienda.'
+                : 'No se pudo conectar con el servicio de Hacienda de Costa Rica.'
+            });
+          }
+        }
+
         // Endpoint seguro para Gemini AI - La API Key reside únicamente en el servidor (process.env.GEMINI_API_KEY)
         if (req.url === '/api/ai/analyze' && req.method === 'POST') {
           parseJsonBody()
@@ -260,18 +346,23 @@ function dbApiPlugin() {
               const { prompt, systemPrompt } = body;
 
               if (!geminiKey || !geminiKey.trim()) {
+                console.log('[AI Server Diagnostics] GEMINI_API_KEY no configurada. Activando motor analítico con datos reales.');
                 return sendJson(200, {
                   ok: false,
                   noKey: true,
-                  error: 'El análisis no está disponible en este momento.'
+                  error: 'El servicio de IA generativa no está configurado.'
                 });
               }
 
               try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.trim()}`;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
                 const response = await fetch(url, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
+                  signal: controller.signal,
                   body: JSON.stringify({
                     system_instruction: {
                       parts: [{ text: systemPrompt || 'Eres el Analista de IA Corporativo de CONSTRUCTA.' }]
@@ -287,11 +378,15 @@ function dbApiPlugin() {
                     }
                   })
                 });
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
+                  const errText = await response.text().catch(() => '');
+                  console.error(`[AI Server Diagnostics] HTTP error ${response.status}: ${errText.slice(0, 100)}`);
                   return sendJson(200, {
                     ok: false,
-                    error: 'El análisis no está disponible en este momento.'
+                    httpStatus: response.status,
+                    error: response.status === 429 ? 'Límite de cuota excedido. Intente en unos momentos.' : 'El análisis no está disponible en este momento.'
                   });
                 }
 
@@ -300,7 +395,7 @@ function dbApiPlugin() {
                 if (!generatedText) {
                   return sendJson(200, {
                     ok: false,
-                    error: 'El análisis no está disponible en este momento.'
+                    error: 'El modelo no devolvió una respuesta válida.'
                   });
                 }
 
@@ -309,14 +404,15 @@ function dbApiPlugin() {
                   text: generatedText.trim(),
                   provider: 'Google Gemini'
                 });
-              } catch (_) {
+              } catch (aiErr) {
+                console.error('[AI Server Diagnostics] Exception:', aiErr.name, aiErr.message);
                 return sendJson(200, {
                   ok: false,
-                  error: 'El análisis no está disponible en este momento.'
+                  error: aiErr.name === 'AbortError' ? 'Tiempo de espera agotado al conectar con el servicio de IA.' : 'El análisis no está disponible en este momento.'
                 });
               }
             })
-            .catch(() => sendJson(400, { ok: false, error: 'El análisis no está disponible en este momento.' }));
+            .catch(() => sendJson(400, { ok: false, error: 'Petición inválida.' }));
           return;
         }
 

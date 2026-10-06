@@ -124,10 +124,16 @@ export const clientService = {
 
       const newClient = result.cliente || result.client || result.data || result.item;
 
-      // 4. Sincronizar almacenamiento local y memoria de dataService
-      const currentClients = dataService.getClients();
-      if (!currentClients.some((c) => c.id === newClient.id || c.email === newClient.email)) {
-        storageService.set(STORAGE_KEYS.CLIENTS, [...currentClients, newClient]);
+      // 4. Sincronizar almacenamiento local y memoria
+      try {
+        const currentClients = (typeof dataService.getClients === 'function')
+          ? dataService.getClients()
+          : (storageService.get(STORAGE_KEYS.CLIENTS) || []);
+        if (!currentClients.some((c) => c.id === newClient.id || c.email === newClient.email)) {
+          storageService.set(STORAGE_KEYS.CLIENTS, [...currentClients, newClient]);
+        }
+      } catch (syncErr) {
+        console.warn('Advertencia al sincronizar cache local de clientes:', syncErr);
       }
 
       // 5. Sembrar mensaje de bienvenida privado en Mesa de Ayuda
@@ -139,20 +145,41 @@ export const clientService = {
         message: 'Cliente registrado con éxito y persistido en db.json.'
       };
     } catch (networkErr) {
-      // Fallback tolerante si el endpoint HTTP no responde (e.g. build estático / offline)
+      console.warn('Fallo en petición /api/clients, aplicando fallback tolerante:', networkErr);
       try {
-        const fallbackClient = dataService.saveClient(clientData);
+        if (typeof dataService.saveClient === 'function') {
+          const fallbackClient = dataService.saveClient(clientData);
+          return {
+            ok: true,
+            cliente: fallbackClient,
+            message: 'Cliente registrado en almacenamiento de contingencia.'
+          };
+        }
+        const localList = storageService.get(STORAGE_KEYS.CLIENTS) || [];
+        const nextId = `CLI-${String(localList.length + 1).padStart(3, '0')}`;
+        const fallbackClient = {
+          id: nextId,
+          ...clientData,
+          identificacion: clientData.identificacion || '',
+          tipoIdentificacion: clientData.tipoIdentificacion || 'Física',
+          rol: 'Cliente',
+          estadoVerificacion: 'Verificada',
+          codigoVerificacion: clientData.codigoVerificacion || '749201',
+          fechaRegistro: new Date().toISOString().split('T')[0],
+          proyectosAsociados: []
+        };
+        storageService.set(STORAGE_KEYS.CLIENTS, [...localList, fallbackClient]);
         return {
           ok: true,
           cliente: fallbackClient,
-          message: 'Cliente registrado en almacenamiento de contingencia.'
+          message: 'Cliente registrado en almacenamiento local.'
         };
       } catch (err) {
         const isDup = err.message && (err.message.includes('Ya existe') || err.message.includes('registrado'));
         return {
           ok: false,
-          error: isDup ? 'Este correo ya está registrado.' : err.message || 'Error de red al registrar cliente.',
-          code: isDup ? 'DUPLICATE_EMAIL' : 'NETWORK_ERROR'
+          error: isDup ? 'Este correo ya está registrado.' : err.message || 'Error al procesar registro de cliente.',
+          code: isDup ? 'DUPLICATE_EMAIL' : 'REGISTRATION_ERROR'
         };
       }
     }

@@ -372,7 +372,7 @@ export const Login = ({ onLoginSuccess }) => {
                 const isSelected = identifier === acc.email;
                 return (
                   <button
-                    key={acc.role}
+                    key={acc.email}
                     type="button"
                     onClick={() => handleSelectDemoAccount(acc)}
                     style={{

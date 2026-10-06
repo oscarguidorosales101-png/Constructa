@@ -10,11 +10,14 @@
       "fechaFinEstimada": "2026-11-30",
       "estado": "En construcción",
       "presupuesto": 4500000,
-      "avance": 68,
+      "avance": 63,
       "ubicacion": "Av. Las Palmas #450, Distrito Metropolitano",
       "descripcion": "Edificación vertical de 18 niveles habitacionales con 3 sótanos de estacionamiento estructurados en hormigón armado sismo-resistente.",
       "clientId": "CLI-001",
-      "clienteId": "CLI-001"
+      "clienteId": "CLI-001",
+      "progreso": 0,
+      "imagen": "/imgs/proyectos/torre_altavista.jpg",
+      "fechaFin": "2026-11-30"
     },
     {
       "id": "PRJ-002",
@@ -26,11 +29,14 @@
       "fechaFinEstimada": "2027-04-15",
       "estado": "En construcción",
       "presupuesto": 7800000,
-      "avance": 42,
+      "avance": 78,
       "ubicacion": "Boulevard Empresarial Poniente #1200",
       "descripcion": "Complejo corporativo de oficinas de alta eficiencia energética con certificación ambiental y fachada flotante de cristal templado.",
       "clientId": "CLI-002",
-      "clienteId": "CLI-002"
+      "clienteId": "CLI-002",
+      "progreso": 0,
+      "imagen": null,
+      "fechaFin": "2027-04-15"
     },
     {
       "id": "PRJ-003",
@@ -40,13 +46,16 @@
       "responsable": "Ing. Roberto Guillén Ortiz",
       "fechaInicio": "2026-01-10",
       "fechaFinEstimada": "2027-12-20",
-      "estado": "Planificación",
-      "presupuesto": 12500000,
-      "avance": 15,
+      "estado": "En construcción",
+      "presupuesto": 12517000,
+      "avance": 69,
       "ubicacion": "Autopista Periférica Km 34.5",
       "descripcion": "Paso elevado atirantado de 450 metros de longitud con cuatro carriles de circulación vehicular y accesos de aceleración pavimentados.",
       "clientId": "CLI-007",
-      "clienteId": "CLI-007"
+      "clienteId": "CLI-007",
+      "progreso": 0,
+      "imagen": null,
+      "fechaFin": "2027-12-20"
     },
     {
       "id": "PRJ-004",
@@ -58,11 +67,14 @@
       "fechaFinEstimada": "2026-08-30",
       "estado": "En construcción",
       "presupuesto": 3200000,
-      "avance": 85,
+      "avance": 90,
       "ubicacion": "Camino a los Bosques #88, Sector Campestre",
       "descripcion": "Urbanización de 45 viviendas unifamiliares de dos niveles con redes subterráneas de agua, saneamiento y cableado eléctrico.",
       "clientId": "CLI-008",
-      "clienteId": "CLI-008"
+      "clienteId": "CLI-008",
+      "progreso": 0,
+      "imagen": "/imgs/proyectos/residencia_lomas.jpg",
+      "fechaFin": "2026-08-30"
     },
     {
       "id": "PRJ-005",
@@ -78,7 +90,9 @@
       "ubicacion": "Parque Industrial Norte, Lote 14-B",
       "descripcion": "Nave industrial de 22,000 metros cuadrados con pisos de concreto pulido de alta planimetría, 18 muelles de carga e iluminación automatizada.",
       "clientId": "CLI-009",
-      "clienteId": "CLI-009"
+      "clienteId": "CLI-009",
+      "imagen": null,
+      "fechaFin": "2025-12-15"
     },
     {
       "id": "PRJ-006",
@@ -94,7 +108,9 @@
       "ubicacion": "Calle de la Salud #210, Zona Centro",
       "descripcion": "Ampliación del área de emergencias, quirófanos y unidad de cuidados intensivos bajo estrictos estándares hospitalarios.",
       "clientId": "CLI-010",
-      "clienteId": "CLI-010"
+      "clienteId": "CLI-010",
+      "imagen": null,
+      "fechaFin": "2026-10-31"
     }
   ],
   "suppliers": [
@@ -467,6 +483,18 @@
   ],
   "expenses": [
     {
+      "concepto": "Estructura metálica pesada, perfiles IPE y anclajes para basamento central",
+      "proyectoId": "PRJ-001",
+      "categoria": "Materiales",
+      "monto": 0.6,
+      "fecha": "2026-10-05",
+      "proveedor": "Aceros del Norte SA",
+      "comprobante": "GEO-1092",
+      "notas": "",
+      "id": "GST-030",
+      "descripcion": "Estructura metálica pesada, perfiles IPE y anclajes para basamento central"
+    },
+    {
       "id": "GST-001",
       "proyectoId": "PRJ-001",
       "categoria": "Materiales",
@@ -474,7 +502,8 @@
       "fecha": "2025-04-12",
       "descripcion": "Adquisición de acero corrugado estructural para cimentación y muros pantalla",
       "comprobante": "FAC-A-10892",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Adquisición de acero corrugado estructural para cimentación y muros pantalla"
     },
     {
       "id": "GST-002",
@@ -484,7 +513,8 @@
       "fecha": "2025-05-30",
       "descripcion": "Planilla de cuadrillas de albañilería, encofrado y fierrería mes de mayo",
       "comprobante": "NOM-2025-05",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Planilla de cuadrillas de albañilería, encofrado y fierrería mes de mayo"
     },
     {
       "id": "GST-003",
@@ -494,7 +524,8 @@
       "fecha": "2025-06-15",
       "descripcion": "Alquiler de grúa torre autodesplegable y generadores diésel de respaldo",
       "comprobante": "ALQ-7721",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Alquiler de grúa torre autodesplegable y generadores diésel de respaldo"
     },
     {
       "id": "GST-004",
@@ -504,7 +535,8 @@
       "fecha": "2025-07-22",
       "descripcion": "Suministro de concreto premezclado para losas niveles 1 a 4",
       "comprobante": "FAC-B-4401",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Suministro de concreto premezclado para losas niveles 1 a 4"
     },
     {
       "id": "GST-005",
@@ -514,7 +546,8 @@
       "fecha": "2025-08-10",
       "descripcion": "Fletes y acarreo de tierra y escombros de excavación masiva hacia vertedero",
       "comprobante": "FLE-9023",
-      "metodoPago": "Cheque Empresarial"
+      "metodoPago": "Cheque Empresarial",
+      "concepto": "Fletes y acarreo de tierra y escombros de excavación masiva hacia vertedero"
     },
     {
       "id": "GST-006",
@@ -524,7 +557,8 @@
       "fecha": "2025-09-05",
       "descripcion": "Ensayos de compresión de testigos de concreto y control de calidad estructural",
       "comprobante": "LAB-5510",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Ensayos de compresión de testigos de concreto y control de calidad estructural"
     },
     {
       "id": "GST-007",
@@ -534,7 +568,8 @@
       "fecha": "2025-10-31",
       "descripcion": "Planilla de cuadrillas de instalaciones eléctricas, sanitarias y albañilería",
       "comprobante": "NOM-2025-10",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Planilla de cuadrillas de instalaciones eléctricas, sanitarias y albañilería"
     },
     {
       "id": "GST-008",
@@ -544,7 +579,8 @@
       "fecha": "2025-11-18",
       "descripcion": "Seguro de obra contra todo riesgo y pólizas de responsabilidad civil",
       "comprobante": "POL-9921",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Seguro de obra contra todo riesgo y pólizas de responsabilidad civil"
     },
     {
       "id": "GST-009",
@@ -554,7 +590,8 @@
       "fecha": "2025-07-14",
       "descripcion": "Estructura metálica pesada, perfiles IPE y anclajes para basamento central",
       "comprobante": "FAC-A-11002",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Estructura metálica pesada, perfiles IPE y anclajes para basamento central"
     },
     {
       "id": "GST-010",
@@ -564,7 +601,8 @@
       "fecha": "2025-08-30",
       "descripcion": "Cuadrilla de montadores mecánicos y soldadores especializados homologados",
       "comprobante": "NOM-2025-08B",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Cuadrilla de montadores mecánicos y soldadores especializados homologados"
     },
     {
       "id": "GST-011",
@@ -574,7 +612,8 @@
       "fecha": "2025-09-20",
       "descripcion": "Arrendamiento de plataformas articuladas tipo tijera y grúas telescópicas",
       "comprobante": "ALQ-8012",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Arrendamiento de plataformas articuladas tipo tijera y grúas telescópicas"
     },
     {
       "id": "GST-012",
@@ -584,7 +623,8 @@
       "fecha": "2025-10-12",
       "descripcion": "Transporte especializado de vigas de gran formato con custodia vial",
       "comprobante": "LOG-3312",
-      "metodoPago": "Cheque Empresarial"
+      "metodoPago": "Cheque Empresarial",
+      "concepto": "Transporte especializado de vigas de gran formato con custodia vial"
     },
     {
       "id": "GST-013",
@@ -594,7 +634,8 @@
       "fecha": "2025-11-25",
       "descripcion": "Consultoría e ingeniería de detalle para climatización inteligente y BMS",
       "comprobante": "ING-4011",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Consultoría e ingeniería de detalle para climatización inteligente y BMS"
     },
     {
       "id": "GST-014",
@@ -604,7 +645,8 @@
       "fecha": "2025-12-05",
       "descripcion": "Licencias municipales de urbanismo y tasas de impacto ambiental corporativo",
       "comprobante": "MUN-7801",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Licencias municipales de urbanismo y tasas de impacto ambiental corporativo"
     },
     {
       "id": "GST-015",
@@ -614,7 +656,8 @@
       "fecha": "2026-01-20",
       "descripcion": "Estudios geotécnicos de suelo profundo, batimetría y prospección sísmica",
       "comprobante": "GEO-1092",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Estudios geotécnicos de suelo profundo, batimetría y prospección sísmica"
     },
     {
       "id": "GST-016",
@@ -624,7 +667,8 @@
       "fecha": "2026-02-15",
       "descripcion": "Movilización e instalación de planta piloto de perforación de pilotes de gran diámetro",
       "comprobante": "MAQ-4920",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Movilización e instalación de planta piloto de perforación de pilotes de gran diámetro"
     },
     {
       "id": "GST-017",
@@ -634,7 +678,8 @@
       "fecha": "2026-03-02",
       "descripcion": "Apertura de brechas y caminos temporales de acceso para maquinaria pesada",
       "comprobante": "VIA-1120",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Apertura de brechas y caminos temporales de acceso para maquinaria pesada"
     },
     {
       "id": "GST-018",
@@ -644,7 +689,8 @@
       "fecha": "2025-03-10",
       "descripcion": "Bloques de hormigón, ladrillos cerámicos y mortero para muros perimetrales de villas",
       "comprobante": "FAC-B-6721",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Bloques de hormigón, ladrillos cerámicos y mortero para muros perimetrales de villas"
     },
     {
       "id": "GST-019",
@@ -654,7 +700,8 @@
       "fecha": "2025-06-30",
       "descripcion": "Mano de obra de techados, enlucidos interiores y colocación de carpintería",
       "comprobante": "NOM-2025-06C",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Mano de obra de techados, enlucidos interiores y colocación de carpintería"
     },
     {
       "id": "GST-020",
@@ -664,7 +711,8 @@
       "fecha": "2025-09-18",
       "descripcion": "Pisos de porcelanato antideslizante, azulejos y piezas sanitarias residenciales",
       "comprobante": "FAC-C-3389",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Pisos de porcelanato antideslizante, azulejos y piezas sanitarias residenciales"
     },
     {
       "id": "GST-021",
@@ -674,7 +722,8 @@
       "fecha": "2025-11-12",
       "descripcion": "Acometidas de servicios de agua potable, electricidad y red de gas subterránea",
       "comprobante": "SER-8921",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Acometidas de servicios de agua potable, electricidad y red de gas subterránea"
     },
     {
       "id": "GST-022",
@@ -684,7 +733,8 @@
       "fecha": "2024-10-15",
       "descripcion": "Concreto de alta resistencia y endurecedor de cuarzo para 22,000 m² de solera industrial",
       "comprobante": "FAC-IND-01",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Concreto de alta resistencia y endurecedor de cuarzo para 22,000 m² de solera industrial"
     },
     {
       "id": "GST-023",
@@ -694,7 +744,8 @@
       "fecha": "2025-03-31",
       "descripcion": "Personal técnico de montaje de paneles térmicos y cerramientos perimetrales",
       "comprobante": "NOM-2025-IND",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Personal técnico de montaje de paneles térmicos y cerramientos perimetrales"
     },
     {
       "id": "GST-024",
@@ -704,7 +755,8 @@
       "fecha": "2025-07-20",
       "descripcion": "Equipo láser de nivelación para pisos de altísima precisión e iluminación LED",
       "comprobante": "EQP-5520",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Equipo láser de nivelación para pisos de altísima precisión e iluminación LED"
     },
     {
       "id": "GST-025",
@@ -714,7 +766,8 @@
       "fecha": "2025-10-10",
       "descripcion": "Transporte de equipos y logística de recepción de 18 compuertas de muelle",
       "comprobante": "LOG-7711",
-      "metodoPago": "Cheque Empresarial"
+      "metodoPago": "Cheque Empresarial",
+      "concepto": "Transporte de equipos y logística de recepción de 18 compuertas de muelle"
     },
     {
       "id": "GST-026",
@@ -724,7 +777,8 @@
       "fecha": "2025-12-01",
       "descripcion": "Pruebas de carga, recepción definitiva y certificación de entrega con cliente",
       "comprobante": "ACT-9011",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Pruebas de carga, recepción definitiva y certificación de entrega con cliente"
     },
     {
       "id": "GST-027",
@@ -734,7 +788,8 @@
       "fecha": "2025-10-05",
       "descripcion": "Paneles de drywall hidrófugo y revestimientos antibacterianos para quirófanos",
       "comprobante": "MED-1102",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Paneles de drywall hidrófugo y revestimientos antibacterianos para quirófanos"
     },
     {
       "id": "GST-028",
@@ -744,7 +799,8 @@
       "fecha": "2025-11-15",
       "descripcion": "Rediseño de ductería de aire estéril con filtros HEPA según normativa de salud",
       "comprobante": "AIR-4421",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Rediseño de ductería de aire estéril con filtros HEPA según normativa de salud"
     },
     {
       "id": "GST-029",
@@ -754,7 +810,8 @@
       "fecha": "2025-12-10",
       "descripcion": "Cuadrilla especializada en demoliciones controladas no invasivas",
       "comprobante": "NOM-MED-01",
-      "metodoPago": "Transferencia Bancaria"
+      "metodoPago": "Transferencia Bancaria",
+      "concepto": "Cuadrilla especializada en demoliciones controladas no invasivas"
     }
   ],
   "schedule": [
@@ -2813,7 +2870,7 @@
   ],
   "settings": {
     "theme": "dark",
-    "fontSize": "normal",
+    "fontSize": "small",
     "colorVision": "blue-yellow",
     "reducedMotion": false,
     "voice": {
@@ -2823,11 +2880,11 @@
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-05T19:55:28.887Z",
+    "updatedAt": "2026-10-05T22:59:29.793Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
-    "textSize": "normal",
+    "textSize": "small",
     "highContrast": true
   },
   "requests": [
@@ -2943,7 +3000,12 @@
       ],
       "rol": "Administrador",
       "avatar": "FM",
-      "descripcion": "Control general del sistema, configuración corporativa, finanzas y supervisión global."
+      "descripcion": "Control general del sistema, configuración corporativa, finanzas y supervisión global.",
+      "activo": true,
+      "identificacion": "109990888",
+      "tipoIdentificacion": "01",
+      "tipoIdentificacionDescripcion": "Cédula Física",
+      "apellidos": "Fernando Mendoza"
     },
     {
       "id": "USR-002",
@@ -2959,7 +3021,12 @@
       ],
       "rol": "Gerente de Construcción",
       "avatar": "CM",
-      "descripcion": "Supervisión de obras, cuadrillas de personal, avance físico, control de almacén y agenda operativa."
+      "descripcion": "Supervisión de obras, cuadrillas de personal, avance físico, control de almacén y agenda operativa.",
+      "activo": true,
+      "identificacion": "108880777",
+      "tipoIdentificacion": "01",
+      "tipoIdentificacionDescripcion": "Cédula Física",
+      "apellidos": "Carlos Mendoza Rivas"
     },
     {
       "id": "USR-003",
@@ -2973,7 +3040,12 @@
       ],
       "rol": "RRHH / Reclutamiento",
       "avatar": "MM",
-      "descripcion": "Gestión de candidatos, programación de entrevistas laborales, agenda de citas y contratación."
+      "descripcion": "Gestión de candidatos, programación de entrevistas laborales, agenda de citas y contratación.",
+      "activo": true,
+      "identificacion": "107770666",
+      "tipoIdentificacion": "01",
+      "tipoIdentificacionDescripcion": "Cédula Física",
+      "apellidos": "Mariana Morales Solís"
     },
     {
       "id": "USR-011",
@@ -2984,7 +3056,165 @@
       "clave": "Centenario2026!",
       "rol": "Cliente",
       "activo": true,
-      "fechaCreacion": "2026-10-05T17:07:15.776Z"
+      "fechaCreacion": "2026-10-05T17:07:15.776Z",
+      "identificacion": "3101123456",
+      "tipoIdentificacion": "02",
+      "tipoIdentificacionDescripcion": "Cédula Jurídica",
+      "apellidos": "Urbanos Centenario"
+    },
+    {
+      "id": "USR-004",
+      "nombre": "Lic. Esteban Vargas Soto",
+      "apellidos": "Vargas Soto",
+      "cargo": "Especialista en Evaluación Técnica",
+      "email": "entrevistador@constructa.com",
+      "usuario": "entrevistador",
+      "clave": "Entrevista2026!",
+      "aliases": [
+        "entrevistador123"
+      ],
+      "rol": "Entrevistador",
+      "avatar": "EV",
+      "identificacion": "115000234",
+      "tipoIdentificacion": "01",
+      "tipoIdentificacionDescripcion": "Cédula Física",
+      "telefono": "+506 2222-4000",
+      "activo": true,
+      "descripcion": "Evaluación técnica de postulantes, gestión de entrevistas asignadas y calificación.",
+      "fechaCreacion": "2026-10-05T20:22:14.139Z"
+    },
+    {
+      "nombre": "HAROLD ALEXIS",
+      "apellidos": "ZAMORA OLMEDO",
+      "email": "auditor.final@constructa.com",
+      "telefono": "",
+      "identificacion": "109870654",
+      "tipoIdentificacion": "Física",
+      "tipoIdentificacionDescripcion": "Cédula Física",
+      "rol": "Gerente de Construcción",
+      "cargo": "Ingeniero Residente",
+      "clave": "Auditor2026!",
+      "activo": true,
+      "usuario": "auditor.final@constructa.com",
+      "avatar": "HZ",
+      "fechaCreacion": "2026-10-05T21:18:15.022Z",
+      "id": "USR-012"
+    }
+  ],
+  "roles": [
+    {
+      "id": "ROL-001",
+      "codigo": "ADMIN",
+      "nombre": "Administrador General",
+      "descripcion": "Control total de la plataforma, usuarios, roles, finanzas, proyección de IA y configuración.",
+      "permisos": [
+        "dashboard",
+        "usuarios-roles",
+        "proyectos",
+        "solicitudes-clientes",
+        "portal-cliente",
+        "empleados",
+        "postulantes",
+        "entrevistas",
+        "agenda",
+        "materiales",
+        "proveedores",
+        "presupuestos",
+        "gastos",
+        "cronograma",
+        "avance",
+        "reportes",
+        "proyeccion-futuro"
+      ],
+      "esSistema": true,
+      "activo": true
+    },
+    {
+      "id": "ROL-002",
+      "codigo": "GERENTE",
+      "nombre": "Gerente de Construcción",
+      "descripcion": "Gestión técnica y operativa de proyectos, avances, materiales, gastos, cronogramas y personal.",
+      "permisos": [
+        "dashboard",
+        "proyectos",
+        "solicitudes-clientes",
+        "empleados",
+        "materiales",
+        "proveedores",
+        "gastos",
+        "cronograma",
+        "avance",
+        "reportes",
+        "agenda"
+      ],
+      "esSistema": true,
+      "activo": true
+    },
+    {
+      "id": "ROL-003",
+      "codigo": "RRHH",
+      "nombre": "Recursos Humanos / Reclutamiento",
+      "descripcion": "Gestión integral de talento humano, candidatos, programación de entrevistas y nómina operativa.",
+      "permisos": [
+        "dashboard",
+        "postulantes",
+        "entrevistas",
+        "agenda",
+        "empleados"
+      ],
+      "esSistema": true,
+      "activo": true
+    },
+    {
+      "id": "ROL-004",
+      "codigo": "ENTREVISTADOR",
+      "nombre": "Entrevistador",
+      "descripcion": "Evaluación técnica de candidatos, retroalimentación de entrevistas laborales y agenda.",
+      "permisos": [
+        "dashboard",
+        "entrevistas",
+        "postulantes",
+        "agenda"
+      ],
+      "esSistema": true,
+      "activo": true
+    },
+    {
+      "id": "ROL-005",
+      "codigo": "CLIENTE",
+      "nombre": "Cliente",
+      "descripcion": "Acceso exclusivo al Portal del Cliente, seguimiento de avance de sus obras y solicitudes.",
+      "permisos": [
+        "portal-cliente",
+        "solicitudes-clientes"
+      ],
+      "esSistema": true,
+      "activo": true
+    },
+    {
+      "id": "ROL-006",
+      "codigo": "PROVEEDOR",
+      "nombre": "Proveedor",
+      "descripcion": "Consulta de órdenes de compra, catálogo de insumos y comunicación de despacho.",
+      "permisos": [
+        "solicitudes-clientes",
+        "proveedores",
+        "materiales"
+      ],
+      "esSistema": true,
+      "activo": true
+    },
+    {
+      "id": "ROL-007",
+      "codigo": "INVITADO",
+      "nombre": "Usuario / Invitado",
+      "descripcion": "Acceso de consulta básica sin permisos de modificación ni operaciones financieras.",
+      "permisos": [
+        "dashboard",
+        "proyectos"
+      ],
+      "esSistema": false,
+      "activo": true
     }
   ]
 }

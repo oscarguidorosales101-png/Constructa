@@ -21,9 +21,12 @@ import PublicLanding from '../pages/Public/PublicLanding';
 import ClientRegister from '../pages/Auth/ClientRegister';
 import ClientPortal from '../pages/ClientPortal/ClientPortal';
 import ClientRequestsManager from '../pages/ClientRequests/ClientRequestsManager';
+import UsersRoles from '../pages/UsersRoles/UsersRoles';
+import FutureProjection from '../pages/FutureProjection/FutureProjection';
 
 export const PRIVATE_MODULES = [
   'dashboard',
+  'usuarios-roles',
   'proyectos',
   'empleados',
   'postulantes',
@@ -36,6 +39,7 @@ export const PRIVATE_MODULES = [
   'cronograma',
   'avance',
   'reportes',
+  'proyeccion-futuro',
   'portal-cliente',
   'solicitudes-clientes'
 ];
@@ -219,6 +223,20 @@ export const routeConfig = {
     component: ClientRequestsManager,
     isPrivate: true,
     requiredRole: null,
+  },
+  'usuarios-roles': {
+    path: 'usuarios-roles',
+    label: 'Gestión de Usuarios y Roles',
+    component: UsersRoles,
+    isPrivate: true,
+    requiredRole: 'Administrador',
+  },
+  'proyeccion-futuro': {
+    path: 'proyeccion-futuro',
+    label: 'Proyección al Futuro',
+    component: FutureProjection,
+    isPrivate: true,
+    requiredRole: 'Administrador',
   },
 
   // Rutas Públicas y Estados HTTP
