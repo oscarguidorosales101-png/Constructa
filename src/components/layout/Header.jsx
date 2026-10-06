@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Calendar, ShieldCheck, User, Sliders, Bot, Sun, Moon } from 'lucide-react';
+import { Menu, Calendar, ShieldCheck, User, Sliders, Bot, Sun, Moon, Globe, LayoutDashboard } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 
 const ROUTE_INFO = {
@@ -57,8 +57,9 @@ const ROUTE_INFO = {
   },
 };
 
-export const Header = ({ currentRoute, onToggleMobileMenu }) => {
-  const { currentUser, openAccessibilityModal, openAIAssistantModal, settings } = useConstructa();
+export const Header = ({ currentRoute, onToggleMobileMenu, onNavigate }) => {
+  const { currentUser, openAccessibilityModal, openAIAssistantModal, settings, navigateTo, setActiveView } = useConstructa();
+  const navigate = onNavigate || navigateTo || setActiveView;
   
   let routeMeta = ROUTE_INFO[currentRoute] || {
     title: 'CONSTRUCTA',
@@ -108,6 +109,32 @@ export const Header = ({ currentRoute, onToggleMobileMenu }) => {
           <Menu size={22} />
         </button>
 
+        {currentRoute !== 'dashboard' && (
+          <button
+            type="button"
+            className="hide-mobile"
+            onClick={() => navigate('dashboard')}
+            title="Volver al Panel Principal (Dashboard)"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.35rem 0.7rem',
+              borderRadius: 'var(--radius-sm, 6px)',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.15))',
+              color: 'var(--color-gold, #f59e0b)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginRight: '0.6rem'
+            }}
+          >
+            <LayoutDashboard size={14} />
+            <span>Dashboard</span>
+          </button>
+        )}
+
         <div className="header-title-group">
           <h1>{info.title}</h1>
           <p>{info.description}</p>
@@ -115,6 +142,30 @@ export const Header = ({ currentRoute, onToggleMobileMenu }) => {
       </div>
 
       <div className="header-right">
+        {/* Acceso directo al Sitio Web Público */}
+        <button
+          type="button"
+          onClick={() => navigate('inicio')}
+          title="Ver Sitio Web Público Institucional"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.45rem 0.8rem',
+            borderRadius: 'var(--radius-sm)',
+            background: 'rgba(217, 119, 6, 0.12)',
+            border: '1px solid rgba(217, 119, 6, 0.35)',
+            color: 'var(--color-gold, #f59e0b)',
+            cursor: 'pointer',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            transition: 'all 0.15s'
+          }}
+        >
+          <Globe size={15} />
+          <span className="hide-mobile">Sitio Web</span>
+        </button>
+
         {/* Acceso directo Asistente de IA (EXCLUSIVO ADMINISTRADOR) */}
         {currentUser?.rol === 'Administrador' && (
           <button

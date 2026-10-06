@@ -1,9 +1,40 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Globe, LogIn } from 'lucide-react';
 import Button from '../../components/common/Button.jsx';
+import { useConstructa } from '../../context/ConstructaContext.jsx';
 
-export const Status403 = ({ onGoToDashboard, onBackToHome }) => {
-  const handleBack = onBackToHome || onGoToDashboard;
+export const Status403 = ({ onGoToDashboard, onBackToHome, onGoToPublic }) => {
+  const { currentUser, navigateTo, setActiveView } = useConstructa();
+  const navigate = navigateTo || setActiveView;
+
+  const isClient = currentUser?.rol === 'Cliente';
+  const roleTarget = isClient ? 'portal-cliente' : (currentUser ? 'dashboard' : 'login');
+
+  const handleBack = () => {
+    if (onBackToHome) {
+      onBackToHome();
+    } else if (onGoToDashboard) {
+      onGoToDashboard();
+    } else if (navigate) {
+      navigate(roleTarget);
+    } else {
+      window.location.hash = roleTarget;
+    }
+  };
+
+  const handlePublic = () => {
+    if (onGoToPublic) {
+      onGoToPublic();
+    } else if (navigate) {
+      navigate('inicio');
+    } else {
+      window.location.hash = 'inicio';
+    }
+  };
+
+  const primaryBtnText = isClient
+    ? 'Volver a Mi Portal'
+    : (currentUser ? 'Volver al Dashboard' : 'Iniciar Sesión');
 
   return (
     <div className="status-page-wrapper">
@@ -15,9 +46,14 @@ export const Status403 = ({ onGoToDashboard, onBackToHome }) => {
         No cuentas con los permisos suficientes para acceder a este módulo.
         Comunícate con la dirección general de la empresa constructora si requieres permisos adicionales.
       </p>
-      <Button variant="primary" icon={<ArrowLeft size={16} />} onClick={handleBack}>
-        Volver al Dashboard
-      </Button>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '1.25rem' }}>
+        <Button variant="primary" icon={<ArrowLeft size={16} />} onClick={handleBack}>
+          {primaryBtnText}
+        </Button>
+        <Button variant="secondary" icon={<Globe size={16} />} onClick={handlePublic}>
+          Ir al Sitio Web
+        </Button>
+      </div>
     </div>
   );
 };

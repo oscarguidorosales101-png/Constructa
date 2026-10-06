@@ -13,11 +13,12 @@ import {
   RefreshCw,
   ShieldAlert,
   ArrowUpRight,
+  ArrowLeft,
   Sparkles,
   BarChart2
 } from 'lucide-react';
 
-export const FutureProjection = () => {
+export const FutureProjection = ({ onNavigate }) => {
   const {
     projects = [],
     expenses = [],
@@ -26,8 +27,12 @@ export const FutureProjection = () => {
     metrics = {},
     currentUser,
     formatCurrency,
-    formatNumber
+    formatNumber,
+    navigateTo,
+    setActiveView
   } = useConstructa();
+
+  const navigate = onNavigate || navigateTo || setActiveView;
 
   const [loading, setLoading] = useState(false);
   const [projection, setProjection] = useState(null);
@@ -89,12 +94,19 @@ export const FutureProjection = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           {lastUpdated && (
             <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
               Actualizado: {lastUpdated}
             </span>
           )}
+          <Button
+            variant="secondary"
+            onClick={() => navigate('dashboard')}
+            icon={<ArrowLeft size={16} />}
+          >
+            Volver al Dashboard
+          </Button>
           <Button
             variant="primary"
             onClick={fetchProjection}

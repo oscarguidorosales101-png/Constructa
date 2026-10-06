@@ -141,6 +141,8 @@ Genera:
             ok: true,
             text: data.text,
             provider: 'Google Gemini (1.5 Flash)',
+            isRealGemini: true,
+            engineType: 'REMOTE_GEMINI_API',
             facts: operationalFacts
           };
         }
@@ -170,6 +172,8 @@ Genera:
       ok: true,
       text: analyticalReport,
       provider: 'Motor Analítico CONSTRUCTA',
+      isRealGemini: false,
+      engineType: 'LOCAL_OPERATIONAL_FACTS_FALLBACK',
       facts: operationalFacts
     };
   },

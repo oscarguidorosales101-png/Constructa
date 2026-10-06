@@ -23,10 +23,19 @@ export const ConstructaProvider = ({ children }) => {
 
   // 2. Estado de Navegación Activa
   const [activeView, setActiveView] = useState(() => {
-    const hash = window.location.hash.replace('#', '').toLowerCase();
+    const rawHash = window.location.hash.replace('#', '').toLowerCase();
+    const hash = rawHash === 'home' ? 'inicio' : rawHash;
     const s = dataService.getSession();
-    if (!s) return hash === '401' || hash === '403' || hash === '404' ? hash : 'login';
-    return hash || 'dashboard';
+    const publicPages = [
+      'inicio', 'home', 'empresa', 'especialidades', 'proyectos-publicos',
+      'video', 'logros', 'galeria', 'trabaja-con-nosotros', 'contacto',
+      'login', 'registro', 'registro-cliente', '401', '403', '404'
+    ];
+    if (!s) {
+      if (publicPages.includes(hash)) return hash;
+      return hash ? 'login' : 'inicio';
+    }
+    return hash || (s.usuario?.rol === 'Cliente' ? 'portal-cliente' : 'dashboard');
   });
 
   // Intención de navegación (parámetros entre módulos como abrir modal o activar pestaña)
@@ -104,6 +113,9 @@ export const ConstructaProvider = ({ children }) => {
             if (Array.isArray(liveDb.clientConversations)) setConversations(liveDb.clientConversations);
             if (Array.isArray(liveDb.users)) setUsers(liveDb.users);
             if (Array.isArray(liveDb.roles)) setRoles(liveDb.roles);
+            if (Array.isArray(liveDb.purchaseOrders)) setPurchaseOrders(liveDb.purchaseOrders);
+            if (Array.isArray(liveDb.supplierInvoices)) setSupplierInvoices(liveDb.supplierInvoices);
+            if (Array.isArray(liveDb.materialRequests)) setMaterialRequests(liveDb.materialRequests);
             setMetrics(dataService.calculateMetrics());
           }
         })

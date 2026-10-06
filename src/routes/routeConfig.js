@@ -46,6 +46,7 @@ export const PRIVATE_MODULES = [
 
 export const PUBLIC_ROUTES = [
   'inicio',
+  'home',
   'empresa',
   'especialidades',
   'proyectos-publicos',
@@ -65,6 +66,12 @@ export const PUBLIC_ROUTES = [
 export const routeConfig = {
   // Sitio Público Institucional
   inicio: {
+    path: 'inicio',
+    label: 'Inicio',
+    component: PublicLanding,
+    isPrivate: false,
+  },
+  home: {
     path: 'inicio',
     label: 'Inicio',
     component: PublicLanding,

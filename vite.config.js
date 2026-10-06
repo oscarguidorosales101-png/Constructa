@@ -99,7 +99,10 @@ function dbApiPlugin() {
           materials: { key: 'materials', prefix: 'MAT' },
           expenses: { key: 'expenses', prefix: 'GAS' },
           users: { key: 'users', prefix: 'USR' },
-          roles: { key: 'roles', prefix: 'ROL' }
+          roles: { key: 'roles', prefix: 'ROL' },
+          purchaseOrders: { key: 'purchaseOrders', prefix: 'OC' },
+          materialRequests: { key: 'materialRequests', prefix: 'REQ' },
+          supplierInvoices: { key: 'supplierInvoices', prefix: 'FAC' }
         };
 
         if (collectionKeys[resource]) {

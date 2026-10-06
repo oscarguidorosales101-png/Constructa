@@ -87,10 +87,11 @@ export const Login = ({ onLoginSuccess }) => {
       const res = login(identifier, password);
       setIsSubmitting(false);
       if (res.ok) {
-        if (res.usuario.rol === 'Cliente') {
-          window.location.hash = 'portal-cliente';
-        } else if (onLoginSuccess) {
+        if (onLoginSuccess) {
           onLoginSuccess();
+        } else {
+          const targetView = res.usuario.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
+          window.location.hash = targetView;
         }
       }
     }, 300);

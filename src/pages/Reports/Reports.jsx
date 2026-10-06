@@ -26,19 +26,62 @@ import {
   UserCheck,
   Truck,
   AlertTriangle,
+  AlertCircle,
+  Filter,
   CreditCard,
   Sparkles,
   RefreshCw,
   Volume2,
   ShieldCheck,
-  ArrowUpRight
+  ArrowUpRight,
+  ArrowLeft
 } from 'lucide-react';
 
-export default function Reports() {
-  const { currentUser, data, metrics, formatCurrency = (v) => '$' + Number(v || 0).toLocaleString(), formatDate = (d) => d } = useConstructa();
+export default function Reports({ onNavigate }) {
+  const { 
+    currentUser, 
+    data, 
+    metrics, 
+    formatCurrency = (v) => '$' + Number(v || 0).toLocaleString(), 
+    formatDate = (d) => d, 
+    refreshMetrics,
+    navigateTo,
+    setActiveView
+  } = useConstructa();
+  const navigate = onNavigate || navigateTo || setActiveView;
   const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'projects' | 'expenses' | 'procurement' | 'materials' | 'employees' | 'history' | 'ai-analysis'
   const [projectFilter, setProjectFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Filtros avanzados y estados de carga de Compras y Abastecimiento
+  const [supplierFilter, setSupplierFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [materialFilter, setMaterialFilter] = useState('ALL');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [procurementStatus, setProcurementStatus] = useState('success'); // 'loading' | 'success' | 'empty' | 'error'
+  const [procurementErrorMsg, setProcurementErrorMsg] = useState('');
+
+  const reloadProcurementData = useCallback(() => {
+    setProcurementStatus('loading');
+    setProcurementErrorMsg('');
+    const timeout = setTimeout(() => {
+      setProcurementStatus('error');
+      setProcurementErrorMsg('No pudimos cargar la información de compras y abastecimientos a tiempo. Intenta nuevamente.');
+    }, 8000);
+
+    try {
+      if (typeof refreshMetrics === 'function') refreshMetrics();
+      setTimeout(() => {
+        clearTimeout(timeout);
+        setProcurementStatus('success');
+      }, 350);
+    } catch (err) {
+      clearTimeout(timeout);
+      setProcurementStatus('error');
+      setProcurementErrorMsg('No pudimos cargar la información de compras y abastecimientos. Intenta nuevamente.');
+    }
+  }, [refreshMetrics]);
 
   // Estados de IA para Administrador
   const [aiReport, setAiReport] = useState(null);
@@ -190,11 +233,26 @@ export default function Reports() {
     return map;
   }, [filteredExpenses]);
 
-  // Procurement: Órdenes y Facturas filtradas
+  // Procurement: Órdenes y Facturas filtradas con filtros integrados
   const filteredProcurementOrders = useMemo(() => {
     let list = (data.purchaseOrders || []);
     if (projectFilter !== 'ALL') {
       list = list.filter(o => o.proyectoId === projectFilter);
+    }
+    if (supplierFilter !== 'ALL') {
+      list = list.filter(o => o.proveedorId === supplierFilter);
+    }
+    if (statusFilter !== 'ALL') {
+      list = list.filter(o => (o.estado || '').toLowerCase() === statusFilter.toLowerCase());
+    }
+    if (materialFilter !== 'ALL') {
+      list = list.filter(o => (o.materiales || []).some(m => m.materialNombre === materialFilter || m.materialId === materialFilter));
+    }
+    if (dateFrom) {
+      list = list.filter(o => (o.fechaCreacion || o.fechaPrometida || '') >= dateFrom);
+    }
+    if (dateTo) {
+      list = list.filter(o => (o.fechaCreacion || o.fechaPrometida || '') <= dateTo);
     }
     if (searchTerm) {
       list = list.filter(o => {
@@ -211,12 +269,24 @@ export default function Reports() {
       });
     }
     return list;
-  }, [data.purchaseOrders, data.projects, data.suppliers, projectFilter, searchTerm]);
+  }, [data.purchaseOrders, data.projects, data.suppliers, projectFilter, supplierFilter, statusFilter, materialFilter, dateFrom, dateTo, searchTerm]);
 
   const filteredProcurementInvoices = useMemo(() => {
     let list = (data.supplierInvoices || []);
     if (projectFilter !== 'ALL') {
       list = list.filter(inv => inv.proyectoId === projectFilter);
+    }
+    if (supplierFilter !== 'ALL') {
+      list = list.filter(inv => inv.proveedorId === supplierFilter);
+    }
+    if (statusFilter !== 'ALL') {
+      list = list.filter(inv => (inv.estado || '').toLowerCase() === statusFilter.toLowerCase());
+    }
+    if (dateFrom) {
+      list = list.filter(inv => (inv.fechaEmision || '') >= dateFrom);
+    }
+    if (dateTo) {
+      list = list.filter(inv => (inv.fechaEmision || '') <= dateTo);
     }
     if (searchTerm) {
       list = list.filter(inv => {
@@ -234,7 +304,7 @@ export default function Reports() {
       });
     }
     return list;
-  }, [data.supplierInvoices, data.projects, data.suppliers, projectFilter, searchTerm]);
+  }, [data.supplierInvoices, data.projects, data.suppliers, projectFilter, supplierFilter, statusFilter, dateFrom, dateTo, searchTerm]);
 
   // Agrupado de compras por proyecto
   const purchasesByProject = useMemo(() => {
@@ -344,14 +414,18 @@ export default function Reports() {
         csvContent += `"${e.fecha}","${desc}","${prj ? prj.nombre : ''}","${e.categoria}","${e.proveedor || ''}","${e.comprobante || ''}",${e.monto}\r\n`;
       });
     } else if (activeTab === 'procurement') {
-      csvContent += "Numero_Orden,Proveedor,Proyecto,Fecha_Creacion,Entrega_Prevista,Total,Estado,Recepcion,Incidencias\r\n";
+      csvContent += "Numero_Orden,Proveedor,Proyecto,Fecha_Creacion,Fecha_Prometida,Materiales,Total,Estado,Recepcion,Incidencias\r\n";
       filteredProcurementOrders.forEach(o => {
         const prj = (data.projects || []).find(p => p.id === o.proyectoId);
         const sup = (data.suppliers || []).find(s => s.id === o.proveedorId);
-        const recStatus = o.recepcion ? `${o.recepcion.porcentajeRecibido}%` : 'Sin recepcionar';
-        const inc = (o.recepcion?.incidencias || []).join('; ') || 'Ninguna';
-        csvContent += `"${o.numeroOrden}","${o.proveedorNombre || sup?.nombre || ''}","${prj?.nombre || ''}","${o.fechaCreacion}","${o.fechaPrevistaEntrega}",${o.total},"${o.estado}","${recStatus}","${inc}"\r\n`;
+        const recStatus = o.recepcion ? `${o.recepcion.porcentajeRecibido}% verificado` : 'Pendiente';
+        const inc = (o.recepcion?.incidencias || []).map(i => typeof i === 'object' && i !== null ? (i.tipo ? `${i.tipo}: ${i.descripcion || ''}` : i.descripcion || 'Incidencia') : String(i)).join('; ') || 'Ninguna';
+        const matStr = (o.materiales || []).map(m => `${m.materialNombre} (${m.cantidad} ${m.unidad})`).join('; ');
+        const fechaEntrega = o.fechaPrometida || o.fechaSolicitada || o.fechaCreacion || '';
+        csvContent += `"${o.numeroOrden}","${o.proveedorNombre || sup?.nombre || ''}","${prj?.nombre || 'General'}","${o.fechaCreacion}","${fechaEntrega}","${matStr}",${o.total},"${o.estado}","${recStatus}","${inc}"\r\n`;
       });
+      const totalCompromiso = filteredProcurementOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      csvContent += `"RESUMEN_TOTALES","Total Ordenes: ${filteredProcurementOrders.length}","","","",,"${totalCompromiso}","","",""\r\n`;
     } else if (activeTab === 'materials') {
       csvContent += "Material,Categoria,Unidad,Stock_Actual,Stock_Minimo,Precio_Unitario,Valor_Total,Estado\r\n";
       filteredMaterials.forEach(m => {
@@ -400,7 +474,10 @@ export default function Reports() {
             Consolidado empresarial tipo hoja de cálculo con exportación de datos, estados financieros y auditoría operativa.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Button variant="secondary" icon={<ArrowLeft size={16} />} onClick={() => navigate('dashboard')}>
+            Volver al Dashboard
+          </Button>
           <Button variant="secondary" icon={<Printer size={16} />} onClick={handlePrint}>
             Imprimir
           </Button>
@@ -717,321 +794,481 @@ export default function Reports() {
         </div>
       )}
     
-      {/* TAB 3.5: COMPRAS Y ABASTECIMIENTO (Requerimiento #28) */}
+      {/* TAB 3.5: COMPRAS Y ABASTECIMIENTO (Requerimiento #28, #35, #36, #37, #38) */}
       {activeTab === 'procurement' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* KPI Strip de Compras */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-            <div className="constructa-card" style={{ padding: '16px' }}>
-              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Órdenes de Compra Emitidas</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '4px' }}>
-                {filteredProcurementOrders.length}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                Compromiso total: {formatCurrency(filteredProcurementOrders.reduce((sum, o) => sum + Number(o.total || 0), 0))}
-              </div>
+          {/* Toolbar de Filtros Específicos de Compras y Abastecimiento */}
+          <div className="constructa-card" style={{ padding: '14px 18px', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.02)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Filter size={15} style={{ color: 'var(--color-gold)' }} />
+              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Filtros de Abastecimiento:</span>
             </div>
 
-            <div className="constructa-card" style={{ padding: '16px' }}>
-              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Entregas y Recepciones</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>
-                {filteredProcurementOrders.filter(o => o.estado === 'Entregada').length} / {filteredProcurementOrders.length}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-amber)' }}>
-                {filteredProcurementOrders.filter(o => o.estado === 'Recibida parcialmente').length} entregas parciales registradas
-              </div>
+            {/* Proveedor */}
+            <select
+              className="constructa-input"
+              value={supplierFilter}
+              onChange={(e) => setSupplierFilter(e.target.value)}
+              style={{ minWidth: '170px', padding: '6px 10px', fontSize: '0.82rem' }}
+            >
+              <option value="ALL">Todos los Proveedores</option>
+              {(data.suppliers || []).map(s => (
+                <option key={s.id} value={s.id}>{s.nombre}</option>
+              ))}
+            </select>
+
+            {/* Estado */}
+            <select
+              className="constructa-input"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{ minWidth: '150px', padding: '6px 10px', fontSize: '0.82rem' }}
+            >
+              <option value="ALL">Todos los Estados</option>
+              <option value="Solicitada">Solicitada</option>
+              <option value="Confirmada">Confirmada</option>
+              <option value="En camino">En camino</option>
+              <option value="Recibida parcialmente">Recibida parcialmente</option>
+              <option value="Entregada">Entregada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+
+            {/* Material / Insumo */}
+            <select
+              className="constructa-input"
+              value={materialFilter}
+              onChange={(e) => setMaterialFilter(e.target.value)}
+              style={{ minWidth: '160px', padding: '6px 10px', fontSize: '0.82rem' }}
+            >
+              <option value="ALL">Todos los Insumos</option>
+              {(data.materials || []).map(m => (
+                <option key={m.id} value={m.nombre}>{m.nombre}</option>
+              ))}
+            </select>
+
+            {/* Rango de fechas */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Desde:</span>
+              <input
+                type="date"
+                className="constructa-input"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+              />
+              <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Hasta:</span>
+              <input
+                type="date"
+                className="constructa-input"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+              />
             </div>
 
-            <div className="constructa-card" style={{ padding: '16px' }}>
-              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Facturas de Proveedores</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-sky)', marginTop: '4px' }}>
-                {filteredProcurementInvoices.length}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                Total facturado: {formatCurrency(filteredProcurementInvoices.reduce((sum, i) => sum + Number(i.total || 0), 0))}
-              </div>
-            </div>
+            {(supplierFilter !== 'ALL' || statusFilter !== 'ALL' || materialFilter !== 'ALL' || dateFrom || dateTo) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSupplierFilter('ALL');
+                  setStatusFilter('ALL');
+                  setMaterialFilter('ALL');
+                  setDateFrom('');
+                  setDateTo('');
+                }}
+                style={{ fontSize: '0.78rem', color: 'var(--color-gold)' }}
+              >
+                Limpiar filtros
+              </Button>
+            )}
 
-            <div className="constructa-card" style={{ padding: '16px' }}>
-              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Pagos a Proveedores</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>
-                {formatCurrency(filteredProcurementInvoices.filter(i => i.estado === 'Pagada').reduce((sum, i) => sum + Number(i.total || 0), 0))}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-amber)' }}>
-                Programados: {formatCurrency(filteredProcurementInvoices.filter(i => i.estado === 'Programada para pago').reduce((sum, i) => sum + Number(i.total || 0), 0))}
-              </div>
-            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<RefreshCw size={14} />}
+              onClick={reloadProcurementData}
+              style={{ marginLeft: 'auto', fontSize: '0.78rem' }}
+            >
+              Actualizar
+            </Button>
           </div>
 
-          {/* Tabla 1: Compras por Proyecto */}
-          <div className="constructa-card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
-                  Consolidado de Compras y Abastecimiento por Proyecto
-                </h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Impacto de compras, compromisos y facturas imputadas a cada frente constructivo
-                </p>
+          {/* Estado de Error / Timeout con botón Reintentar */}
+          {procurementStatus === 'error' && (
+            <div className="constructa-card" style={{ padding: '20px', borderLeft: '4px solid var(--color-rose)', background: 'rgba(239, 68, 68, 0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <AlertCircle size={20} style={{ color: 'var(--color-rose)' }} />
+                  <div>
+                    <strong style={{ color: 'var(--color-text-primary)', display: 'block' }}>
+                      {procurementErrorMsg || 'No pudimos cargar la información de compras y abastecimientos. Intenta nuevamente.'}
+                    </strong>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      Comprueba la conectividad de la base de datos o reintenta la sincronización operativa.
+                    </span>
+                  </div>
+                </div>
+                <Button variant="primary" size="sm" onClick={reloadProcurementData}>
+                  Reintentar
+                </Button>
               </div>
             </div>
+          )}
 
-            <div className="constructa-table-container">
-              <table className="constructa-table">
-                <thead>
-                  <tr>
-                    <th>Proyecto</th>
-                    <th>Presupuesto Obra</th>
-                    <th>Órdenes Emitidas</th>
-                    <th>Monto Comprometido</th>
-                    <th>Entregas Completas</th>
-                    <th>Entregas Parciales</th>
-                    <th>Facturado</th>
-                    <th>Pagado Real</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {purchasesByProject.map(row => (
-                    <tr key={row.proyecto.id}>
-                      <td>
-                        <strong style={{ color: 'var(--color-text-primary)', display: 'block' }}>{row.proyecto.nombre}</strong>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{row.proyecto.codigo} • {row.proyecto.cliente}</span>
-                      </td>
-                      <td style={{ color: 'var(--color-text-primary)' }}>{formatCurrency(row.proyecto.presupuesto)}</td>
-                      <td style={{ fontWeight: 600, color: 'var(--color-gold)' }}>{row.totalOrdenes}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatCurrency(row.montoComprometido)}</td>
-                      <td>
-                        <span style={{ color: 'var(--color-emerald)', fontWeight: 600 }}>{row.ordenesCompletadas}</span>
-                      </td>
-                      <td>
-                        <span style={{ color: row.ordenesParciales > 0 ? 'var(--color-amber)' : 'var(--color-text-muted)', fontWeight: 600 }}>
-                          {row.ordenesParciales}
-                        </span>
-                      </td>
-                      <td style={{ color: 'var(--color-sky)', fontWeight: 600 }}>{formatCurrency(row.totalFacturas)}</td>
-                      <td style={{ color: 'var(--color-emerald)', fontWeight: 700 }}>{formatCurrency(row.totalPagado)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Estado de Carga explícito */}
+          {procurementStatus === 'loading' && (
+            <div className="constructa-card" style={{ padding: '40px', textAlign: 'center' }}>
+              <RefreshCw size={24} className="animate-spin" style={{ color: 'var(--color-gold)', margin: '0 auto 12px' }} />
+              <div style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>Sincronizando compras y abastecimiento...</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>Cargando órdenes de compra, recepciones y facturas activas.</div>
             </div>
-          </div>
+          )}
 
-          {/* Tabla 2: Rendimiento y Saldos por Proveedor */}
-          <div className="constructa-card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
-                  Rendimiento, Entregas y Saldos por Proveedor
-                </h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Evaluación de cumplimiento en obra, órdenes activas, condiciones y estado financiero
-                </p>
+          {procurementStatus !== 'loading' && procurementStatus !== 'error' && (
+            <>
+              {/* KPI Strip de Compras */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                <div className="constructa-card" style={{ padding: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Órdenes de Compra Emitidas</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-gold)', marginTop: '4px' }}>
+                    {filteredProcurementOrders.length}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                    Compromiso total: {formatCurrency(filteredProcurementOrders.reduce((sum, o) => sum + Number(o.total || 0), 0))}
+                  </div>
+                </div>
+
+                <div className="constructa-card" style={{ padding: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Entregas y Recepciones</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>
+                    {filteredProcurementOrders.filter(o => o.estado === 'Entregada').length} / {filteredProcurementOrders.length}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-amber)' }}>
+                    {filteredProcurementOrders.filter(o => o.estado === 'Recibida parcialmente').length} entregas parciales registradas
+                  </div>
+                </div>
+
+                <div className="constructa-card" style={{ padding: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Facturas de Proveedores</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-sky)', marginTop: '4px' }}>
+                    {filteredProcurementInvoices.length}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                    Total facturado: {formatCurrency(filteredProcurementInvoices.reduce((sum, i) => sum + Number(i.total || 0), 0))}
+                  </div>
+                </div>
+
+                <div className="constructa-card" style={{ padding: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Pagos a Proveedores</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-emerald)', marginTop: '4px' }}>
+                    {formatCurrency(filteredProcurementInvoices.filter(i => i.estado === 'Pagada').reduce((sum, i) => sum + Number(i.total || 0), 0))}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-amber)' }}>
+                    Programados: {formatCurrency(filteredProcurementInvoices.filter(i => i.estado === 'Programada para pago').reduce((sum, i) => sum + Number(i.total || 0), 0))}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="constructa-table-container">
-              <table className="constructa-table">
-                <thead>
-                  <tr>
-                    <th>Proveedor</th>
-                    <th>Especialidad / Insumos</th>
-                    <th>Condiciones Pago</th>
-                    <th>Órdenes</th>
-                    <th>Total Pedido</th>
-                    <th>Entregas Completas</th>
-                    <th>Parciales</th>
-                    <th>Total Pagado</th>
-                    <th>Saldo Pendiente</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {purchasesBySupplier.map(row => (
-                    <tr key={row.proveedor.id}>
-                      <td>
-                        <strong style={{ color: 'var(--color-text-primary)', display: 'block' }}>{row.proveedor.nombre}</strong>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Contacto: {row.proveedor.contacto}</span>
-                      </td>
-                      <td>
-                        <Badge variant="neutral">{row.proveedor.especialidad || 'Materiales'}</Badge>
-                      </td>
-                      <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>{row.proveedor.condicionesPago || '30 días'}</td>
-                      <td style={{ fontWeight: 600, color: 'var(--color-gold)' }}>{row.totalOrdenes}</td>
-                      <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{formatCurrency(row.montoTotal)}</td>
-                      <td>
-                        <span style={{ color: 'var(--color-emerald)', fontWeight: 600 }}>{row.entregadas}</span>
-                      </td>
-                      <td>
-                        <span style={{ color: row.parciales > 0 ? 'var(--color-amber)' : 'var(--color-text-muted)', fontWeight: 600 }}>
-                          {row.parciales}
-                        </span>
-                      </td>
-                      <td style={{ color: 'var(--color-emerald)', fontWeight: 600 }}>{formatCurrency(row.totalPagado)}</td>
-                      <td style={{ color: row.saldoPendiente > 0 ? 'var(--color-rose)' : 'var(--color-text-muted)', fontWeight: 700 }}>
-                        {formatCurrency(row.saldoPendiente)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+              {filteredProcurementOrders.length === 0 && filteredProcurementInvoices.length === 0 ? (
+                <div className="constructa-card" style={{ padding: '20px' }}>
+                  <EmptyState
+                    title="No hay compras o abastecimientos registrados"
+                    message="No se encontraron órdenes de compra, entregas ni facturas de proveedores que coincidan con los filtros aplicados."
+                    actionText="Restablecer Filtros"
+                    onAction={() => {
+                      setProjectFilter('ALL');
+                      setSupplierFilter('ALL');
+                      setStatusFilter('ALL');
+                      setMaterialFilter('ALL');
+                      setDateFrom('');
+                      setDateTo('');
+                      setSearchTerm('');
+                    }}
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Tabla 1: Compras por Proyecto */}
+                  <div className="constructa-card" style={{ overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
+                          Consolidado de Compras y Abastecimiento por Proyecto
+                        </h3>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                          Impacto de compras, compromisos y facturas imputadas a cada frente constructivo
+                        </p>
+                      </div>
+                    </div>
 
-          {/* Tabla 3: Detalle de Órdenes y Recepción Física */}
-          <div className="constructa-card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
-                  Bitácora de Órdenes de Compra y Recepción de Insumos
-                </h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Comparación entre insumos solicitados, recibidos en almacén e incidencias registradas
-                </p>
-              </div>
-              <Badge variant="info">{filteredProcurementOrders.length} órdenes</Badge>
-            </div>
-
-            <div className="constructa-table-container">
-              <table className="constructa-table">
-                <thead>
-                  <tr>
-                    <th>Orden</th>
-                    <th>Proveedor</th>
-                    <th>Proyecto</th>
-                    <th>Insumos y Cantidades</th>
-                    <th>Fecha Prometida</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                    <th>Recepción en Obra</th>
-                    <th>Incidencias</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProcurementOrders.map(o => {
-                    const prj = (data.projects || []).find(p => p.id === o.proyectoId);
-                    return (
-                      <tr key={o.id}>
-                        <td style={{ color: 'var(--color-gold)', fontWeight: 700 }}>{o.numeroOrden}</td>
-                        <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{o.proveedorNombre}</td>
-                        <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>{prj?.nombre || 'General'}</td>
-                        <td style={{ fontSize: '0.82rem' }}>
-                          {(o.materiales || []).map((m, idx) => (
-                            <div key={idx} style={{ color: 'var(--color-text-primary)' }}>
-                              • {m.materialNombre}: <strong style={{ color: 'var(--color-gold)' }}>{m.cantidad} {m.unidad}</strong>
-                              {m.cantidadRecibida !== undefined && (
-                                <span style={{ color: m.cantidadRecibida === m.cantidad ? 'var(--color-emerald)' : 'var(--color-amber)', marginLeft: '6px' }}>
-                                  (Recibido: {m.cantidadRecibida})
+                    <div className="constructa-table-container">
+                      <table className="constructa-table">
+                        <thead>
+                          <tr>
+                            <th>Proyecto</th>
+                            <th>Presupuesto Obra</th>
+                            <th>Órdenes Emitidas</th>
+                            <th>Monto Comprometido</th>
+                            <th>Entregas Completas</th>
+                            <th>Entregas Parciales</th>
+                            <th>Facturado</th>
+                            <th>Pagado Real</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {purchasesByProject.map(row => (
+                            <tr key={row.proyecto.id}>
+                              <td>
+                                <strong style={{ color: 'var(--color-text-primary)', display: 'block' }}>{row.proyecto.nombre}</strong>
+                                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{row.proyecto.codigo} • {row.proyecto.cliente}</span>
+                              </td>
+                              <td style={{ color: 'var(--color-text-primary)' }}>{formatCurrency(row.proyecto.presupuesto)}</td>
+                              <td style={{ fontWeight: 600, color: 'var(--color-gold)' }}>{row.totalOrdenes}</td>
+                              <td style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatCurrency(row.montoComprometido)}</td>
+                              <td>
+                                <span style={{ color: 'var(--color-emerald)', fontWeight: 600 }}>{row.ordenesCompletadas}</span>
+                              </td>
+                              <td>
+                                <span style={{ color: row.ordenesParciales > 0 ? 'var(--color-amber)' : 'var(--color-text-muted)', fontWeight: 600 }}>
+                                  {row.ordenesParciales}
                                 </span>
-                              )}
-                            </div>
+                              </td>
+                              <td style={{ color: 'var(--color-sky)', fontWeight: 600 }}>{formatCurrency(row.totalFacturas)}</td>
+                              <td style={{ color: 'var(--color-emerald)', fontWeight: 700 }}>{formatCurrency(row.totalPagado)}</td>
+                            </tr>
                           ))}
-                        </td>
-                        <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>{formatDate(o.fechaPrevistaEntrega)}</td>
-                        <td style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatCurrency(o.total)}</td>
-                        <td>
-                          <Badge variant={
-                            o.estado === 'Entregada' ? 'success' :
-                            o.estado === 'Recibida parcialmente' ? 'warning' :
-                            o.estado === 'En camino' ? 'info' :
-                            o.estado === 'Cancelada' ? 'danger' : 'neutral'
-                          }>
-                            {o.estado}
-                          </Badge>
-                        </td>
-                        <td>
-                          {o.recepcion ? (
-                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: o.recepcion.porcentajeRecibido === 100 ? 'var(--color-emerald)' : 'var(--color-amber)' }}>
-                              {o.recepcion.porcentajeRecibido}% verificado
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Pendiente</span>
-                          )}
-                        </td>
-                        <td>
-                          {o.recepcion?.incidencias && o.recepcion.incidencias.length > 0 ? (
-                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                              {o.recepcion.incidencias.map((inc, i) => (
-                                <Badge key={i} variant="danger">{inc}</Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Ninguna</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
 
-          {/* Tabla 4: Facturación de Proveedores y Validación 3-Way Match */}
-          <div className="constructa-card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
-                  Facturas de Proveedores y Control de Validación 3-Way Match
-                </h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Cotejo tripartito entre Orden de Compra, Recepción Física y Facturación Comercial
-                </p>
-              </div>
-              <Badge variant="info">{filteredProcurementInvoices.length} facturas</Badge>
-            </div>
+                  {/* Tabla 2: Rendimiento y Saldos por Proveedor */}
+                  <div className="constructa-card" style={{ overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
+                          Rendimiento, Entregas y Saldos por Proveedor
+                        </h3>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                          Evaluación de cumplimiento en obra, órdenes activas, condiciones y estado financiero
+                        </p>
+                      </div>
+                    </div>
 
-            <div className="constructa-table-container">
-              <table className="constructa-table">
-                <thead>
-                  <tr>
-                    <th>Factura #</th>
-                    <th>Proveedor</th>
-                    <th>Orden Asociada</th>
-                    <th>Fecha Emisión</th>
-                    <th>Vencimiento</th>
-                    <th>Total Facturado</th>
-                    <th>Validación 3-Way Match</th>
-                    <th>Estado de Pago</th>
-                    <th>Método</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProcurementInvoices.map(inv => (
-                    <tr key={inv.id}>
-                      <td style={{ color: 'var(--color-sky)', fontWeight: 700 }}>{inv.numeroFactura}</td>
-                      <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{inv.proveedorNombre}</td>
-                      <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{inv.ordenNumero}</td>
-                      <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{formatDate(inv.fechaEmision)}</td>
-                      <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>{formatDate(inv.fechaVencimiento)}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatCurrency(inv.total)}</td>
-                      <td>
-                        {inv.validacionTresVias ? (
-                          inv.validacionTresVias.aprobada ? (
-                            <Badge variant="success">Validación Correcta</Badge>
-                          ) : (
-                            <Badge variant="danger">Discrepancias Detectadas</Badge>
-                          )
-                        ) : (
-                          <Badge variant="neutral">Pendiente</Badge>
-                        )}
-                      </td>
-                      <td>
-                        <Badge variant={
-                          inv.estado === 'Pagada' ? 'success' :
-                          inv.estado === 'Programada para pago' ? 'info' :
-                          inv.estado === 'Aprobada' ? 'primary' :
-                          inv.estado === 'Rechazada' ? 'danger' : 'warning'
-                        }>
-                          {inv.estado}
-                        </Badge>
-                      </td>
-                      <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{inv.metodoPago || 'Transferencia'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    <div className="constructa-table-container">
+                      <table className="constructa-table">
+                        <thead>
+                          <tr>
+                            <th>Proveedor</th>
+                            <th>Especialidad / Insumos</th>
+                            <th>Condiciones Pago</th>
+                            <th>Órdenes</th>
+                            <th>Total Pedido</th>
+                            <th>Entregas Completas</th>
+                            <th>Parciales</th>
+                            <th>Total Pagado</th>
+                            <th>Saldo Pendiente</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {purchasesBySupplier.map(row => (
+                            <tr key={row.proveedor.id}>
+                              <td>
+                                <strong style={{ color: 'var(--color-text-primary)', display: 'block' }}>{row.proveedor.nombre}</strong>
+                                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Contacto: {row.proveedor.contacto}</span>
+                              </td>
+                              <td>
+                                <Badge variant="neutral">{row.proveedor.especialidad || 'Materiales'}</Badge>
+                              </td>
+                              <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>{row.proveedor.condicionesPago || '30 días'}</td>
+                              <td style={{ fontWeight: 600, color: 'var(--color-gold)' }}>{row.totalOrdenes}</td>
+                              <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{formatCurrency(row.montoTotal)}</td>
+                              <td>
+                                <span style={{ color: 'var(--color-emerald)', fontWeight: 600 }}>{row.entregadas}</span>
+                              </td>
+                              <td>
+                                <span style={{ color: row.parciales > 0 ? 'var(--color-amber)' : 'var(--color-text-muted)', fontWeight: 600 }}>
+                                  {row.parciales}
+                                </span>
+                              </td>
+                              <td style={{ color: 'var(--color-emerald)', fontWeight: 600 }}>{formatCurrency(row.totalPagado)}</td>
+                              <td style={{ color: row.saldoPendiente > 0 ? 'var(--color-rose)' : 'var(--color-text-muted)', fontWeight: 700 }}>
+                                {formatCurrency(row.saldoPendiente)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Tabla 3: Detalle de Órdenes y Recepción Física */}
+                  <div className="constructa-card" style={{ overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
+                          Bitácora de Órdenes de Compra y Recepción de Insumos
+                        </h3>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                          Comparación entre insumos solicitados, recibidos en almacén e incidencias registradas
+                        </p>
+                      </div>
+                      <Badge variant="info">{filteredProcurementOrders.length} órdenes</Badge>
+                    </div>
+
+                    <div className="constructa-table-container">
+                      <table className="constructa-table">
+                        <thead>
+                          <tr>
+                            <th>Orden</th>
+                            <th>Proveedor</th>
+                            <th>Proyecto</th>
+                            <th>Insumos y Cantidades</th>
+                            <th>Fecha Prometida</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Recepción en Obra</th>
+                            <th>Incidencias</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredProcurementOrders.map(o => {
+                            const prj = (data.projects || []).find(p => p.id === o.proyectoId);
+                            return (
+                              <tr key={o.id}>
+                                <td style={{ color: 'var(--color-gold)', fontWeight: 700 }}>{o.numeroOrden}</td>
+                                <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{o.proveedorNombre}</td>
+                                <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>{prj?.nombre || 'General'}</td>
+                                <td style={{ fontSize: '0.82rem' }}>
+                                  {(o.materiales || []).map((m, idx) => (
+                                    <div key={idx} style={{ color: 'var(--color-text-primary)' }}>
+                                      • {m.materialNombre}: <strong style={{ color: 'var(--color-gold)' }}>{m.cantidad} {m.unidad}</strong>
+                                      {m.cantidadRecibida !== undefined && (
+                                        <span style={{ color: m.cantidadRecibida === m.cantidad ? 'var(--color-emerald)' : 'var(--color-amber)', marginLeft: '6px' }}>
+                                          (Recibido: {m.cantidadRecibida})
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </td>
+                                <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
+                                  {formatDate(o.fechaPrometida || o.fechaSolicitada || o.fechaCreacion)}
+                                </td>
+                                <td style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatCurrency(o.total)}</td>
+                                <td>
+                                  <Badge variant={
+                                    o.estado === 'Entregada' ? 'success' :
+                                    o.estado === 'Recibida parcialmente' ? 'warning' :
+                                    o.estado === 'En camino' ? 'info' :
+                                    o.estado === 'Cancelada' ? 'danger' : 'neutral'
+                                  }>
+                                    {o.estado}
+                                  </Badge>
+                                </td>
+                                <td>
+                                  {o.recepcion ? (
+                                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: o.recepcion.porcentajeRecibido === 100 ? 'var(--color-emerald)' : 'var(--color-amber)' }}>
+                                      {o.recepcion.porcentajeRecibido}% verificado
+                                    </span>
+                                  ) : (
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Pendiente</span>
+                                  )}
+                                </td>
+                                <td>
+                                  {o.recepcion?.incidencias && o.recepcion.incidencias.length > 0 ? (
+                                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                      {o.recepcion.incidencias.map((inc, i) => {
+                                        const incLabel = typeof inc === 'object' && inc !== null
+                                          ? `${inc.tipo ? inc.tipo + ': ' : ''}${inc.descripcion || 'Incidencia'}`
+                                          : String(inc);
+                                        return (
+                                          <Badge key={i} variant="danger">{incLabel}</Badge>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Ninguna</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Tabla 4: Facturación de Proveedores y Validación 3-Way Match */}
+                  <div className="constructa-card" style={{ overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
+                          Facturas de Proveedores y Control de Validación 3-Way Match
+                        </h3>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                          Cotejo tripartito entre Orden de Compra, Recepción Física y Facturación Comercial
+                        </p>
+                      </div>
+                      <Badge variant="info">{filteredProcurementInvoices.length} facturas</Badge>
+                    </div>
+
+                    <div className="constructa-table-container">
+                      <table className="constructa-table">
+                        <thead>
+                          <tr>
+                            <th>Factura #</th>
+                            <th>Proveedor</th>
+                            <th>Orden Asociada</th>
+                            <th>Fecha Emisión</th>
+                            <th>Vencimiento</th>
+                            <th>Total Facturado</th>
+                            <th>Validación 3-Way Match</th>
+                            <th>Estado de Pago</th>
+                            <th>Método</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredProcurementInvoices.map(inv => (
+                            <tr key={inv.id}>
+                              <td style={{ color: 'var(--color-sky)', fontWeight: 700 }}>{inv.numeroFactura}</td>
+                              <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{inv.proveedorNombre}</td>
+                              <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{inv.ordenNumero}</td>
+                              <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{formatDate(inv.fechaEmision)}</td>
+                              <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>{formatDate(inv.fechaVencimiento)}</td>
+                              <td style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatCurrency(inv.total)}</td>
+                              <td>
+                                {inv.validacionTresVias ? (
+                                  inv.validacionTresVias.aprobada ? (
+                                    <Badge variant="success">Validación Correcta</Badge>
+                                  ) : (
+                                    <Badge variant="danger">Discrepancias Detectadas</Badge>
+                                  )
+                                ) : (
+                                  <Badge variant="neutral">Pendiente</Badge>
+                                )}
+                              </td>
+                              <td>
+                                <Badge variant={
+                                  inv.estado === 'Pagada' ? 'success' :
+                                  inv.estado === 'Programada para pago' ? 'info' :
+                                  inv.estado === 'Aprobada' ? 'primary' :
+                                  inv.estado === 'Rechazada' ? 'danger' : 'warning'
+                                }>
+                                  {inv.estado}
+                                </Badge>
+                              </td>
+                              <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{inv.metodoPago || 'Transferencia'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </div>
       )}
 

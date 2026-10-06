@@ -62,10 +62,12 @@ export const ClientPortal = ({ onNavigate }) => {
     formatCurrency,
     formatDate,
     showAlert,
-    requestConfirm
+    requestConfirm,
+    navigateTo,
+    setActiveView
   } = useConstructa();
 
-  const navigate = onNavigate || ((view) => { window.location.hash = view; });
+  const navigate = onNavigate || navigateTo || setActiveView || ((view) => { window.location.hash = view; });
 
   // Pestaña activa
   const [activeTab, setActiveTab] = useState('inicio');

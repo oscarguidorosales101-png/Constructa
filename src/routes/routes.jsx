@@ -30,7 +30,8 @@ export const AppRoutes = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const rawHash = window.location.hash.replace('#', '');
-      const hash = rawHash.split('?')[0].toLowerCase();
+      let hash = rawHash.split('?')[0].toLowerCase();
+      if (hash === 'home') hash = 'inicio';
       
       if (!hash) {
         const defaultView = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
@@ -39,6 +40,12 @@ export const AppRoutes = () => {
       }
 
       if (routeConfig[hash]) {
+        // Protección por Autenticación (Requerimiento 47): Redirigir a login si no está autenticado
+        if (routeConfig[hash].isPrivate && !currentUser) {
+          setActiveView('login');
+          window.location.hash = 'login';
+          return;
+        }
         setActiveView(hash);
       } else {
         setActiveView('404');
@@ -67,6 +74,7 @@ export const AppRoutes = () => {
   // Caso: Sitio Público Institucional (con soporte para navegación modular)
   const isPublicSection = [
     'inicio',
+    'home',
     'empresa',
     'especialidades',
     'proyectos-publicos',
@@ -85,22 +93,22 @@ export const AppRoutes = () => {
 
   if (isPublicSection) {
     const PublicLandingComponent = routeConfig.inicio.component;
-    const initialSection = (currentKey === 'proyectos' || currentKey === 'proyectos-publicos') ? 'proyectos' : currentKey;
+    const initialSection = (currentKey === 'proyectos' || currentKey === 'proyectos-publicos') ? 'proyectos' : (currentKey === 'home' ? 'inicio' : currentKey);
     content = <PublicLandingComponent initialModule={initialSection} />;
   } else if (currentKey === 'registro' || currentKey === 'registro-cliente') {
     const RegisterComponent = routeConfig.registro.component;
     content = <RegisterComponent onNavigate={navigate} />;
   } else if (!currentRoute) {
     const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
-    content = <Status404 onBackToHome={() => navigate(homeTarget)} />;
+    content = <Status404 onBackToHome={() => navigate(homeTarget)} onGoToDashboard={() => navigate(homeTarget)} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === '401') {
-    content = <Status401 onLogin={() => navigate('login')} />;
+    content = <Status401 onLogin={() => navigate('login')} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === '403') {
     const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
-    content = <Status403 onBackToHome={() => navigate(homeTarget)} />;
+    content = <Status403 onBackToHome={() => navigate(homeTarget)} onGoToDashboard={() => navigate(homeTarget)} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === '404') {
     const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
-    content = <Status404 onBackToHome={() => navigate(homeTarget)} />;
+    content = <Status404 onBackToHome={() => navigate(homeTarget)} onGoToDashboard={() => navigate(homeTarget)} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === 'login') {
     if (currentUser) {
       const targetRouteKey = currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';

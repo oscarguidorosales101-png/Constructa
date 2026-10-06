@@ -2880,7 +2880,7 @@
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-05T22:59:29.793Z",
+    "updatedAt": "2026-10-06T02:47:09.711Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
@@ -2888,6 +2888,42 @@
     "highContrast": true
   },
   "requests": [
+    {
+      "id": "SOL-003",
+      "numero": "SOL-2026-003",
+      "clienteId": "CLI-006",
+      "clienteNombre": "Steve salas",
+      "clienteEmail": "oscarguideorosales101@gmail.com",
+      "clienteTelefono": "+506 60586591",
+      "tipo": "Cotización de Obra",
+      "titulo": "Hanxel corporation",
+      "tipoInmueble": "Residencial Unifamiliar",
+      "ubicacion": "central de Puntarenas, vivienda 21H",
+      "areaAproximada": 0,
+      "presupuestoEstimado": 458000,
+      "plazoDeseado": "12 a 24 meses",
+      "poseeTerreno": true,
+      "poseePlanos": true,
+      "descripcion": "",
+      "necesidadesPrincipales": "",
+      "estado": "En negociación",
+      "asignadoA": "Ing. Fernando Mendoza",
+      "asignadoRol": "Administrador",
+      "fechaCreacion": "2026-10-06",
+      "ultimaActualizacion": "2026-10-06",
+      "documentos": [],
+      "historial": [
+        {
+          "fecha": "5/10/2026, 6:34:19 p.m.",
+          "autor": "Steve salas",
+          "accion": "Solicitud creada formalmente en el portal de cliente."
+        }
+      ],
+      "observacionesTecnicas": "",
+      "propuestaCotizacion": null,
+      "responsable": "Coordinación Comercial y Presupuestos",
+      "viabilidadTecnica": "Viable"
+    },
     {
       "id": "SOL-001",
       "numero": "SOL-2026-001",
@@ -3215,6 +3251,591 @@
       ],
       "esSistema": false,
       "activo": true
+    }
+  ],
+  "purchaseOrders": [
+    {
+      "id": "OC-0025",
+      "numeroOrden": "OC-0025",
+      "solicitudId": "REQ-001",
+      "proveedorId": "PRV-001",
+      "proveedorNombre": "Aceros del Valle S.A.",
+      "proyectoId": "PRJ-001",
+      "proyectoNombre": "Torre Altavista Residencial",
+      "materiales": [
+        {
+          "materialId": "MAT-001",
+          "materialNombre": "Varilla de Acero Corrugado 1/2 pulgada",
+          "cantidad": 50,
+          "precioUnitario": 980,
+          "unidad": "Toneladas",
+          "subtotal": 49000
+        }
+      ],
+      "subtotal": 49000,
+      "impuestos": 7840,
+      "total": 56840,
+      "fechaCreacion": "2026-09-22",
+      "fechaSolicitada": "2026-10-02",
+      "fechaPrometida": "2026-10-03",
+      "fechaRealEntrega": null,
+      "historialFechas": [
+        {
+          "fechaAnterior": "2026-10-02",
+          "fechaNueva": "2026-10-03",
+          "motivo": "Ajuste logístico de flete pesado por el proveedor",
+          "fechaCambio": "2026-09-25"
+        }
+      ],
+      "condicionesPago": "Crédito 30 días",
+      "observaciones": "Entrega a pie de obra en patio de maniobras de Torre Altavista.",
+      "estado": "En camino",
+      "confirmacionProveedor": {
+        "confirmado": true,
+        "fechaConfirmacion": "2026-09-23",
+        "confirmDisponibilidad": true,
+        "confirmCantidad": true,
+        "confirmPrecio": true,
+        "confirmFecha": true,
+        "solicitoModificacion": false,
+        "detalleModificacion": "",
+        "noRespondio": false,
+        "observaciones": "Lic. Guillermo Navarro confirmó disponibilidad en acería y despacho en plataforma."
+      },
+      "recepcion": null,
+      "facturaId": "FAC-9011",
+      "historialEstados": [
+        {
+          "estado": "Borrador",
+          "fecha": "2026-09-22",
+          "hora": "10:15",
+          "usuario": "Ing. Fernando Mendoza",
+          "comentario": "Creación de orden desde solicitud aprobada REQ-001."
+        },
+        {
+          "estado": "Aprobada",
+          "fecha": "2026-09-22",
+          "hora": "11:30",
+          "usuario": "Ing. Fernando Mendoza",
+          "comentario": "Autorización presupuestal corporativa."
+        },
+        {
+          "estado": "Enviada al proveedor",
+          "fecha": "2026-09-22",
+          "hora": "14:00",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Enviada con especificaciones técnicas a Guillermo Navarro."
+        },
+        {
+          "estado": "Confirmada",
+          "fecha": "2026-09-23",
+          "hora": "09:20",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Confirmada disponibilidad y precio por el proveedor."
+        },
+        {
+          "estado": "Preparando pedido",
+          "fecha": "2026-09-24",
+          "hora": "08:00",
+          "usuario": "Lic. Guillermo Navarro",
+          "comentario": "Carga de material en patio metalmecánico."
+        },
+        {
+          "estado": "En camino",
+          "fecha": "2026-09-27",
+          "hora": "16:45",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Transporte en ruta hacia la obra."
+        }
+      ]
+    },
+    {
+      "id": "OC-0024",
+      "numeroOrden": "OC-0024",
+      "solicitudId": null,
+      "proveedorId": "PRV-002",
+      "proveedorNombre": "Cementos y Agregados del Norte",
+      "proyectoId": "PRJ-001",
+      "proyectoNombre": "Torre Altavista Residencial",
+      "materiales": [
+        {
+          "materialId": "MAT-002",
+          "materialNombre": "Cemento Gris Portland Tipo I - Saco 50kg",
+          "cantidad": 200,
+          "precioUnitario": 220,
+          "unidad": "Sacos",
+          "subtotal": 44000
+        }
+      ],
+      "subtotal": 44000,
+      "impuestos": 7040,
+      "total": 51040,
+      "fechaCreacion": "2026-09-10",
+      "fechaSolicitada": "2026-09-18",
+      "fechaPrometida": "2026-09-18",
+      "fechaRealEntrega": "2026-09-19",
+      "historialFechas": [],
+      "condicionesPago": "Crédito 15 días",
+      "observaciones": "Entrega directa en silo y bodega de secos.",
+      "estado": "Recibida parcialmente",
+      "confirmacionProveedor": {
+        "confirmado": true,
+        "fechaConfirmacion": "2026-09-11",
+        "confirmDisponibilidad": true,
+        "confirmCantidad": true,
+        "confirmPrecio": true,
+        "confirmFecha": true,
+        "solicitoModificacion": false,
+        "detalleModificacion": "",
+        "noRespondio": false,
+        "observaciones": "Ing. Patricia Luna confirmó embarque puntual."
+      },
+      "recepcion": {
+        "fechaRecepcion": "2026-09-19",
+        "responsable": "Don Roberto Sánchez (Bodega Central)",
+        "itemsRecibidos": [
+          {
+            "materialId": "MAT-002",
+            "cantidadPedida": 200,
+            "cantidadRecibida": 195,
+            "unidad": "Sacos"
+          }
+        ],
+        "estadoRecepcion": "Parcial",
+        "incidencias": [
+          {
+            "tipo": "faltante",
+            "descripcion": "Faltante de 5 sacos por rasgadura accidental en maniobras de descarga.",
+            "cantidadAfectada": 5
+          }
+        ]
+      },
+      "facturaId": "FAC-8820",
+      "historialEstados": [
+        {
+          "estado": "Aprobada",
+          "fecha": "2026-09-10",
+          "hora": "11:00",
+          "usuario": "Ing. Fernando Mendoza",
+          "comentario": "Aprobada para colado losa nivel 12."
+        },
+        {
+          "estado": "Enviada al proveedor",
+          "fecha": "2026-09-10",
+          "hora": "12:15",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Notificación de pedido enviada."
+        },
+        {
+          "estado": "Confirmada",
+          "fecha": "2026-09-11",
+          "hora": "09:00",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Confirmado por Ing. Patricia Luna."
+        },
+        {
+          "estado": "Entregada",
+          "fecha": "2026-09-19",
+          "hora": "11:30",
+          "usuario": "Don Roberto Sánchez",
+          "comentario": "Recepción en obra con 195 sacos útiles y 5 sacos dañados."
+        },
+        {
+          "estado": "Recibida parcialmente",
+          "fecha": "2026-09-19",
+          "hora": "12:00",
+          "usuario": "Don Roberto Sánchez",
+          "comentario": "Recepción parcial registrada. Se ingresaron exactamente 195 sacos al inventario."
+        }
+      ]
+    },
+    {
+      "id": "OC-0026",
+      "numeroOrden": "OC-0026",
+      "solicitudId": null,
+      "proveedorId": "PRV-003",
+      "proveedorNombre": "Maderas & Encofrados del Sur",
+      "proyectoId": "PRJ-004",
+      "proyectoNombre": "Urbanización Residencial Las Cumbres",
+      "materiales": [
+        {
+          "materialId": "MAT-004",
+          "materialNombre": "Madera de Pino para Encofrado 2x4 pulg",
+          "cantidad": 80,
+          "precioUnitario": 340,
+          "unidad": "Piezas",
+          "subtotal": 27200
+        }
+      ],
+      "subtotal": 27200,
+      "impuestos": 4352,
+      "total": 31552,
+      "fechaCreacion": "2026-09-24",
+      "fechaSolicitada": "2026-10-06",
+      "fechaPrometida": "2026-10-06",
+      "fechaRealEntrega": null,
+      "historialFechas": [],
+      "condicionesPago": "50% anticipo, 50% entrega",
+      "observaciones": "Madera estufada de primera calidad para cimbra de guarniciones.",
+      "estado": "Preparando pedido",
+      "confirmacionProveedor": {
+        "confirmado": true,
+        "fechaConfirmacion": "2026-09-25",
+        "confirmDisponibilidad": true,
+        "confirmCantidad": true,
+        "confirmPrecio": true,
+        "confirmFecha": true,
+        "solicitoModificacion": false,
+        "detalleModificacion": "",
+        "noRespondio": false,
+        "observaciones": "Don Fernando Morales confirmó corte y cubicación en aserradero."
+      },
+      "recepcion": null,
+      "facturaId": null,
+      "historialEstados": [
+        {
+          "estado": "Aprobada",
+          "fecha": "2026-09-24",
+          "hora": "15:20",
+          "usuario": "Ing. Fernando Mendoza",
+          "comentario": "Aprobación de orden de madera."
+        },
+        {
+          "estado": "Enviada al proveedor",
+          "fecha": "2026-09-24",
+          "hora": "16:00",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Envío de orden a aserradero."
+        },
+        {
+          "estado": "Confirmada",
+          "fecha": "2026-09-25",
+          "hora": "10:00",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Disponibilidad y cubicación confirmada."
+        },
+        {
+          "estado": "Preparando pedido",
+          "fecha": "2026-09-26",
+          "hora": "08:30",
+          "usuario": "Don Fernando Morales",
+          "comentario": "Preparación de paquetes y flejado."
+        }
+      ]
+    },
+    {
+      "id": "OC-0027",
+      "numeroOrden": "OC-0027",
+      "solicitudId": "REQ-003",
+      "proveedorId": "PRV-004",
+      "proveedorNombre": "Hidráulica & Conexiones Industriales",
+      "proyectoId": "PRJ-006",
+      "proyectoNombre": "Ampliación Hospital General",
+      "materiales": [
+        {
+          "materialId": "MAT-007",
+          "materialNombre": "Tubo de PVC Hidráulico 2 pulgadas",
+          "cantidad": 40,
+          "precioUnitario": 185,
+          "unidad": "Tramos (6m)",
+          "subtotal": 7400
+        }
+      ],
+      "subtotal": 7400,
+      "impuestos": 1184,
+      "total": 8584,
+      "fechaCreacion": "2026-09-27",
+      "fechaSolicitada": "2026-10-10",
+      "fechaPrometida": "2026-10-10",
+      "fechaRealEntrega": null,
+      "historialFechas": [],
+      "condicionesPago": "Crédito 30 días",
+      "observaciones": "Conexiones para redes de desagüe y sanitarias de hospital.",
+      "estado": "Enviada al proveedor",
+      "confirmacionProveedor": {
+        "confirmado": false,
+        "fechaConfirmacion": null,
+        "confirmDisponibilidad": false,
+        "confirmCantidad": false,
+        "confirmPrecio": false,
+        "confirmFecha": false,
+        "solicitoModificacion": false,
+        "detalleModificacion": "",
+        "noRespondio": false,
+        "observaciones": "Pendiente de confirmación por Ing. Mauricio Palacios."
+      },
+      "recepcion": null,
+      "facturaId": null,
+      "historialEstados": [
+        {
+          "estado": "Borrador",
+          "fecha": "2026-09-27",
+          "hora": "11:00",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Generada para hospital."
+        },
+        {
+          "estado": "Aprobada",
+          "fecha": "2026-09-27",
+          "hora": "12:00",
+          "usuario": "Ing. Fernando Mendoza",
+          "comentario": "Validada presupuestalmente."
+        },
+        {
+          "estado": "Enviada al proveedor",
+          "fecha": "2026-09-27",
+          "hora": "13:00",
+          "usuario": "Ing. Carlos Mendoza",
+          "comentario": "Esperando respuesta del proveedor."
+        }
+      ]
+    }
+  ],
+  "materialRequests": [
+    {
+      "id": "REQ-001",
+      "numero": "SM-2026-001",
+      "proyectoId": "PRJ-001",
+      "proyectoNombre": "Torre Altavista Residencial",
+      "materialId": "MAT-001",
+      "materialNombre": "Varilla de Acero Corrugado 1/2 pulgada",
+      "cantidad": 50,
+      "unidad": "Toneladas",
+      "fechaNecesaria": "2026-10-05",
+      "prioridad": "Alta",
+      "observaciones": "Suministro crítico para armado de trabes y losa estructural nivel 14.",
+      "proveedorSugeridoId": "PRV-001",
+      "proveedorSugeridoNombre": "Aceros del Valle S.A.",
+      "origen": "Proyecto",
+      "estado": "Convertida en pedido",
+      "ordenCompraId": "OC-0025",
+      "fechaCreacion": "2026-09-20",
+      "solicitante": "Ing. Carlos Mendoza Rivas"
+    },
+    {
+      "id": "REQ-002",
+      "numero": "SM-2026-002",
+      "proyectoId": "PRJ-002",
+      "proyectoNombre": "Centro Comercial Paseo del Lago",
+      "materialId": "MAT-002",
+      "materialNombre": "Cemento Gris Portland Tipo I - Saco 50kg",
+      "cantidad": 150,
+      "unidad": "Sacos",
+      "fechaNecesaria": "2026-10-08",
+      "prioridad": "Alta",
+      "observaciones": "Reposición urgente de stock por alerta de existencias mínimas en almacén central.",
+      "proveedorSugeridoId": "PRV-002",
+      "proveedorSugeridoNombre": "Cementos y Agregados del Norte",
+      "origen": "Alerta de Stock",
+      "estado": "Aprobada",
+      "ordenCompraId": null,
+      "fechaCreacion": "2026-09-24",
+      "solicitante": "Ing. Carlos Mendoza Rivas"
+    },
+    {
+      "id": "REQ-003",
+      "numero": "SM-2026-003",
+      "proyectoId": "PRJ-006",
+      "proyectoNombre": "Ampliación Hospital General",
+      "materialId": "MAT-007",
+      "materialNombre": "Tubo de PVC Hidráulico 2 pulgadas",
+      "cantidad": 60,
+      "unidad": "Tramos (6m)",
+      "fechaNecesaria": "2026-10-12",
+      "prioridad": "Media",
+      "observaciones": "Instalación de red de recirculación hidráulica en planta baja.",
+      "proveedorSugeridoId": "PRV-004",
+      "proveedorSugeridoNombre": "Hidráulica & Conexiones Industriales",
+      "origen": "Proyecto",
+      "estado": "En revisión",
+      "ordenCompraId": null,
+      "fechaCreacion": "2026-09-26",
+      "solicitante": "Ing. Carlos Mendoza Rivas"
+    },
+    {
+      "id": "REQ-004",
+      "numero": "SM-2026-004",
+      "proyectoId": "PRJ-003",
+      "proyectoNombre": "Puente Vehicular Metropolitano",
+      "materialId": "MAT-005",
+      "materialNombre": "Viga de Acero Estructural IPR",
+      "cantidad": 12,
+      "unidad": "Piezas",
+      "fechaNecesaria": "2026-10-15",
+      "prioridad": "Urgente",
+      "observaciones": "Perfiles de acero certificados para refuerzo de apoyos sísmicos.",
+      "proveedorSugeridoId": "PRV-001",
+      "proveedorSugeridoNombre": "Aceros del Valle S.A.",
+      "origen": "Proyecto",
+      "estado": "Pendiente",
+      "ordenCompraId": null,
+      "fechaCreacion": "2026-09-27",
+      "solicitante": "Ing. Carlos Mendoza Rivas"
+    }
+  ],
+  "supplierInvoices": [
+    {
+      "id": "FAC-9011",
+      "numero": "FAC-9011",
+      "proveedorId": "PRV-001",
+      "proveedorNombre": "Aceros del Valle S.A.",
+      "ordenCompraId": "OC-0025",
+      "ordenNumero": "OC-0025",
+      "proyectoId": "PRJ-001",
+      "proyectoNombre": "Torre Altavista Residencial",
+      "fechaEmision": "2026-09-25",
+      "fechaVencimiento": "2026-10-25",
+      "fechaProgramadaPago": "2026-10-24",
+      "fechaRealPago": null,
+      "subtotal": 49000,
+      "impuestos": 7840,
+      "total": 56840,
+      "metodoPago": "Transferencia SPEI",
+      "observaciones": "Factura por suministro de varilla para Torre Altavista.",
+      "estado": "Programada para pago",
+      "tresViasMatch": {
+        "revisado": true,
+        "ordenValida": true,
+        "recepcionValida": true,
+        "coincideProveedor": true,
+        "coincideMaterial": true,
+        "coincideCantidad": true,
+        "coincidePrecio": true,
+        "coincideTotal": true,
+        "tieneDiscrepancia": false,
+        "discrepancias": [],
+        "resuelto": true
+      },
+      "pagoInfo": {
+        "programadoPor": "Ing. Fernando Mendoza",
+        "fechaProgramacion": "2026-09-26",
+        "procesadoPor": null,
+        "comprobanteSimulado": null
+      }
+    },
+    {
+      "id": "FAC-8820",
+      "numero": "FAC-8820",
+      "proveedorId": "PRV-002",
+      "proveedorNombre": "Cementos y Agregados del Norte",
+      "ordenCompraId": "OC-0024",
+      "ordenNumero": "OC-0024",
+      "proyectoId": "PRJ-001",
+      "proyectoNombre": "Torre Altavista Residencial",
+      "fechaEmision": "2026-09-12",
+      "fechaVencimiento": "2026-09-27",
+      "fechaProgramadaPago": "2026-09-26",
+      "fechaRealPago": "2026-09-26",
+      "subtotal": 42900,
+      "impuestos": 6864,
+      "total": 49764,
+      "metodoPago": "Transferencia SPEI",
+      "observaciones": "Ajustada por nota de crédito por 5 sacos con daño en descarga.",
+      "estado": "Pagada",
+      "tresViasMatch": {
+        "revisado": true,
+        "ordenValida": true,
+        "recepcionValida": true,
+        "coincideProveedor": true,
+        "coincideMaterial": true,
+        "coincideCantidad": true,
+        "coincidePrecio": true,
+        "coincideTotal": true,
+        "tieneDiscrepancia": false,
+        "discrepancias": [],
+        "resuelto": true
+      },
+      "pagoInfo": {
+        "programadoPor": "Ing. Fernando Mendoza",
+        "fechaProgramacion": "2026-09-20",
+        "procesadoPor": "Ing. Fernando Mendoza",
+        "comprobanteSimulado": "TRANSF-SPEI-781902-BBVA"
+      }
+    },
+    {
+      "id": "FAC-9140",
+      "numero": "FAC-9140",
+      "proveedorId": "PRV-004",
+      "proveedorNombre": "Hidráulica & Conexiones Industriales",
+      "ordenCompraId": "OC-0027",
+      "ordenNumero": "OC-0027",
+      "proyectoId": "PRJ-006",
+      "proyectoNombre": "Ampliación Hospital General",
+      "fechaEmision": "2026-09-27",
+      "fechaVencimiento": "2026-10-27",
+      "fechaProgramadaPago": "2026-10-27",
+      "fechaRealPago": null,
+      "subtotal": 8800,
+      "impuestos": 1408,
+      "total": 10208,
+      "metodoPago": "Transferencia SPEI",
+      "observaciones": "Factura recibida de forma anticipada. Presenta discrepancia en precio vs orden de compra OC-0027 ($8,584 vs $10,208).",
+      "estado": "En revisión",
+      "tresViasMatch": {
+        "revisado": true,
+        "ordenValida": true,
+        "recepcionValida": false,
+        "coincideProveedor": true,
+        "coincideMaterial": true,
+        "coincideCantidad": true,
+        "coincidePrecio": false,
+        "coincideTotal": false,
+        "tieneDiscrepancia": true,
+        "discrepancias": [
+          "Diferencia en precio unitario: Orden $185 vs Factura $220 por tramo",
+          "Monto total de factura ($10,208) excede orden de compra ($8,584) en $1,624",
+          "Pedido pendiente de recepción física en almacén de obra"
+        ],
+        "resuelto": false
+      },
+      "pagoInfo": null
+    }
+  ],
+  "supplierCommunications": [
+    {
+      "id": "COM-001",
+      "proveedorId": "PRV-001",
+      "proveedorNombre": "Aceros del Valle S.A.",
+      "ordenCompraId": "OC-0025",
+      "ordenNumero": "OC-0025",
+      "fecha": "2026-09-23",
+      "hora": "09:15",
+      "medio": "Llamada",
+      "personaContactada": "Lic. Guillermo Navarro",
+      "motivo": "Confirmación de disponibilidad y fecha de entrega OC-0025",
+      "resultado": "Disponibilidad confirmada",
+      "observaciones": "Confirmó despacho desde acería y arribo previsto para el 03/10/2026.",
+      "registradoPor": "Ing. Carlos Mendoza Rivas"
+    },
+    {
+      "id": "COM-002",
+      "proveedorId": "PRV-002",
+      "proveedorNombre": "Cementos y Agregados del Norte",
+      "ordenCompraId": "OC-0024",
+      "ordenNumero": "OC-0024",
+      "fecha": "2026-09-19",
+      "hora": "14:30",
+      "medio": "Correo electrónico",
+      "personaContactada": "Ing. Patricia Luna Vargas",
+      "motivo": "Notificación de 5 sacos con rotura en transporte",
+      "resultado": "Nota de crédito autorizada",
+      "observaciones": "Proveedor reconoció la merma del flete y emitió factura ajustada sin cobrar los 5 sacos.",
+      "registradoPor": "Don Roberto Sánchez"
+    },
+    {
+      "id": "COM-003",
+      "proveedorId": "PRV-004",
+      "proveedorNombre": "Hidráulica & Conexiones Industriales",
+      "ordenCompraId": "OC-0027",
+      "ordenNumero": "OC-0027",
+      "fecha": "2026-09-27",
+      "hora": "13:45",
+      "medio": "Mensaje",
+      "personaContactada": "Ing. Mauricio Palacios",
+      "motivo": "Consulta por diferencia de precio en factura FAC-9140",
+      "resultado": "En espera de refacturación",
+      "observaciones": "Se solicitó cancelar factura FAC-9140 y emitir nueva con el precio pactado de $185.",
+      "registradoPor": "Ing. Fernando Mendoza"
     }
   ]
 }

@@ -15,12 +15,16 @@ export const PrivateRoutes = ({ route, children }) => {
   const { currentUser, isAuthenticated, setActiveView, navigateTo } = useConstructa();
   const navigate = navigateTo || setActiveView;
 
-  // 1. Verificación de autenticación (401 - Sesión no iniciada)
+  // 1. Verificación de autenticación (401 - Sesión no iniciada / Redirección a login)
   if (!isAuthenticated || !currentUser) {
+    if (typeof window !== 'undefined' && window.location.hash.replace('#', '') !== 'login') {
+      window.location.hash = 'login';
+    }
     return (
       <Status401 
         onLogin={() => navigate('login')} 
         onGoToLogin={() => navigate('login')} 
+        onGoToPublic={() => navigate('inicio')}
       />
     );
   }
@@ -33,6 +37,7 @@ export const PrivateRoutes = ({ route, children }) => {
       <Status403 
         onBackToHome={() => navigate(fallbackTarget)} 
         onGoToDashboard={() => navigate(fallbackTarget)} 
+        onGoToPublic={() => navigate('inicio')}
       />
     );
   }
