@@ -54,19 +54,14 @@ export async function sendContactEmail(data) {
     submitted_at: `${fecha} a las ${hora}`
   };
 
-  // Si no hay credenciales configuradas en el entorno, operamos en modo tolerante
+  // Si no hay credenciales configuradas en el entorno, reportamos el fallo de manera honesta
   if (!isEmailJSConfigured()) {
     if (import.meta.env.DEV) {
-      console.info(
-        '[EmailJS] Modo local / Variables de entorno no configuradas (VITE_EMAILJS_*). La solicitud fue persistida localmente con éxito.',
-        { templateParams }
-      );
+      console.warn('[EmailJS] Variables de entorno VITE_EMAILJS_* no configuradas.');
     }
-    // Retornamos éxito simulado para permitir que la aplicación funcione fluidamente
     return {
-      success: true,
-      simulated: true,
-      message: 'Notificación procesada en modo seguro local'
+      success: false,
+      error: 'El mensaje no pudo enviarse. Inténtalo nuevamente.'
     };
   }
 

@@ -2921,9 +2921,9 @@
     }
   ],
   "settings": {
-    "theme": "dark",
+    "theme": "light",
     "fontSize": "normal",
-    "colorVision": "red-green",
+    "colorVision": "blue-yellow",
     "reducedMotion": false,
     "voice": {
       "enabled": false,
@@ -2932,12 +2932,12 @@
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-06T20:21:53.033Z",
+    "updatedAt": "2026-10-06T22:34:41.045Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
     "textSize": "normal",
-    "highContrast": false
+    "highContrast": true
   },
   "requests": [
     {

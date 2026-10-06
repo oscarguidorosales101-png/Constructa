@@ -24,7 +24,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 
-export const FutureProjection = ({ onNavigate }) => {
+export const FutureProjection = ({ onNavigate, embedded = false }) => {
   const {
     projects = [],
     expenses = [],
@@ -52,12 +52,28 @@ export const FutureProjection = ({ onNavigate }) => {
   const [projection, setProjection] = useState(null);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [aiStatus, setAiStatus] = useState('Verificando...');
 
   // Estados de conversación interactiva sobre la obra seleccionada
   const [conversationHistory, setConversationHistory] = useState([]);
   const [questionInput, setQuestionInput] = useState('');
   const [askingQuestion, setAskingQuestion] = useState(false);
   const [chatError, setChatError] = useState(null);
+
+  // Verificar estado de conexión de IA y n8n al montar
+  useEffect(() => {
+    aiService.checkServerStatus().then((res) => {
+      if (res && res.n8nConnected) {
+        setAiStatus('IA CONECTADA');
+      } else if (res && res.configured) {
+        setAiStatus('IA CONECTADA');
+      } else {
+        setAiStatus('IA NO DISPONIBLE');
+      }
+    }).catch(() => {
+      setAiStatus('IA NO DISPONIBLE');
+    });
+  }, []);
 
   // Proyecto activo seleccionado
   const selectedProject = useMemo(() => {
@@ -107,7 +123,7 @@ export const FutureProjection = ({ onNavigate }) => {
     const newProjectId = e.target.value;
     setSelectedProjectId(newProjectId);
 
-    // Requerimiento 8: Limpiar memoria al cambiar de obra para evitar contaminación
+    // Limpiar memoria al cambiar de obra para evitar contaminación
     setConversationHistory([]);
     setQuestionInput('');
     setChatError(null);
@@ -121,7 +137,7 @@ export const FutureProjection = ({ onNavigate }) => {
     fetchProjection(selectedProject);
   }, [selectedProjectId, projects.length, expenses.length, schedule.length]);
 
-  // Enviar pregunta interactiva sobre la obra seleccionada
+  // Enviar pregunta interactiva libre conectada directamente a N8N
   const handleAskQuestion = async (predefinedQuestion = null) => {
     const query = (predefinedQuestion || questionInput).trim();
     if (!query || askingQuestion) return;
@@ -135,34 +151,44 @@ export const FutureProjection = ({ onNavigate }) => {
       timestamp: new Date().toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' })
     };
 
-    // Añadir mensaje de usuario al historial local
     const updatedHistory = [...conversationHistory, userMessage];
     setConversationHistory(updatedHistory);
     setQuestionInput('');
 
     try {
-      const result = await aiService.analyzeProject({
-        project: selectedProject,
-        data: operationalData,
+      const result = await aiService.askAiOperation({
         question: query,
-        conversationHistory: updatedHistory
+        role: currentUser?.rol || 'Administrador',
+        project: selectedProject,
+        data: operationalData
       });
 
-      if (result && result.ok) {
+      if (result && (result.ok || result.success)) {
+        // Conexión dinámica: si la pregunta mencionó una obra existente, seleccionarla automáticamente
+        if (result.targetProject && String(result.targetProject.id) !== String(selectedProjectId)) {
+          setSelectedProjectId(String(result.targetProject.id));
+        }
+
         const aiMessage = {
           role: 'assistant',
-          text: result.text,
-          provider: result.provider,
-          engineType: result.engineType,
-          isRealGemini: result.isRealGemini,
+          text: result.answer || result.text,
+          provider: 'n8n (Gemini AI Real)',
+          engineType: 'AI_REAL',
+          isRealGemini: true,
+          analysisType: result.analysisType,
+          risks: result.risks || [],
+          recommendations: result.recommendations || [],
           timestamp: new Date().toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' })
         };
         setConversationHistory([...updatedHistory, aiMessage]);
+        setAiStatus('IA CONECTADA');
       } else {
-        setChatError(result?.error || 'No fue posible obtener una respuesta de IA en este momento.');
+        setChatError(result?.error || 'N8N no responde en http://localhost:5678/webhook/constructa-ai.');
+        setAiStatus('IA NO DISPONIBLE');
       }
     } catch (err) {
-      setChatError('No fue posible obtener una respuesta de IA en este momento.');
+      setChatError('N8N no responde en http://localhost:5678/webhook/constructa-ai.');
+      setAiStatus('IA NO DISPONIBLE');
     } finally {
       setAskingQuestion(false);
     }
@@ -230,16 +256,32 @@ export const FutureProjection = ({ onNavigate }) => {
   ];
 
   return (
-    <div className="constructa-page">
+    <div className={embedded ? "constructa-future-projection-embedded" : "constructa-page"}>
       {/* Header */}
-      <div className="constructa-page-header">
+      <div className="constructa-page-header" style={embedded ? { marginTop: '1rem', paddingBottom: '1rem' } : {}}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-gold)', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px' }}>
-            <Sparkles size={14} /> MÓDULO EXCLUSIVO DE DIRECCIÓN GENERAL
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-gold)', fontSize: '0.75rem', fontWeight: 700 }}>
+              <Sparkles size={14} /> PROYECCIÓN AL FUTURO
+            </span>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '3px 8px',
+              borderRadius: '4px',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              background: aiStatus === 'IA CONECTADA' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: aiStatus === 'IA CONECTADA' ? 'var(--status-success, #10b981)' : 'var(--status-danger, #ef4444)',
+              border: `1px solid ${aiStatus === 'IA CONECTADA' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`
+            }}>
+              {aiStatus === 'IA CONECTADA' ? '✓ ' : '× '} {aiStatus}
+            </span>
           </div>
-          <h1 className="constructa-page-title">Proyección al Futuro & Inteligencia Operativa</h1>
+          <h2 className="constructa-page-title" style={{ fontSize: embedded ? '1.5rem' : '1.85rem' }}>Proyección al Futuro & Asistente de Operación</h2>
           <p className="constructa-page-subtitle">
-            Análisis predictivo de desviaciones presupuestarias, cronogramas, cadena de suministro y proyecciones de obra.
+            Análisis predictivo de desviaciones presupuestarias, cronogramas y consultas de operación con IA real vía N8N.
           </p>
         </div>
 
@@ -249,13 +291,15 @@ export const FutureProjection = ({ onNavigate }) => {
               Actualizado: {lastUpdated}
             </span>
           )}
-          <Button
-            variant="secondary"
-            onClick={() => navigate('dashboard')}
-            icon={<ArrowLeft size={16} />}
-          >
-            Volver al Dashboard
-          </Button>
+          {!embedded && (
+            <Button
+              variant="secondary"
+              onClick={() => navigate('dashboard')}
+              icon={<ArrowLeft size={16} />}
+            >
+              Volver al Dashboard
+            </Button>
+          )}
           <Button
             variant="primary"
             onClick={() => fetchProjection(selectedProject)}
@@ -601,7 +645,7 @@ export const FutureProjection = ({ onNavigate }) => {
             className="constructa-input"
             value={questionInput}
             onChange={(e) => setQuestionInput(e.target.value)}
-            placeholder={selectedProject ? `Pregúntale a la IA sobre "${selectedProject.nombre}"...` : 'Pregúntale a la IA sobre la cartera corporativa...'}
+            placeholder="Pregunta Libre sobre la Operación de CONSTRUCTA..."
             disabled={askingQuestion}
             style={{ flex: 1, padding: '10px 14px', fontSize: '0.9rem' }}
           />
@@ -611,7 +655,7 @@ export const FutureProjection = ({ onNavigate }) => {
             disabled={askingQuestion || !questionInput.trim()}
             icon={askingQuestion ? <RefreshCw size={16} className="spin-animation" /> : <Send size={16} />}
           >
-            {askingQuestion ? 'Consultando...' : 'Consultar'}
+            {askingQuestion ? 'Analizando información...' : 'Preguntar a la IA'}
           </Button>
         </form>
       </div>

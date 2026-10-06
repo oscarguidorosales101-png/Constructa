@@ -514,14 +514,8 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
         localResponse = 'La capital de Alemania es Berlín.';
       } else if (qLower.includes('colombia')) {
         localResponse = 'La capital de Colombia es Bogotá.';
-      } else if (qLower.includes('argentina')) {
-        localResponse = 'La capital de Argentina es Buenos Aires.';
-      } else if (qLower.includes('reino unido') || qLower.includes('inglaterra')) {
-        localResponse = 'La capital del Reino Unido es Londres.';
-      } else if (qLower.includes('estados unidos')) {
-        localResponse = 'La capital de Estados Unidos es Washington D.C.';
       } else {
-        localResponse = 'Esta es una consulta de conocimiento general, independiente de la operación de CONSTRUCTA. En modo local sin conexión activa a Gemini, las respuestas sobre conocimiento universal están limitadas. Para respuestas abiertas en vivo sobre cualquier tema, configure GEMINI_API_KEY en el servidor.';
+        localResponse = 'Esta es una consulta de conocimiento general, independiente de la operación de CONSTRUCTA. En modo local sin conexión activa a Gemini, las respuestas sobre conocimiento universal están limitadas. Para respuestas abiertas en vivo sobre cualquier tema, configure GEMINI_API_KEY o active el asistente N8N.';
       }
     }
     // Caso C: Pregunta conceptual general (construcción, legal o finanzas)
@@ -539,7 +533,7 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
       } else if (qLower.includes('estimación') || qLower.includes('estimacion')) {
         localResponse = 'Una estimación de obra es la cuantificación y valuación monetaria periódica de los volúmenes de trabajo realmente ejecutados y aprobados durante un periodo específico (quincenal o mensual), formulada con base en los conceptos y precios unitarios del contrato para su revisión y cobro.';
       } else {
-        localResponse = 'Este concepto forma parte del conocimiento técnico y administrativo de la construcción. Para una explicación extendida o adaptada a normativas particulares, se recomienda consultar las especificaciones contractuales o habilitar la conectividad con Gemini.';
+        localResponse = 'Este concepto forma parte del conocimiento técnico y administrativo de la construcción. Para una explicación extendida o adaptada a normativas particulares, se recomienda consultar las especificaciones contractuales o habilitar la conectividad con Gemini / N8N.';
       }
     }
     // Caso D: Pregunta global sobre CONSTRUCTA
@@ -702,12 +696,101 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
     return {
       ok: true,
       text: localResponse,
-      provider: 'Motor Analítico CONSTRUCTA (Fallback Hechos Operativos)',
-      model: 'Inferencia Operativa Local',
+      provider: 'Motor Analítico CONSTRUCTA (Análisis Estadístico Operativo)',
+      model: 'Cálculo Estadístico Operativo',
       isRealGemini: false,
       engineType: 'AI_LOCAL_FALLBACK',
       facts: isSingleProject ? projectFacts : globalFacts
     };
+  },
+
+  /**
+   * Pregunta Libre sobre la Operación de CONSTRUCTA — Conexión Real y Exclusiva con N8N
+   */
+  async askAiOperation({ question, role = 'Administrador', project = null, data = {} }) {
+    if (!question || !question.trim()) {
+      return { ok: false, success: false, error: 'Por favor ingresa una pregunta válida.' };
+    }
+
+    const targetProject = resolveTargetProject(question, data.projects || [], project);
+    const isSingleProject = Boolean(targetProject);
+    const projectFacts = isSingleProject ? buildProjectContext(targetProject, data) : null;
+    const globalFacts = buildGlobalPortfolioContext(data);
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+      const res = await fetch('/api/ai/operation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          question: question.trim(),
+          role,
+          projectId: targetProject?.id || null,
+          projectName: targetProject?.nombre || null,
+          context: {
+            ...globalFacts,
+            projectFacts,
+            projects: (data.projects || []).map((p) => `${p.codigo || p.id} ${p.nombre}`)
+          }
+        })
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.ok && result.success) {
+          return {
+            ok: true,
+            success: true,
+            isRealAI: true,
+            answer: result.answer,
+            text: result.answer,
+            projectId: result.projectId,
+            projectName: result.projectName,
+            targetProject,
+            analysisType: result.analysisType,
+            risks: result.risks || [],
+            recommendations: result.recommendations || [],
+            timestamp: result.timestamp,
+            durationMs: result.durationMs,
+            engineType: 'AI_REAL',
+            status: 'IA CONECTADA'
+          };
+        } else {
+          return {
+            ok: false,
+            success: false,
+            isRealAI: false,
+            error: result.error || 'N8N no devolvió una respuesta válida.',
+            engineType: 'AI_ERROR',
+            status: 'IA NO DISPONIBLE'
+          };
+        }
+      } else {
+        return {
+          ok: false,
+          success: false,
+          isRealAI: false,
+          error: `Error HTTP ${res.status} al conectar con N8N.`,
+          engineType: 'AI_ERROR',
+          status: 'IA NO DISPONIBLE'
+        };
+      }
+    } catch (err) {
+      return {
+        ok: false,
+        success: false,
+        isRealAI: false,
+        error: err.name === 'AbortError'
+          ? 'Tiempo de espera agotado al conectar con N8N.'
+          : 'N8N no responde en http://localhost:5678/webhook/constructa-ai. Verifique que el servicio n8n esté activo.',
+        engineType: 'AI_ERROR',
+        status: 'IA NO DISPONIBLE'
+      };
+    }
   },
 
   /**

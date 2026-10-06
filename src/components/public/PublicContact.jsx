@@ -77,13 +77,13 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
       if (result.success) {
         setIsSent(true);
       } else {
-        setSendError('Revisa los datos e inténtalo nuevamente.');
+        setSendError('El mensaje no pudo enviarse. Inténtalo nuevamente.');
       }
     } catch (err) {
       if (import.meta.env.DEV) {
         console.error('[PublicContact] Error procesando contacto:', err);
       }
-      setSendError('Revisa los datos e inténtalo nuevamente.');
+      setSendError('El mensaje no pudo enviarse. Inténtalo nuevamente.');
     } finally {
       setIsSending(false);
     }

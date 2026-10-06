@@ -368,15 +368,171 @@ function dbApiPlugin() {
           return '';
         };
 
-        // Endpoint para verificar estado de configuración de IA sin exponer la credencial
+        // 4. API DE CONSTRUCTA - SERVICIO INTERNO DE INFORMACIÓN EMPRESARIAL (/api/constructa/info)
+        if (req.url.startsWith('/api/constructa/info') && req.method === 'GET') {
+          try {
+            const currentDb = readDb();
+            const projects = currentDb.projects || [];
+            const expenses = currentDb.expenses || [];
+            const employees = currentDb.employees || [];
+            const clients = currentDb.clients || [];
+            const suppliers = currentDb.suppliers || [];
+            const materials = currentDb.materials || [];
+            const schedule = currentDb.schedule || [];
+            const purchaseOrders = currentDb.purchaseOrders || [];
+            const materialRequests = currentDb.materialRequests || [];
+            const supplierInvoices = currentDb.supplierInvoices || [];
+
+            const totalPresupuesto = projects.reduce((s, p) => s + Number(p.presupuesto || 0), 0);
+            const totalGastado = expenses.reduce((s, e) => s + Number(e.monto || 0), 0);
+            const avancePromedio = projects.length > 0 
+              ? Math.round(projects.reduce((s, p) => s + Number(p.avance ?? p.progreso ?? 0), 0) / projects.length) 
+              : 0;
+
+            const obrasConRetraso = schedule.filter(s => s.estado === 'Retrasada').map(s => s.fase || s.etapa);
+            const materialesBajoStock = materials.filter(m => Number(m.stockActual ?? m.stock ?? 0) <= Number(m.stockMinimo ?? 0)).map(m => m.nombre);
+
+            const info = {
+              ok: true,
+              empresa: {
+                nombre: 'CONSTRUCTA S.A.',
+                cedulaJuridica: '3-101-789456',
+                pais: 'Costa Rica',
+                moneda: 'CRC / USD',
+                tipo: 'Constructora y Desarrolladora de Infraestructura',
+                contacto: 'contacto@constructa.cr'
+              },
+              metricas: {
+                totalProyectos: projects.length,
+                proyectosActivos: projects.filter(p => (p.estado || '').toLowerCase().includes('ejecución') || (p.estado || '').toLowerCase().includes('desarrollo')).length,
+                avancePromedio,
+                presupuestoTotal: totalPresupuesto,
+                gastoTotal: totalGastado,
+                saldoDisponible: totalPresupuesto - totalGastado,
+                porcentajeEjecucion: totalPresupuesto > 0 ? Number(((totalGastado / totalPresupuesto) * 100).toFixed(1)) : 0
+              },
+              proyectos: projects.map(p => ({
+                id: p.id,
+                nombre: p.nombre,
+                estado: p.estado,
+                avance: p.avance ?? p.progreso ?? 0,
+                presupuesto: p.presupuesto,
+                cliente: p.cliente
+              })),
+              clientes: clients.map(c => ({ id: c.id, nombre: c.nombre, email: c.email })),
+              proveedores: suppliers.map(s => ({ id: s.id, nombre: s.nombre, categoria: s.categoria })),
+              operaciones: {
+                totalEmpleados: employees.length,
+                ordenesCompra: purchaseOrders.length,
+                solicitudesMateriales: materialRequests.length,
+                facturasProveedores: supplierInvoices.length
+              },
+              alertas: {
+                obrasConRetraso: [...new Set(obrasConRetraso)],
+                materialesBajoStock: [...new Set(materialesBajoStock)]
+              },
+              timestamp: new Date().toISOString()
+            };
+
+            return sendJson(200, info);
+          } catch (err) {
+            return sendJson(500, { ok: false, error: 'Error al consultar información de CONSTRUCTA: ' + err.message });
+          }
+        }
+
+        // Endpoint para verificar estado de configuración de IA y n8n sin exponer credenciales
         if (req.url === '/api/ai/status' && req.method === 'GET') {
+          let n8nOnline = false;
+          try {
+            const ctrl = new AbortController();
+            const t = setTimeout(() => ctrl.abort(), 1200);
+            const n8nRes = await fetch('http://localhost:5678/healthz', { signal: ctrl.signal });
+            clearTimeout(t);
+            n8nOnline = n8nRes.ok;
+          } catch (_) {}
+
           const key = getGeminiApiKey();
           return sendJson(200, {
             ok: true,
+            n8nConnected: n8nOnline,
+            n8nEndpoint: 'http://localhost:5678/webhook/constructa-ai',
             configured: Boolean(key && key.length > 10),
-            provider: 'Google Gemini',
-            model: 'gemini-1.5-flash'
+            provider: n8nOnline ? 'n8n Workflow + Gemini AI' : 'Sin Conexión n8n',
+            model: 'gemini-3.5-flash-lite',
+            status: n8nOnline ? 'IA CONECTADA' : 'IA NO DISPONIBLE'
           });
+        }
+
+        // Endpoint de Operación CONSTRUCTA IA - Enrutamiento directo y real a N8N Webhook
+        if (req.url === '/api/ai/operation' && req.method === 'POST') {
+          const startTime = Date.now();
+          return parseJsonBody()
+            .then(async (body) => {
+              const { question, role, projectId, projectName, context } = body;
+              if (!question || !question.trim()) {
+                return sendJson(400, { ok: false, error: 'La pregunta no puede estar vacía.' });
+              }
+
+              try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+                const n8nRes = await fetch('http://localhost:5678/webhook/constructa-ai', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ question, role, projectId, projectName, context }),
+                  signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                const durationMs = Date.now() - startTime;
+
+                if (!n8nRes.ok) {
+                  const errText = await n8nRes.text().catch(() => '');
+                  return sendJson(200, {
+                    ok: false,
+                    success: false,
+                    isRealAI: false,
+                    httpStatus: n8nRes.status,
+                    error: `N8N webhook respondió con código ${n8nRes.status}: ${errText.slice(0, 120)}`,
+                    durationMs
+                  });
+                }
+
+                const data = await n8nRes.json();
+                return sendJson(200, {
+                  ok: Boolean(data.success),
+                  success: Boolean(data.success),
+                  isRealAI: true,
+                  provider: 'n8n (Gemini AI Real)',
+                  answer: data.answer || '',
+                  text: data.answer || '',
+                  projectId: data.projectId || projectId || null,
+                  projectName: data.projectName || projectName || null,
+                  analysisType: data.analysisType || 'GENERAL',
+                  risks: data.risks || [],
+                  recommendations: data.recommendations || [],
+                  timestamp: data.timestamp || new Date().toISOString(),
+                  durationMs
+                });
+              } catch (err) {
+                const durationMs = Date.now() - startTime;
+                return sendJson(200, {
+                  ok: false,
+                  success: false,
+                  isRealAI: false,
+                  error: err.name === 'AbortError' 
+                    ? 'Tiempo de espera agotado al conectar con el webhook de N8N.' 
+                    : 'N8N no responde en http://localhost:5678/webhook/constructa-ai. Verifique que el servicio n8n esté activo.',
+                  technicalCause: {
+                    reason: err.name === 'AbortError' ? 'TIMEOUT' : 'CONNECTION_ERROR',
+                    message: err.message,
+                    durationMs
+                  }
+                });
+              }
+            })
+            .catch((err) => sendJson(400, { ok: false, error: 'Petición inválida: ' + err.message }));
         }
 
         // Endpoint seguro para Gemini AI - La API Key reside únicamente en el servidor
@@ -388,7 +544,7 @@ function dbApiPlugin() {
               const { prompt, systemPrompt } = body;
 
               if (!geminiKey || !geminiKey.trim()) {
-                console.log('[AI Server] GEMINI_API_KEY no configurada. Activando motor analítico con datos reales.');
+                console.log('[AI Server] GEMINI_API_KEY no configurada.');
                 return sendJson(200, {
                   ok: false,
                   noKey: true,
@@ -401,9 +557,9 @@ function dbApiPlugin() {
               }
 
               try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.trim()}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey.trim()}`;
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
 
                 const response = await fetch(url, {
                   method: 'POST',
@@ -460,7 +616,7 @@ function dbApiPlugin() {
                   ok: true,
                   text: generatedText.trim(),
                   provider: 'Google Gemini',
-                  model: 'gemini-1.5-flash',
+                  model: 'gemini-3.5-flash-lite',
                   isRealGemini: true,
                   durationMs
                 });

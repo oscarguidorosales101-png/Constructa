@@ -30,6 +30,7 @@ import { useConstructa } from '../../context/ConstructaContext.jsx';
 import DashboardCharts from '../../components/dashboard/DashboardCharts.jsx';
 import Button from '../../components/common/Button.jsx';
 import Badge from '../../components/common/Badge.jsx';
+import FutureProjection from '../FutureProjection/FutureProjection.jsx';
 
 export const Dashboard = ({ onNavigate }) => {
   const { 
@@ -1175,6 +1176,11 @@ export const Dashboard = ({ onNavigate }) => {
           </table>
         </div>
       </div>
+
+      {/* SECCIÓN INTEGRADORA: PROYECCIÓN AL FUTURO & ASISTENTE DE OPERACIÓN IA */}
+      <section id="proyeccion-futuro" style={{ marginTop: '2.5rem' }}>
+        <FutureProjection onNavigate={navigate} embedded={true} />
+      </section>
     </div>
   );
 };

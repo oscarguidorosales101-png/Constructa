@@ -413,33 +413,44 @@ select option:hover {
 }
 
 .badge-success {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--status-success-bg, rgba(16, 185, 129, 0.15));
+  color: var(--status-success, #34d399);
+  border: 1px solid var(--status-success-border, rgba(16, 185, 129, 0.35));
 }
 
 .badge-warning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: var(--status-warning-bg, rgba(245, 158, 11, 0.15));
+  color: var(--status-warning, #fbbf24);
+  border: 1px solid var(--status-warning-border, rgba(245, 158, 11, 0.35));
 }
 
 .badge-danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--status-danger-bg, rgba(239, 68, 68, 0.15));
+  color: var(--status-danger, #f87171);
+  border: 1px solid var(--status-danger-border, rgba(239, 68, 68, 0.35));
 }
 
 .badge-info {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: var(--status-info-bg, rgba(56, 189, 248, 0.15));
+  color: var(--status-info, #38bdf8);
+  border: 1px solid var(--status-info-border, rgba(56, 189, 248, 0.35));
+}
+
+.badge-primary {
+  background: var(--accent-amber-glow, rgba(245, 158, 11, 0.15));
+  color: var(--accent-primary, #f59e0b);
+  border: 1px solid var(--accent-amber, rgba(245, 158, 11, 0.35));
 }
 
 .badge-neutral {
-  background: rgba(148, 163, 184, 0.12);
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: var(--bg-surface-muted, rgba(148, 163, 184, 0.12));
+  color: var(--text-secondary, #cbd5e1);
+  border: 1px solid var(--border-medium, rgba(148, 163, 184, 0.25));
+}
+
+[data-high-contrast="true"] .badge {
+  font-weight: 700;
+  border-width: 1.5px;
 }
 
 /* 7. BARRAS DE PROGRESO */

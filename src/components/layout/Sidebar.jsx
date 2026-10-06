@@ -17,8 +17,7 @@ import {
   Globe,
   Inbox,
   Sliders,
-  UserCog,
-  Sparkles
+  UserCog
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import { hasPermission } from '../../utils/permissions.js';
@@ -116,7 +115,6 @@ export const Sidebar = ({ currentRoute, onNavigate, isOpen, onClose }) => {
     { id: 'cronograma', label: 'Cronograma', icon: CalendarDays },
     { id: 'avance', label: 'Avance de Obra', icon: TrendingUp },
     { id: 'reportes', label: 'Reportes y Estadísticas', icon: BarChart3 },
-    { id: 'proyeccion-futuro', label: 'Proyección al Futuro', icon: Sparkles },
   ];
 
   // Filtrar navegación paramétricamente según el rol del usuario conectado
