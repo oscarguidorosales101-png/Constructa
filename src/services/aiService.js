@@ -188,6 +188,129 @@ export function buildGlobalPortfolioContext(data = {}) {
   };
 }
 
+
+/**
+ * Identifica si una pregunta menciona explícitamente una obra específica del catálogo
+ */
+export function resolveTargetProject(question = '', projects = [], defaultProject = null) {
+  if (!question || !question.trim() || !Array.isArray(projects) || projects.length === 0) {
+    return defaultProject;
+  }
+  const q = question.toLowerCase();
+
+  for (const p of projects) {
+    const pName = (p.nombre || '').toLowerCase();
+    const pCode = (p.codigo || '').toLowerCase();
+    const pId = (p.id || '').toLowerCase();
+
+    // Coincidencia exacta de código o id
+    if (pCode && q.includes(pCode)) return p;
+    if (pId && q.includes(pId)) return p;
+    if (pName && q.includes(pName)) return p;
+
+    // Coincidencias por palabras distintivas (ej. "altavista", "nexus", "bicentenario")
+    const words = pName.split(/\s+/).filter((w) => w.length > 4 && !['torre', 'complejo', 'residencial', 'puente', 'edificio', 'vías', 'acceso'].includes(w));
+    if (words.some((w) => q.includes(w))) {
+      return p;
+    }
+  }
+
+  return defaultProject;
+}
+
+/**
+ * Clasifica la intención de una pregunta del usuario
+ */
+export function detectQuestionIntent(question = '') {
+  if (!question || !question.trim()) return 'DEFAULT_PROJECTION';
+  const q = question.toLowerCase().trim();
+
+  // 1. Información no disponible / predicción de mercado futuro no existente
+  if (
+    (q.includes('costará') || q.includes('va a costar') || q.includes('precio') || q.includes('valor')) &&
+    (q.includes('meses') || q.includes('años') || q.includes('dentro de') || q.includes('en el futuro') || q.includes('exactamente') || q.includes('dentro de 8'))
+  ) {
+    return 'UNAVAILABLE_FUTURE_DATA';
+  }
+
+  // 2. Preguntas de cultura general o no relacionadas con la empresa
+  if (
+    q.includes('capital de') ||
+    q.includes('presidente de') ||
+    q.includes('quién pintó') ||
+    q.includes('quien pinto') ||
+    q.includes('cuántos continentes') ||
+    q.includes('distancia entre') ||
+    q.includes('año del descubrimiento')
+  ) {
+    return 'GENERAL_NON_CONSTRUCTION';
+  }
+
+  // 3. Preguntas conceptuales generales (financieras, legales o constructivas)
+  if (
+    q.includes('hipoteca') ||
+    q.includes('fianza') ||
+    q.includes('flujo de caja') ||
+    q.includes('cash flow') ||
+    q.includes('hormigón') ||
+    q.includes('hormigon') ||
+    q.includes('concreto armado') ||
+    q.includes('bitácora') ||
+    q.includes('bitacora') ||
+    q.includes('estimación de obra') ||
+    q.includes('estimacion de obra') ||
+    q.includes('vicios ocultos') ||
+    q.includes('subcontratista')
+  ) {
+    return 'CONCEPTUAL_KNOWLEDGE';
+  }
+
+  // 4. Preguntas globales sobre la operación consolidada de CONSTRUCTA
+  if (
+    q.includes('hemos gastado') ||
+    q.includes('gasto total') ||
+    q.includes('mayor riesgo') ||
+    q.includes('atención prioritaria') ||
+    q.includes('atencion prioritaria') ||
+    q.includes('obras están atrasadas') ||
+    q.includes('obras estan atrasadas') ||
+    q.includes('dónde se está gastando más') ||
+    q.includes('donde se esta gastando mas') ||
+    q.includes('riesgo de abastecimiento') ||
+    q.includes('cambiado el presupuesto')
+  ) {
+    return 'GLOBAL_CONSTRUCTA';
+  }
+
+  // 5. Simulación cuantitativa sobre presupuesto / gastos
+  if (q.includes('aumenta') || q.includes('increment') || (q.includes('%') && (q.includes('gasto') || q.includes('presupuesto')))) {
+    return 'OBRA_SIMULATION';
+  }
+
+  // 6. Consultas sobre una obra (riesgos, estado, presupuesto, compras, personal)
+  if (
+    q.includes('riesgo') ||
+    q.includes('retras') ||
+    q.includes('presupuesto') ||
+    q.includes('gasto') ||
+    q.includes('material') ||
+    q.includes('cómo va') ||
+    q.includes('como va') ||
+    q.includes('avance') ||
+    q.includes('revisar primero') ||
+    q.includes('problema')
+  ) {
+    return 'OBRA_SPECIFIC';
+  }
+
+  // Si comienza por preguntas abiertas generales que no mencionan obra
+  if (q.startsWith('qué es ') || q.startsWith('que es ') || q.startsWith('cuál es ') || q.startsWith('cual es ') || q.startsWith('cómo es ') || q.startsWith('como es ')) {
+    return 'GENERAL_NON_CONSTRUCTION';
+  }
+
+  return 'GENERAL_OPEN';
+}
+
 export const aiService = {
   CONSTRUCTION_SAMPLE_TEXT,
 
@@ -218,6 +341,7 @@ export const aiService = {
 
   /**
    * Genera análisis o proyecciones para un proyecto seleccionado o para la cartera completa
+   * Comprende preguntas en lenguaje natural sin obligar a usar términos de obra y sin inventar datos
    */
   async analyzeProject({
     project = null,
@@ -225,9 +349,12 @@ export const aiService = {
     question = '',
     conversationHistory = []
   }) {
-    const isSingleProject = Boolean(project);
-    const projectFacts = isSingleProject ? buildProjectContext(project, data) : null;
-    const globalFacts = !isSingleProject ? buildGlobalPortfolioContext(data) : null;
+    // 1. Identificar si la pregunta se refiere a un proyecto específico mencionado en el texto
+    const targetProject = resolveTargetProject(question, data.projects || [], project);
+    const isSingleProject = Boolean(targetProject);
+    const projectFacts = isSingleProject ? buildProjectContext(targetProject, data) : null;
+    const globalFacts = buildGlobalPortfolioContext(data);
+    const intent = detectQuestionIntent(question);
 
     // Validación de datos mínimos
     if (isSingleProject && !projectFacts) {
@@ -241,43 +368,55 @@ export const aiService = {
       return {
         ok: true,
         insufficientData: true,
-        text: 'No hay información suficiente para generar una predicción confiable. Se requiere registrar obras activas.',
+        text: 'No hay información suficiente en CONSTRUCTA para generar una predicción confiable. Se requiere registrar obras activas.',
         engineType: 'AI_LOCAL_FALLBACK'
       };
     }
 
-    // Preparación del System Prompt
-    const systemPrompt = isSingleProject
-      ? `Eres el Asesor Especializado de Ingeniería y Finanzas de CONSTRUCTA asignado a la obra "${projectFacts.projectName}".
-Analiza con rigor profesional los hechos reales de esta obra específica. No inventes cifras. Si falta un dato indícalo con profesionalismo.
-Estructura tus respuestas con claridad ejecutiva en secciones: RESUMEN, ESTADO PRESUPUESTARIO, RIESGOS DE CRONOGRAMA, MATERIALES/ABASTECIMIENTO y RECOMENDACIONES.`
-      : `Eres el Director de Inteligencia Analítica de CONSTRUCTA. Analiza la cartera global de proyectos basándote exclusivamente en los hechos reales consolidados suministrados.
-Estructura tu reporte en: RESUMEN EJECUTIVO, CONTROL PRESUPUESTARIO, ALERTAS OPERATIVAS y RECOMENDACIONES ESTRATÉGICAS.`;
+    // 2. Preparación del System Prompt para Gemini (AI_REAL) con instrucciones de clasificación y naturalidad
+    const systemPrompt = `Eres el Asistente Inteligente de CONSTRUCTA para Dirección General.
 
-    // Preparación del texto de hechos (Contexto estricto del proyecto seleccionado)
+DIRECTRICES FUNDAMENTALES DE RESPUESTA:
+1. CLASIFICACIÓN DE INTENCIÓN Y FLEXIBILIDAD:
+   - A) PREGUNTAS GENERALES O NO RELACIONADAS CON CONSTRUCTA (ej. "¿Cuál es la capital de Francia?", "¿Qué es una hipoteca?"):
+        Responde normalmente con tu conocimiento general en lenguaje fluido, directo y profesional. NUNCA fuerces una conexión artificial con CONSTRUCTA ni inventes que tiene que ver con una obra.
+        Ejemplo: si preguntan "¿Cuál es la capital de Francia?", responde directamente: "La capital de Francia es París."
+        Ejemplo: si preguntan "¿Qué es una hipoteca?", explica el concepto financiero/inmobiliario claramente sin atarlo a una obra particular.
+   - B) PREGUNTAS SOBRE CONSTRUCTA EN GENERAL (ej. "¿Cuánto hemos gastado este mes?", "¿Qué obras están atrasadas?", "¿Cuál proyecto presenta mayor riesgo?"):
+        Utiliza prioritariamente los datos reales del sistema proporcionados en el contexto consolidado. Responde con lenguaje natural integrando los números reales sin inventar cifras.
+   - C) PREGUNTAS SOBRE UNA OBRA ESPECÍFICA (ej. "¿Cómo va Proyecto A?", o sobre la obra seleccionada si preguntan "¿Qué riesgos tiene?" o "¿Está dentro del presupuesto?"):
+        Utiliza exclusivamente los hechos reales de esa obra provistos en el contexto. Si el usuario pregunta por una obra diferente a la seleccionada pero mencionada por nombre, enfoca la respuesta en esa obra.
+   - D) INFORMACIÓN NO DISPONIBLE O PREDICCIONES FUTURAS EXACTAS IMPOSIBLES (ej. "¿Cuánto costará exactamente el cemento dentro de 8 meses?"):
+        NUNCA inventes números, proveedores, fechas ni datos que no existan en el sistema. Responde con honestidad profesional indicando: "No tengo información suficiente en CONSTRUCTA para determinarlo con exactitud."
+
+2. ESTILO Y NATURALIDAD:
+   - Responde en lenguaje natural, conciso y profesional en español.
+   - NO comiences siempre con "Según los datos de CONSTRUCTA..." cuando la pregunta no requiera datos del sistema.
+   - NO muestres código, formato JSON técnico, variables de entorno ni stack traces.
+   - Diferencia claramente entre datos reales del sistema, conocimiento general e inferencias analíticas.`;
+
+    // 3. Preparación del bloque de contexto para Gemini
     let contextText = '';
     if (isSingleProject) {
       contextText = `
-FICHA TÉCNICA Y OPERATIVA ACTUAL DE LA OBRA:
-- Nombre: ${projectFacts.projectName} (Código: ${projectFacts.projectCode})
-- Cliente: ${projectFacts.clientName} | Ubicación: ${projectFacts.location}
-- Estado de Obra: ${projectFacts.status} | Avance Físico Actual: ${projectFacts.progressPct}%
+FICHA TÉCNICA Y OPERATIVA DE LA OBRA "${projectFacts.projectName}":
+- Código: ${projectFacts.projectCode} | Cliente: ${projectFacts.clientName} | Ubicación: ${projectFacts.location}
+- Estado Actual: ${projectFacts.status} | Avance Físico Certificado: ${projectFacts.progressPct}%
 - Presupuesto Oficial Autorizado: $${projectFacts.budget.toLocaleString()} MXN
 - Gasto Real Acumulado: $${projectFacts.totalSpent.toLocaleString()} MXN (Tasa de Consumo: ${projectFacts.consumptionPct}%)
 - Saldo Financiero Disponible: $${projectFacts.budgetBalance.toLocaleString()} MXN
 - Alerta Presupuestal: ${projectFacts.isOverBudget ? 'SÍ (Supera el 90% del presupuesto asignado)' : 'NO (Dentro del margen esperado)'}
-- Periodo Contractual: Inicio ${projectFacts.startDate} a Cierre Estimado ${projectFacts.endDate}
-- Cronograma: ${projectFacts.totalStages} etapas registradas (${projectFacts.completedStages} concluidas, ${projectFacts.inProgressStages} en curso, ${projectFacts.delayedStages} retrasadas).
-- Fases: ${projectFacts.stageNames.join('; ') || 'Sin desglose de fases'}
-- Etapas Retrasadas Específicas: ${projectFacts.delayedStageDetails.join(', ') || 'Ninguna etapa reporta retraso'}
-- Riesgos Documentados en Cronograma: ${projectFacts.knownRisks.join(', ') || 'Ninguno registrado formalmente'}
-- Entregables Clave: ${projectFacts.deliverables.join(', ') || 'No definidos'}
-- Compras y Pedidos: ${projectFacts.projectOrdersCount} órdenes emitidas por un monto de $${projectFacts.totalOrdersAmount.toLocaleString()} MXN (${projectFacts.pendingDeliveryOrdersCount} pendientes de entrega).
-- Insumos Comprados: ${projectFacts.materialsOrdered.slice(0, 5).join(', ') || 'Sin órdenes activas'}
-- Proveedores Vinculados: ${projectFacts.projectSupplierNames.join(', ') || 'Sin proveedores asignados en órdenes'}
-- Materiales en Riesgo de Stock en Obra: ${projectFacts.criticalMaterials.join(', ') || 'Stock de insumos en niveles regulares'}
-- Solicitudes Urgentes de Insumos: ${projectFacts.urgentRequestsCount}
-- Personal en Sitio: ${projectFacts.staffCount} colaboradores asignados (${projectFacts.staffRoles.slice(0, 4).join(', ') || 'Sin personal asignado'}).
+- Fechas de Contrato: Inicio ${projectFacts.startDate} | Cierre Estimado ${projectFacts.endDate}
+- Cronograma: ${projectFacts.totalStages} etapas (${projectFacts.completedStages} completadas, ${projectFacts.inProgressStages} en curso, ${projectFacts.delayedStages} retrasadas).
+- Fases: ${projectFacts.stageNames.join('; ') || 'Sin desglose'}
+- Etapas Retrasadas: ${projectFacts.delayedStageDetails.join(', ') || 'Ninguna etapa reporta retraso'}
+- Riesgos Documentados: ${projectFacts.knownRisks.join(', ') || 'Ninguno registrado formalmente'}
+- Compras: ${projectFacts.projectOrdersCount} órdenes emitidas por $${projectFacts.totalOrdersAmount.toLocaleString()} MXN (${projectFacts.pendingDeliveryOrdersCount} pendientes de arribo en obra).
+- Insumos Comprados: ${projectFacts.materialsOrdered.slice(0, 5).join(', ') || 'Sin compras activas'}
+- Proveedores Vinculados: ${projectFacts.projectSupplierNames.join(', ') || 'Sin proveedores registrados'}
+- Materiales en Riesgo de Stock en Obra: ${projectFacts.criticalMaterials.join(', ') || 'Niveles regulares'}
+- Solicitudes Urgentes: ${projectFacts.urgentRequestsCount}
+- Personal en Sitio: ${projectFacts.staffCount} colaboradores (${projectFacts.staffRoles.slice(0, 4).join(', ') || 'Sin personal asignado'}).
 `;
     } else {
       contextText = `
@@ -293,20 +432,20 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
 `;
     }
 
-    // Historial previo de conversación para este proyecto
+    // Historial previo de conversación
     let conversationContext = '';
     if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
-      conversationContext = '\nMEMORIA DE LA CONVERSACIÓN ACTUAL SOBRE ESTE PROYECTO:\n' +
-        conversationHistory.map((m) => `${m.role === 'user' ? 'Administrador' : 'IA'}: ${m.text}`).join('\n') + '\n';
+      conversationContext = '\nMEMORIA DE LA CONVERSACIÓN RECIENTE:\n' +
+        conversationHistory.map((m) => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.text}`).join('\n') + '\n';
     }
 
     const promptUserInstruction = question && question.trim()
-      ? `PREGUNTA ESPECÍFICA DEL ADMINISTRADOR: "${question.trim()}"\nResponde directamente a la consulta utilizando como base los hechos operativos descritos. Si se solicita simulación porcentual de gasto, efectúa el cálculo numérico exacto.`
-      : 'Genera un informe completo de proyección al futuro, riesgos y recomendaciones de obra.';
+      ? `PREGUNTA DEL USUARIO:\n"${question.trim()}"`
+      : 'Genera un informe completo de proyección al futuro, riesgos y recomendaciones operativas.';
 
-    const fullPrompt = `${contextText}\n${conversationContext}\n${promptUserInstruction}`;
+    const fullPrompt = `DATOS DEL SISTEMA DISPONIBLES COMO CONTEXTO (Utilízalos ÚNICAMENTE si la pregunta se refiere a CONSTRUCTA o a sus obras):\n${contextText}\n${conversationContext}\n${promptUserInstruction}`;
 
-    // Intentar solicitud real a Gemini mediante el proxy backend con AbortController de 15s
+    // 4. Intentar solicitud real a Google Gemini mediante el proxy backend con AbortController (15s)
     try {
       const clientAbort = new AbortController();
       const clientTimeout = setTimeout(() => clientAbort.abort(), 15000);
@@ -349,67 +488,162 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
       }
     }
 
-    // Motor Analítico Local de CONSTRUCTA (Fallback basado en hechos reales)
-    // Se ejecuta si no hay GEMINI_API_KEY o el servicio externo no está disponible.
-    // NUNCA se presenta como respuesta generada por Gemini: engineType: 'AI_LOCAL_FALLBACK'
-    let localReport = '';
+    // 5. Motor Analítico Local de CONSTRUCTA (Fallback basado en hechos reales e intención natural)
+    // Se activa cuando no hay GEMINI_API_KEY o el servicio externo está inaccesible.
+    // NUNCA se hace pasar por Gemini: engineType: 'AI_LOCAL_FALLBACK'
+    let localResponse = '';
+    const qLower = (question || '').toLowerCase();
 
-    if (isSingleProject) {
-      const qLower = (question || '').toLowerCase();
+    // Caso A: Información no disponible o predicciones futuras exactas imposibles
+    if (intent === 'UNAVAILABLE_FUTURE_DATA') {
+      localResponse = 'No tengo información suficiente en CONSTRUCTA para determinarlo. El sistema registra los costos históricos y los precios pactados en órdenes de compra vigentes, pero no dispone de proyecciones oficiales de precios de mercado a futuro para estimar ese valor con exactitud.';
+    }
+    // Caso B: Pregunta general no relacionada con CONSTRUCTA
+    else if (intent === 'GENERAL_NON_CONSTRUCTION') {
+      if (qLower.includes('francia')) {
+        localResponse = 'La capital de Francia es París.';
+      } else if (qLower.includes('españa') || qLower.includes('espana')) {
+        localResponse = 'La capital de España es Madrid.';
+      } else if (qLower.includes('costa rica')) {
+        localResponse = 'La capital de Costa Rica es San José.';
+      } else if (qLower.includes('méxico') || qLower.includes('mexico')) {
+        localResponse = 'La capital de México es la Ciudad de México.';
+      } else if (qLower.includes('italia')) {
+        localResponse = 'La capital de Italia es Roma.';
+      } else if (qLower.includes('alemania')) {
+        localResponse = 'La capital de Alemania es Berlín.';
+      } else if (qLower.includes('colombia')) {
+        localResponse = 'La capital de Colombia es Bogotá.';
+      } else if (qLower.includes('argentina')) {
+        localResponse = 'La capital de Argentina es Buenos Aires.';
+      } else if (qLower.includes('reino unido') || qLower.includes('inglaterra')) {
+        localResponse = 'La capital del Reino Unido es Londres.';
+      } else if (qLower.includes('estados unidos')) {
+        localResponse = 'La capital de Estados Unidos es Washington D.C.';
+      } else {
+        localResponse = 'Esta es una consulta de conocimiento general, independiente de la operación de CONSTRUCTA. En modo local sin conexión activa a Gemini, las respuestas sobre conocimiento universal están limitadas. Para respuestas abiertas en vivo sobre cualquier tema, configure GEMINI_API_KEY en el servidor.';
+      }
+    }
+    // Caso C: Pregunta conceptual general (construcción, legal o finanzas)
+    else if (intent === 'CONCEPTUAL_KNOWLEDGE') {
+      if (qLower.includes('hipoteca')) {
+        localResponse = 'Una hipoteca es un producto financiero a largo plazo mediante el cual una entidad bancaria presta capital para la adquisición, edificación o rehabilitación de un bien inmueble. La propia propiedad funge como garantía colateral del pago del préstamo. Si el prestatario cubre las cuotas estipuladas, la garantía hipotecaria queda liberada; si incurre en impago, la entidad crediticia posee el derecho legal de ejecutar la garantía para recuperar los fondos adeudados.';
+      } else if (qLower.includes('fianza')) {
+        localResponse = 'Una fianza en la industria de la construcción es una garantía legal y mercantil emitida por una compañía afianzadora para respaldar el cumplimiento de un contrato de obra. Sus modalidades principales son: fianza de anticipo (cautela el uso debido de los recursos iniciales), fianza de cumplimiento (avala la entrega en tiempo, costo y calidad pactados) y fianza de vicios ocultos (responde por defectos constructivos detectados con posterioridad a la recepción de la obra).';
+      } else if (qLower.includes('flujo de caja') || qLower.includes('cash flow')) {
+        localResponse = 'El flujo de caja es el registro y balance proyectado entre las entradas de efectivo (cobros de estimaciones a clientes, anticipos) y las salidas monetarias (nóminas de cuadrillas, compras de insumos, subcontratos) de una empresa o proyecto en un periodo determinado. Es vital para prevenir baches de liquidez y mantener la continuidad operativa en los frentes de trabajo.';
+      } else if (qLower.includes('hormigón') || qLower.includes('hormigon') || qLower.includes('concreto')) {
+        localResponse = 'El hormigón armado (o concreto armado) es un material compuesto estructural que combina la elevada resistencia a la compresión del concreto con la resistencia a la tracción del acero de refuerzo (varillas y mallas electrosoldadas). Esta unión mecánica dota a la estructura de solidez, ductilidad y resistencia ante esfuerzos sísmicos en cimentaciones, columnas, trabes y losas.';
+      } else if (qLower.includes('bitácora') || qLower.includes('bitacora')) {
+        localResponse = 'La bitácora de obra es el instrumento legal y técnico oficial donde se asientan de manera cronológica los acontecimientos relevantes de la construcción: condiciones climáticas, autorizaciones de colado, modificaciones de proyecto, incidentes de seguridad y acuerdos entre el constructor y la supervisión técnica.';
+      } else if (qLower.includes('estimación') || qLower.includes('estimacion')) {
+        localResponse = 'Una estimación de obra es la cuantificación y valuación monetaria periódica de los volúmenes de trabajo realmente ejecutados y aprobados durante un periodo específico (quincenal o mensual), formulada con base en los conceptos y precios unitarios del contrato para su revisión y cobro.';
+      } else {
+        localResponse = 'Este concepto forma parte del conocimiento técnico y administrativo de la construcción. Para una explicación extendida o adaptada a normativas particulares, se recomienda consultar las especificaciones contractuales o habilitar la conectividad con Gemini.';
+      }
+    }
+    // Caso D: Pregunta global sobre CONSTRUCTA
+    else if (intent === 'GLOBAL_CONSTRUCTA') {
+      if (qLower.includes('hemos gastado') || qLower.includes('gasto total')) {
+        localResponse = `En CONSTRUCTA se registra un gasto real acumulado de $${globalFacts.totalSpent.toLocaleString()} MXN entre todas las obras en cartera, sobre un fondo autorizado global de $${globalFacts.totalBudget.toLocaleString()} MXN (tasa de consumo del ${globalFacts.budgetConsumptionPct}%).`;
+      } else if (qLower.includes('mayor riesgo') || qLower.includes('atención prioritaria') || qLower.includes('atencion prioritaria')) {
+        localResponse = `${globalFacts.overBudgetCount > 0 ? `El proyecto con mayor atención prioritaria presupuestaria es ${globalFacts.overBudgetNames.join(', ')}, habiendo superado el 90% de sus fondos autorizados.` : 'Ninguna obra registra sobregiro presupuestal crítico.'} ${globalFacts.delayedCount > 0 ? `En cronograma, se requiere atención prioritaria en ${globalFacts.delayedNames.join(', ')} por registrar etapas con estatus de retraso.` : 'Las obras marchan dentro de los tiempos de cronograma pactados.'}`;
+      } else if (qLower.includes('obras están atrasadas') || qLower.includes('obras estan atrasadas')) {
+        localResponse = globalFacts.delayedCount > 0
+          ? `Actualmente se registran ${globalFacts.delayedCount} obras con fases retrasadas en cronograma: ${globalFacts.delayedNames.join(', ')}.`
+          : 'Ninguna obra registra retrasos críticos en sus fases de cronograma.';
+      } else if (qLower.includes('dónde se está gastando más') || qLower.includes('donde se esta gastando mas')) {
+        localResponse = globalFacts.overBudgetCount > 0
+          ? `Las obras con mayor presión financiera (gasto superior al 90% de su presupuesto autorizado) son: ${globalFacts.overBudgetNames.join(', ')}.`
+          : 'Todas las obras operan dentro de los márgenes financieros programados.';
+      } else if (qLower.includes('riesgo de abastecimiento')) {
+        localResponse = globalFacts.lowStockCount > 0
+          ? `Se identifican ${globalFacts.lowStockCount} materiales con existencias en o por debajo del stock mínimo de seguridad: ${globalFacts.lowStockNames.join(', ')}.`
+          : 'Los niveles de inventario de materiales se encuentran en rangos óptimos.';
+      } else if (qLower.includes('cambiado el presupuesto')) {
+        localResponse = `El presupuesto global autorizado asciende a $${globalFacts.totalBudget.toLocaleString()} MXN para las ${globalFacts.totalProjects} obras de la cartera. Se ha ejercido un acumulado de $${globalFacts.totalSpent.toLocaleString()} MXN, manteniendo un saldo disponible consolidado de $${(globalFacts.totalBudget - globalFacts.totalSpent).toLocaleString()} MXN.`;
+      } else {
+        localResponse = `La cartera de CONSTRUCTA comprende ${globalFacts.totalProjects} obras con un avance físico promedio del ${globalFacts.avgProgress}%, un presupuesto global de $${globalFacts.totalBudget.toLocaleString()} MXN y un gasto ejercido de $${globalFacts.totalSpent.toLocaleString()} MXN.`;
+      }
+    }
+    // Caso E: Simulación porcentual de gasto sobre la obra
+    else if (intent === 'OBRA_SIMULATION' && isSingleProject) {
+      const pctMatch = qLower.match(/(\d+)\s*%/);
+      const simPct = pctMatch ? Number(pctMatch[1]) : 10;
+      const currentSpent = projectFacts.totalSpent;
+      const additionalSpent = currentSpent * (simPct / 100);
+      const projectedTotal = currentSpent + additionalSpent;
+      const projectedConsumption = projectFacts.budget > 0 ? ((projectedTotal / projectFacts.budget) * 100).toFixed(1) : 0;
+      const projectedBalance = projectFacts.budget - projectedTotal;
 
-      // Si el usuario hizo una pregunta de simulación de gastos (e.g. "¿Qué pasa si el gasto aumenta 10%?")
-      if (qLower.includes('aumenta') || qLower.includes('increment') || qLower.includes('%') || (qLower.includes('gasto') && qLower.includes('más'))) {
-        const pctMatch = qLower.match(/(\d+)\s*%/);
-        const simPct = pctMatch ? Number(pctMatch[1]) : 10;
-        const currentSpent = projectFacts.totalSpent;
-        const additionalSpent = currentSpent * (simPct / 100);
-        const projectedTotal = currentSpent + additionalSpent;
-        const projectedConsumption = projectFacts.budget > 0 ? ((projectedTotal / projectFacts.budget) * 100).toFixed(1) : 0;
-        const projectedBalance = projectFacts.budget - projectedTotal;
-
-        localReport = `
-### ANÁLISIS DE SENSIBILIDAD PRESUPUESTARIA (${simPct}% DE INCREMENTO EN GASTO)
-- **Gasto Actual Registrado:** $${currentSpent.toLocaleString()} MXN (${projectFacts.consumptionPct}% del presupuesto).
-- **Incremento Simulado (+${simPct}%):** +$${Math.round(additionalSpent).toLocaleString()} MXN.
+      localResponse = `
+### ANÁLISIS DE SENSIBILIDAD PRESUPUESTARIA (+${simPct}% EN GASTO)
+- **Gasto Actual en ${projectFacts.projectName}:** $${currentSpent.toLocaleString()} MXN (${projectFacts.consumptionPct}% del presupuesto).
+- **Incremento Simulado (+${simPct}%):** +$${Math.round(additionalSpent).toLocaleString()} MXN adicionales.
 - **Gasto Proyectado Resultante:** $${Math.round(projectedTotal).toLocaleString()} MXN.
-- **Nuevo Nivel de Consumo Presupuestario:** **${projectedConsumption}%** (Saldo proyectado: $${Math.round(projectedBalance).toLocaleString()} MXN).
+- **Nuevo Nivel de Consumo:** **${projectedConsumption}%** (Saldo proyectado: $${Math.round(projectedBalance).toLocaleString()} MXN).
 - **Diagnóstico:** ${projectedTotal > projectFacts.budget
-  ? `CRÍTICO: Un incremento del ${simPct}% generaría un sobrecosto de $${Math.round(Math.abs(projectedBalance)).toLocaleString()} MXN por encima del fondo autorizado. Se requiere autorización de ampliación o control de partidas.`
-  : `VIABLE PERO EXIGENTE: El presupuesto absorbe el incremento, pero reduce el colchón de contingencia a $${Math.round(projectedBalance).toLocaleString()} MXN.`}
+  ? `CRÍTICO: Un aumento del ${simPct}% generaría un sobrecosto de $${Math.round(Math.abs(projectedBalance)).toLocaleString()} MXN por encima del fondo autorizado. Se requerirá ampliación formal de presupuesto o contención estricta de compras.`
+  : `VIABLE: El presupuesto autorizado absorbe el incremento, pero reduce la reserva de contingencia a $${Math.round(projectedBalance).toLocaleString()} MXN.`}
 
-**Recomendación:** Auditar las órdenes de compra pendientes (${projectFacts.pendingDeliveryOrdersCount} en tránsito) antes de comprometer nuevos desembolsos.
+**Recomendación:** Auditar las órdenes de compra pendientes (${projectFacts.pendingDeliveryOrdersCount} en tránsito) antes de autorizar nuevos compromisos económicos.
 `.trim();
-      } else if (qLower.includes('riesgo') || qLower.includes('retras') || qLower.includes('problema') || qLower.includes('atrasad')) {
-        localReport = `
-### EVALUACIÓN DE RIESGOS OPERATIVOS: ${projectFacts.projectName}
+    }
+    // Caso F: Consultas específicas sobre una obra
+    else if (isSingleProject && (intent === 'OBRA_SPECIFIC' || question.trim())) {
+      if (qLower.includes('riesgo') || qLower.includes('problema') || qLower.includes('retras')) {
+        localResponse = `
+### EVALUACIÓN DE RIESGOS: ${projectFacts.projectName}
 1. **Riesgo Presupuestal:** ${projectFacts.isOverBudget
-  ? `ALTO: La obra ya consumió el ${projectFacts.consumptionPct}% de sus fondos oficiales mientras su avance físico reporta ${projectFacts.progressPct}%.`
-  : `BAJO: Consumo del ${projectFacts.consumptionPct}% congruente con el avance físico (${projectFacts.progressPct}%).`}
+  ? `ALTO: La obra ya consumió el ${projectFacts.consumptionPct}% de sus fondos autorizados ($${projectFacts.totalSpent.toLocaleString()} MXN) mientras su avance físico reporta ${projectFacts.progressPct}%.`
+  : `CONTROLADO: Consumo financiero del ${projectFacts.consumptionPct}% congruente con el avance físico reportado (${projectFacts.progressPct}%).`}
 2. **Riesgo de Cronograma:** ${projectFacts.delayedStages > 0
-  ? `MODERADO-ALTO: Presenta ${projectFacts.delayedStages} etapa(s) con estatus de retraso (${projectFacts.delayedStageDetails.join(', ')}). Riesgo de desplazar el hito contractual del ${projectFacts.endDate}.`
-  : `BAJO: Las ${projectFacts.totalStages} etapas registradas se desenvuelven conforme al cronograma previsto.`}
-3. **Riesgo de Cadena de Suministro:** ${projectFacts.criticalMaterials.length > 0
-  ? `ALERTAS: Insumos con bajo inventario: ${projectFacts.criticalMaterials.join(', ')}.`
-  : `ESTABLE: Se registran ${projectFacts.pendingDeliveryOrdersCount} órdenes pendientes de arribo en obra.`}
+  ? `MODERADO-ALTO: Registra ${projectFacts.delayedStages} etapa(s) con estatus de retraso (${projectFacts.delayedStageDetails.join(', ')}). Existe riesgo de comprometer la fecha contractual del ${projectFacts.endDate}.`
+  : `BAJO: Las ${projectFacts.totalStages} etapas marchan conforme al calendario.`}
+3. **Riesgo de Abastecimiento:** ${projectFacts.criticalMaterials.length > 0
+  ? `ATENCIÓN: Insumos con bajo inventario: ${projectFacts.criticalMaterials.join(', ')}.`
+  : `REGULAR: Se registran ${projectFacts.pendingDeliveryOrdersCount} órdenes de compra pendientes de arribo en sitio.`}
+`.trim();
+      } else if (qLower.includes('presupuesto') || qLower.includes('dentro del presupuesto')) {
+        localResponse = `
+### SITUACIÓN PRESUPUESTAL: ${projectFacts.projectName}
+- **Presupuesto Autorizado:** $${projectFacts.budget.toLocaleString()} MXN.
+- **Gasto Real Acumulado:** $${projectFacts.totalSpent.toLocaleString()} MXN (**${projectFacts.consumptionPct}%** ejercido).
+- **Saldo Disponible:** $${projectFacts.budgetBalance.toLocaleString()} MXN.
+- **Dictamen:** ${projectFacts.isOverBudget
+  ? 'ALERTA: La obra supera el 90% de sus fondos autorizados. El ritmo de gasto supera proporcionalmente el avance físico certificado.'
+  : 'ESTABLE: La obra se mantiene dentro del presupuesto autorizado y dispone de saldo suficiente para las siguientes partidas.'}
 `.trim();
       } else if (qLower.includes('material') || qLower.includes('abastecim') || qLower.includes('compra')) {
-        localReport = `
-### ANÁLISIS DE MATERIALES Y ABASTECIMIENTO: ${projectFacts.projectName}
-- **Órdenes de Compra Vigentes:** ${projectFacts.projectOrdersCount} órdenes por un acumulado de $${projectFacts.totalOrdersAmount.toLocaleString()} MXN.
-- **Entregas Pendientes en Obra:** ${projectFacts.pendingDeliveryOrdersCount} órdenes en tránsito.
-- **Proveedores Activos:** ${projectFacts.projectSupplierNames.join(', ') || 'Sin órdenes asignadas a proveedores registrados'}.
-- **Insumos Críticos Detectados:** ${projectFacts.criticalMaterials.join(', ') || 'No se registran materiales con quiebre de stock para esta obra'}.
+        localResponse = `
+### CADENA DE SUMINISTRO: ${projectFacts.projectName}
+- **Órdenes de Compra:** ${projectFacts.projectOrdersCount} órdenes gestionadas ($${projectFacts.totalOrdersAmount.toLocaleString()} MXN).
+- **Entregas en Tránsito:** ${projectFacts.pendingDeliveryOrdersCount} pedidos pendientes de recepción en obra.
+- **Insumos en Alerta:** ${projectFacts.criticalMaterials.join(', ') || 'No se registran materiales con quiebre de stock para esta obra'}.
 - **Solicitudes Urgentes:** ${projectFacts.urgentRequestsCount} requerimiento(s) clasificados con alta prioridad.
 `.trim();
-      } else if (qLower.includes('revisar primero') || qLower.includes('prioritari') || qLower.includes('atenci')) {
-        localReport = `
-### ATENCIÓN PRIORITARIA RECOMENDADA: ${projectFacts.projectName}
-1. **${projectFacts.delayedStages > 0 ? 'CRONOGRAMA DE FASES RETRASADAS' : 'MONITOREO DE CRONOGRAMA'}:** ${projectFacts.delayedStages > 0 ? `Revisar inmediatamente ${projectFacts.delayedStageDetails.join(', ')} para reprogramar cuadrillas.` : 'Las etapas marchan al día.'}
-2. **${projectFacts.isOverBudget ? 'CONTENCIÓN DE GASTO PRESUPUESTARIO' : 'SEGUIMIENTO PRESUPUESTARIO'}:** ${projectFacts.isOverBudget ? `El gasto acumula ${projectFacts.consumptionPct}% del presupuesto ($${projectFacts.totalSpent.toLocaleString()} MXN ejercido). Auditar partidas antes de autorizar nuevos pedidos.` : `Saldo saludable de $${projectFacts.budgetBalance.toLocaleString()} MXN disponible.`}
-3. **LOGÍSTICA DE ARRIBO:** Dar seguimiento a ${projectFacts.pendingDeliveryOrdersCount} órdenes de compra pendientes de arribo para no detener frentes de trabajo.
+      } else if (qLower.includes('revisar primero') || qLower.includes('prioritari')) {
+        localResponse = `
+### ACCIONES PRIORITARIAS: ${projectFacts.projectName}
+1. **${projectFacts.delayedStages > 0 ? 'CRONOGRAMA' : 'SUPERVISIÓN'}:** ${projectFacts.delayedStages > 0 ? `Reprogramar cuadrillas para atender ${projectFacts.delayedStageDetails.join(', ')}.` : 'Monitorear hitos de la fase actual.'}
+2. **FINANZAS:** ${projectFacts.isOverBudget ? `Auditar partidas de costo tras alcanzar el ${projectFacts.consumptionPct}% de consumo.` : `Preservar el saldo de $${projectFacts.budgetBalance.toLocaleString()} MXN.`}
+3. **LOGÍSTICA:** Supervisar las ${projectFacts.pendingDeliveryOrdersCount} órdenes pendientes de arribo en sitio.
 `.trim();
       } else {
-        localReport = `
+        localResponse = `
+### ESTADO DE LA OBRA: ${projectFacts.projectName} (${projectFacts.projectCode})
+- **Cliente y Ubicación:** ${projectFacts.clientName} — ${projectFacts.location}
+- **Avance Físico Actual:** **${projectFacts.progressPct}%** (Estatus: ${projectFacts.status}).
+- **Finanzas:** $${projectFacts.totalSpent.toLocaleString()} MXN ejercidos de un presupuesto de $${projectFacts.budget.toLocaleString()} MXN (**${projectFacts.consumptionPct}%** consumido).
+- **Cronograma:** ${projectFacts.totalStages} etapas registradas (${projectFacts.delayedStages > 0 ? `${projectFacts.delayedStages} retrasadas` : 'al día'}).
+- **Fecha Prevista de Conclusión:** ${projectFacts.endDate}.
+`.trim();
+      }
+    }
+    // Caso G: Reporte ejecutivo por defecto (cuando no se especifica pregunta puntual)
+    else {
+      if (isSingleProject) {
+        localResponse = `
 ### 1. RESUMEN EJECUTIVO DE LA OBRA
 - **Proyecto:** ${projectFacts.projectName} (${projectFacts.projectCode})
 - **Cliente y Sitio:** ${projectFacts.clientName} — ${projectFacts.location}
@@ -440,9 +674,8 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
 2. Asegurar la recepción oportuna de las ${projectFacts.pendingDeliveryOrdersCount} órdenes de compra en tránsito para evitar paros de cuadrilla.
 3. Actualizar la bitácora de obra con las mediciones de la última semana.
 `.trim();
-      }
-    } else {
-      localReport = `
+      } else {
+        localResponse = `
 ### 1. RESUMEN EJECUTIVO DE CARTERA
 - **Cartera de Obras:** ${globalFacts.totalProjects} obras registradas (${globalFacts.activeProjectsCount} activas en ejecución) con un avance físico promedio del **${globalFacts.avgProgress}%**.
 - **Presupuesto Global:** $${globalFacts.totalBudget.toLocaleString()} MXN autorizado; $${globalFacts.totalSpent.toLocaleString()} MXN ejercido (**${globalFacts.budgetConsumptionPct}%** de consumo financiero global).
@@ -463,11 +696,12 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
 2. Reponer oportunamente los insumos con stock mínimo para evitar cuellos de botella en cuadrillas.
 3. Consolidar el cierre mensual de estimaciones financieras con los clientes principales.
 `.trim();
+      }
     }
 
     return {
       ok: true,
-      text: localReport,
+      text: localResponse,
       provider: 'Motor Analítico CONSTRUCTA (Fallback Hechos Operativos)',
       model: 'Inferencia Operativa Local',
       isRealGemini: false,

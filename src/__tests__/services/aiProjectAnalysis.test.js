@@ -343,4 +343,81 @@ describe('Pruebas Automatizadas de IA y Proyección por Obra (AI-001 a AI-012)',
     expect(res.technicalCause).toBe('TIMEOUT');
     expect(res.error).toBe('No fue posible obtener una respuesta de IA en este momento.');
   });
+
+  it('AI-013: Pregunta no relacionada ("¿Cuál es la capital de Francia?") responde "París" sin forzar relación con CONSTRUCTA ni con la obra', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ ok: false, noKey: true })
+    });
+
+    // Torre Altavista está seleccionada como obra actual
+    const res = await aiService.analyzeProject({
+      project: mockProjectA,
+      data: mockData,
+      question: '¿Cuál es la capital de Francia?'
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.text).toBe('La capital de Francia es París.');
+    expect(res.text).not.toContain('Torre Altavista');
+    expect(res.text).not.toContain('presupuesto');
+    expect(res.text).not.toContain('CONSTRUCTA');
+  });
+
+  it('AI-014: Pregunta conceptual ("¿Qué es una hipoteca?") explica el concepto sin contaminar con la obra seleccionada', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ ok: false, noKey: true })
+    });
+
+    const res = await aiService.analyzeProject({
+      project: mockProjectA,
+      data: mockData,
+      question: '¿Qué es una hipoteca?'
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.text).toContain('hipoteca');
+    expect(res.text).toContain('garantía');
+    expect(res.text).not.toContain('Torre Altavista');
+    expect(res.text).not.toContain('4,500,000');
+  });
+
+  it('AI-015: Información no disponible ("¿Cuánto costará exactamente el cemento dentro de 8 meses?") no inventa datos e indica falta de información', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ ok: false, noKey: true })
+    });
+
+    const res = await aiService.analyzeProject({
+      project: mockProjectA,
+      data: mockData,
+      question: '¿Cuánto costará exactamente el cemento dentro de 8 meses?'
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.text).toContain('No tengo información suficiente en CONSTRUCTA para determinarlo');
+  });
+
+  it('AI-016: Identifica la obra mencionada en la pregunta aunque otra obra esté seleccionada', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ ok: false, noKey: true })
+    });
+
+    // Obra seleccionada en UI es Torre Altavista (mockProjectA)
+    // Pero el usuario pregunta específicamente por Complejo Nexus (mockProjectB)
+    const res = await aiService.analyzeProject({
+      project: mockProjectA,
+      data: mockData,
+      question: '¿Cómo va Complejo Nexus?'
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.facts.projectId).toBe('PRJ-002');
+    expect(res.facts.projectName).toBe('Complejo Corporativo Nexus');
+    expect(res.facts.budget).toBe(7800000);
+    expect(res.text).toContain('Complejo Corporativo Nexus');
+  });
 });
+
