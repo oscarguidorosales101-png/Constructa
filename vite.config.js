@@ -341,19 +341,62 @@ function dbApiPlugin() {
           }
         }
 
-        // Endpoint seguro para Gemini AI - La API Key reside únicamente en el servidor (process.env.GEMINI_API_KEY)
+        // Función auxiliar para obtener la clave de Gemini sin reiniciar el servidor y sin exponerla al cliente
+        const getGeminiApiKey = () => {
+          if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()) {
+            return process.env.GEMINI_API_KEY.trim();
+          }
+          if (process.env.VITE_GEMINI_API_KEY && process.env.VITE_GEMINI_API_KEY.trim()) {
+            return process.env.VITE_GEMINI_API_KEY.trim();
+          }
+          try {
+            const envPath = path.resolve(__dirname, '.env');
+            if (fs.existsSync(envPath)) {
+              const envContent = fs.readFileSync(envPath, 'utf8');
+              const match = envContent.match(/^\s*GEMINI_API_KEY\s*=\s*([^\r\n#]+)/m);
+              if (match && match[1]) {
+                const val = match[1].trim().replace(/^["']|["']$/g, '');
+                if (val) return val;
+              }
+              const viteMatch = envContent.match(/^\s*VITE_GEMINI_API_KEY\s*=\s*([^\r\n#]+)/m);
+              if (viteMatch && viteMatch[1]) {
+                const val = viteMatch[1].trim().replace(/^["']|["']$/g, '');
+                if (val) return val;
+              }
+            }
+          } catch (_) {}
+          return '';
+        };
+
+        // Endpoint para verificar estado de configuración de IA sin exponer la credencial
+        if (req.url === '/api/ai/status' && req.method === 'GET') {
+          const key = getGeminiApiKey();
+          return sendJson(200, {
+            ok: true,
+            configured: Boolean(key && key.length > 10),
+            provider: 'Google Gemini',
+            model: 'gemini-1.5-flash'
+          });
+        }
+
+        // Endpoint seguro para Gemini AI - La API Key reside únicamente en el servidor
         if (req.url === '/api/ai/analyze' && req.method === 'POST') {
+          const startTime = Date.now();
           parseJsonBody()
             .then(async (body) => {
-              const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '';
+              const geminiKey = getGeminiApiKey();
               const { prompt, systemPrompt } = body;
 
               if (!geminiKey || !geminiKey.trim()) {
-                console.log('[AI Server Diagnostics] GEMINI_API_KEY no configurada. Activando motor analítico con datos reales.');
+                console.log('[AI Server] GEMINI_API_KEY no configurada. Activando motor analítico con datos reales.');
                 return sendJson(200, {
                   ok: false,
                   noKey: true,
-                  error: 'El servicio de IA generativa no está configurado.'
+                  error: 'El servicio de IA generativa no está configurado (falta GEMINI_API_KEY en .env).',
+                  technicalCause: {
+                    reason: 'NO_API_KEY',
+                    durationMs: Date.now() - startTime
+                  }
                 });
               }
 
@@ -376,20 +419,27 @@ function dbApiPlugin() {
                       }
                     ],
                     generationConfig: {
-                      temperature: 0.3,
-                      maxOutputTokens: 1024
+                      temperature: 0.2,
+                      maxOutputTokens: 1500
                     }
                   })
                 });
                 clearTimeout(timeoutId);
 
+                const durationMs = Date.now() - startTime;
+
                 if (!response.ok) {
                   const errText = await response.text().catch(() => '');
-                  console.error(`[AI Server Diagnostics] HTTP error ${response.status}: ${errText.slice(0, 100)}`);
+                  console.error(`[AI Server] HTTP error ${response.status}: ${errText.slice(0, 100)}`);
                   return sendJson(200, {
                     ok: false,
                     httpStatus: response.status,
-                    error: response.status === 429 ? 'Límite de cuota excedido. Intente en unos momentos.' : 'El análisis no está disponible en este momento.'
+                    error: response.status === 429 ? 'Límite de cuota excedido en el proveedor de IA. Intente en unos momentos.' : 'El análisis de IA no está disponible en este momento.',
+                    technicalCause: {
+                      reason: 'HTTP_ERROR',
+                      status: response.status,
+                      durationMs
+                    }
                   });
                 }
 
@@ -398,20 +448,33 @@ function dbApiPlugin() {
                 if (!generatedText) {
                   return sendJson(200, {
                     ok: false,
-                    error: 'El modelo no devolvió una respuesta válida.'
+                    error: 'El modelo no devolvió una respuesta válida.',
+                    technicalCause: {
+                      reason: 'EMPTY_RESPONSE',
+                      durationMs
+                    }
                   });
                 }
 
                 return sendJson(200, {
                   ok: true,
                   text: generatedText.trim(),
-                  provider: 'Google Gemini'
+                  provider: 'Google Gemini',
+                  model: 'gemini-1.5-flash',
+                  isRealGemini: true,
+                  durationMs
                 });
               } catch (aiErr) {
-                console.error('[AI Server Diagnostics] Exception:', aiErr.name, aiErr.message);
+                const durationMs = Date.now() - startTime;
+                console.error('[AI Server] Exception:', aiErr.name, aiErr.message);
                 return sendJson(200, {
                   ok: false,
-                  error: aiErr.name === 'AbortError' ? 'Tiempo de espera agotado al conectar con el servicio de IA.' : 'El análisis no está disponible en este momento.'
+                  error: aiErr.name === 'AbortError' ? 'Tiempo de espera agotado al conectar con el servicio de IA.' : 'El análisis no está disponible en este momento.',
+                  technicalCause: {
+                    reason: aiErr.name === 'AbortError' ? 'TIMEOUT' : 'EXCEPTION',
+                    message: aiErr.message,
+                    durationMs
+                  }
                 });
               }
             })

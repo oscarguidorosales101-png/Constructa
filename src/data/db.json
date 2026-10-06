@@ -2869,7 +2869,7 @@
     }
   ],
   "settings": {
-    "theme": "dark",
+    "theme": "light",
     "fontSize": "small",
     "colorVision": "blue-yellow",
     "reducedMotion": false,
@@ -2880,7 +2880,7 @@
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-06T02:47:09.711Z",
+    "updatedAt": "2026-10-06T04:55:05.382Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",

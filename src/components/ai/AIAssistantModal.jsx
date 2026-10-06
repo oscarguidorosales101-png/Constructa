@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Bot,
   Sparkles,
-  Play,
+  Building2,
   RotateCcw,
   Volume2,
   VolumeX,
   AlertCircle,
-  CheckCircle2,
-  FileText,
   HelpCircle,
-  ListOrdered,
-  BookOpen,
-  ArrowRight,
-  ExternalLink
+  CheckCircle2,
+  Send,
+  RefreshCw,
+  ShieldAlert
 } from 'lucide-react';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import aiService from '../../services/aiService.js';
@@ -26,33 +24,36 @@ export const AIAssistantModal = () => {
     currentUser,
     isAIAssistantModalOpen,
     closeAIAssistantModal,
+    projects = [],
+    expenses = [],
+    materials = [],
+    schedule = [],
+    purchaseOrders = [],
+    materialRequests = [],
+    suppliers = [],
+    employees = [],
+    metrics = {},
     settings,
     showAlert
   } = useConstructa();
 
   // Estados de IA
-  const [providerStatus, setProviderStatus] = useState(() => aiService.getStatus());
-  const [selectedProvider, setSelectedProvider] = useState(() => {
-    const status = aiService.getStatus();
-    return status.activeProvider || (status.gemini.configured ? 'gemini' : status.openai.configured ? 'openai' : 'gemini');
-  });
-
-  const [promptText, setPromptText] = useState(aiService.CONSTRUCTION_SAMPLE_TEXT);
-  const [selectedAction, setSelectedAction] = useState('analizar');
+  const [serverStatus, setServerStatus] = useState({ configured: false, provider: 'Google Gemini' });
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [promptText, setPromptText] = useState('¿Cuál proyecto presenta mayor riesgo y requiere atención prioritaria?');
   const [isLoading, setIsLoading] = useState(false);
   const [responseResult, setResponseResult] = useState('');
-  const [lastActionExecuted, setLastActionExecuted] = useState('');
+  const [engineType, setEngineType] = useState(null);
+  const [providerName, setProviderName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isReadingVoice, setIsReadingVoice] = useState(false);
 
-  // Actualizar estado de configuración al abrir
+  // Consultar estado real del servidor backend sin exponer secretos
   useEffect(() => {
     if (isAIAssistantModalOpen) {
-      const status = aiService.getStatus();
-      setProviderStatus(status);
-      if (status.activeProvider) {
-        setSelectedProvider(status.activeProvider);
-      }
+      aiService.checkServerStatus().then((status) => {
+        if (status) setServerStatus(status);
+      });
     }
   }, [isAIAssistantModalOpen]);
 
@@ -64,52 +65,75 @@ export const AIAssistantModal = () => {
     }
   }, [isAIAssistantModalOpen, isReadingVoice]);
 
-  // Exclusividad estricta para Administrador
-  if (!isAIAssistantModalOpen || currentUser?.rol !== 'Administrador') return null;
+  // Proyecto activo seleccionado
+  const selectedProject = useMemo(() => {
+    if (!selectedProjectId) return null;
+    return projects.find((p) => String(p.id) === String(selectedProjectId)) || null;
+  }, [projects, selectedProjectId]);
 
-  const currentProviderConfigured =
-    (selectedProvider === 'gemini' && providerStatus.gemini.configured) ||
-    (selectedProvider === 'openai' && providerStatus.openai.configured);
+  // Paquete de datos operativos reales de CONSTRUCTA
+  const operationalData = useMemo(() => ({
+    projects,
+    expenses,
+    materials,
+    schedule,
+    purchaseOrders,
+    materialRequests,
+    suppliers,
+    employees,
+    metrics
+  }), [projects, expenses, materials, schedule, purchaseOrders, materialRequests, suppliers, employees, metrics]);
 
-  const handleActionExecute = async () => {
-    if (!promptText.trim()) {
-      showAlert('Por favor ingresa un texto para procesar.', 'error');
-      return;
-    }
+  // Exclusividad estricta para Administrador (Requerimiento 12)
+  if (!isAIAssistantModalOpen || (currentUser?.rol !== 'Administrador' && currentUser?.rol !== 'Administrador General')) {
+    return null;
+  }
 
-    if (!providerStatus.anyConfigured || !currentProviderConfigured) {
-      setErrorMessage(
-        'El análisis no está disponible en este momento.'
-      );
+  // Preguntas sugeridas de operación corporativa (Requerimiento 3)
+  const suggestedQueries = [
+    '¿Cuál proyecto presenta mayor riesgo?',
+    '¿Qué obras están atrasadas?',
+    '¿Dónde se está gastando más de lo presupuestado?',
+    '¿Qué materiales presentan riesgo de abastecimiento?',
+    '¿Qué proyecto necesita atención prioritaria?',
+    '¿Cómo ha cambiado el presupuesto?',
+    '¿Qué pasaría si aumentan los gastos 10%?'
+  ];
+
+  const handleExecuteAnalysis = async (customQuery = null) => {
+    const textQuery = (customQuery || promptText).trim();
+    if (!textQuery) {
+      showAlert('Por favor ingresa una pregunta para procesar.', 'error');
       return;
     }
 
     setIsLoading(true);
     setErrorMessage('');
     setResponseResult('');
-    setLastActionExecuted(selectedAction);
 
-    // Si estaba reproduciendo voz previa, detenerla
     if (isReadingVoice) {
       accessibilityService.stop();
       setIsReadingVoice(false);
     }
 
-    const res = await aiService.generate({
-      prompt: promptText,
-      action: selectedAction,
-      provider: selectedProvider
-    });
+    try {
+      const res = await aiService.analyzeProject({
+        project: selectedProject,
+        data: operationalData,
+        question: textQuery
+      });
 
-    setIsLoading(false);
-
-    if (res.ok) {
-      setResponseResult(res.text);
-    } else {
-      setErrorMessage(res.error || 'No fue posible completar la solicitud de IA.');
-      if (res.details) {
-        console.error('[CONSTRUCTA AI Error Details]', res.details);
+      if (res && res.ok) {
+        setResponseResult(res.text);
+        setEngineType(res.engineType);
+        setProviderName(res.provider);
+      } else {
+        setErrorMessage(res?.error || 'No fue posible obtener una respuesta de IA en este momento.');
       }
+    } catch (err) {
+      setErrorMessage('No fue posible obtener una respuesta de IA en este momento.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -132,17 +156,12 @@ export const AIAssistantModal = () => {
     });
   };
 
-  const handleLoadOfficialText = () => {
-    setPromptText(aiService.CONSTRUCTION_SAMPLE_TEXT);
-    setErrorMessage('');
-  };
-
   return (
     <div className="modal-overlay" onClick={closeAIAssistantModal}>
       <div
         className="modal-content modal-lg"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '820px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+        style={{ maxWidth: '840px', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
       >
         {/* Cabecera */}
         <div className="modal-header">
@@ -152,22 +171,22 @@ export const AIAssistantModal = () => {
                 width: '38px',
                 height: '38px',
                 borderRadius: '8px',
-                background: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#ffffff',
-                boxShadow: '0 2px 10px rgba(56, 189, 248, 0.3)'
+                boxShadow: '0 2px 10px rgba(245, 158, 11, 0.3)'
               }}
             >
               <Bot size={22} />
             </div>
             <div>
               <h2 className="modal-title" style={{ fontSize: '1.2rem', margin: 0 }}>
-                Asistente de Inteligencia Artificial CONSTRUCTA
+                Asistente de Inteligencia Artificial para Dirección
               </h2>
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Conectividad real con Gemini & OpenAI — Sin respuestas simuladas
+                Consultas operativas en tiempo real alimentadas con datos certificados de CONSTRUCTA
               </p>
             </div>
           </div>
@@ -177,8 +196,8 @@ export const AIAssistantModal = () => {
         </div>
 
         {/* Cuerpo del Asistente */}
-        <div className="modal-body" style={{ flex: 1, padding: '1.4rem' }}>
-          {/* Barra de Selección de Proveedor y Estado Real */}
+        <div className="modal-body" style={{ flex: 1, padding: '1.4rem', overflowY: 'auto' }}>
+          {/* Selector de Obra / Contexto Dinámico */}
           <div
             style={{
               padding: '1rem',
@@ -189,192 +208,114 @@ export const AIAssistantModal = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <div>
-                <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
-                  Proveedor de IA Conectado
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Building2 size={18} color="var(--color-gold)" />
+                <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                  Contexto de Obra Seleccionado:
                 </span>
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                  {/* Radio Gemini */}
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.45rem',
-                      padding: '0.45rem 0.85rem',
-                      borderRadius: 'var(--radius-sm)',
-                      background: selectedProvider === 'gemini' ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-                      border: `1px solid ${selectedProvider === 'gemini' ? 'var(--accent-blue)' : 'var(--border-medium)'}`,
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="ai-provider"
-                      value="gemini"
-                      checked={selectedProvider === 'gemini'}
-                      onChange={() => setSelectedProvider('gemini')}
-                      style={{ accentColor: 'var(--accent-blue)' }}
-                    />
-                    Google Gemini
-                    <span
-                      className={`badge ${providerStatus.gemini.configured ? 'badge-success' : 'badge-neutral'}`}
-                      style={{ fontSize: '0.68rem', padding: '0.15rem 0.45rem' }}
-                    >
-                      {providerStatus.gemini.configured ? '✓ Configurado' : '○ Sin API key'}
-                    </span>
-                  </label>
-
-                  {/* Radio OpenAI */}
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.45rem',
-                      padding: '0.45rem 0.85rem',
-                      borderRadius: 'var(--radius-sm)',
-                      background: selectedProvider === 'openai' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                      border: `1px solid ${selectedProvider === 'openai' ? 'var(--accent-green)' : 'var(--border-medium)'}`,
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="ai-provider"
-                      value="openai"
-                      checked={selectedProvider === 'openai'}
-                      onChange={() => setSelectedProvider('openai')}
-                      style={{ accentColor: 'var(--accent-green)' }}
-                    />
-                    OpenAI (ChatGPT API)
-                    <span
-                      className={`badge ${providerStatus.openai.configured ? 'badge-success' : 'badge-neutral'}`}
-                      style={{ fontSize: '0.68rem', padding: '0.15rem 0.45rem' }}
-                    >
-                      {providerStatus.openai.configured ? '✓ Configurado' : '○ Sin API key'}
-                    </span>
-                  </label>
-                </div>
               </div>
+
+              <select
+                className="constructa-input"
+                value={selectedProjectId}
+                onChange={(e) => {
+                  setSelectedProjectId(e.target.value);
+                  setResponseResult('');
+                  setErrorMessage('');
+                }}
+                style={{ padding: '6px 12px', fontSize: '0.85rem', minWidth: '260px', maxWidth: '380px' }}
+              >
+                <option value="">🌐 Toda la Cartera (Consultas Globales)</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.codigo ? `[${p.codigo}] ` : ''}{p.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Aviso transparente de credenciales */}
-            {!providerStatus.anyConfigured && (
-              <div
-                style={{
-                  marginTop: '0.85rem',
-                  padding: '0.75rem 0.95rem',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(245, 158, 11, 0.1)',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.6rem',
-                  fontSize: '0.8rem',
-                  color: 'var(--text-secondary)'
-                }}
-              >
-                <AlertCircle size={18} color="#f59e0b" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <strong style={{ color: 'var(--accent-amber)' }}>Integración de IA Lista pero sin credencial activa:</strong>
-                  <p style={{ margin: '0.2rem 0 0' }}>
-                    De acuerdo con los principios de seguridad de la aplicación, no se inventan API keys ni se simulan respuestas. Agrega <code style={{ color: 'var(--accent-amber)' }}>VITE_GEMINI_API_KEY</code> o <code style={{ color: 'var(--accent-amber)' }}>VITE_OPENAI_API_KEY</code> a tu archivo <code style={{ color: 'var(--accent-amber)' }}>.env</code> para habilitar la generación en vivo.
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Aviso transparente de estado de backend */}
+            <div style={{ marginTop: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <span>
+                Motor activo en servidor: <strong>{serverStatus.configured ? 'Google Gemini 1.5 Flash (Conectado)' : 'Motor Analítico Local CONSTRUCTA (Fallback Hechos Reales)'}</strong>
+              </span>
+              <span className={`badge ${serverStatus.configured ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '0.7rem' }}>
+                {serverStatus.configured ? '✓ Gemini Online' : '⚡ Modo Hechos Operativos'}
+              </span>
+            </div>
           </div>
 
-          {/* Área de Texto de Entrada */}
-          <div className="form-group" style={{ marginBottom: '1.15rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>
-                Texto a Analizar / Procesar
-              </label>
-              <button
-                type="button"
-                onClick={handleLoadOfficialText}
-                className="btn-outline"
-                style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem', height: 'auto', minHeight: 'auto', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-              >
-                <RotateCcw size={12} /> Cargar texto oficial de construcción
-              </button>
+          {/* Chips de Preguntas Frecuentes de Dirección */}
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.45rem' }}>
+              Preguntas de Dirección Rápida:
             </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {suggestedQueries.map((q, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setPromptText(q);
+                    handleExecuteAnalysis(q);
+                  }}
+                  disabled={isLoading}
+                  style={{
+                    fontSize: '0.76rem',
+                    padding: '5px 10px',
+                    borderRadius: '16px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid var(--border-medium)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(245, 158, 11, 0.12)';
+                    e.currentTarget.style.borderColor = 'var(--color-gold)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    e.currentTarget.style.borderColor = 'var(--border-medium)';
+                  }}
+                >
+                  💡 {q}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Área de Texto de la Pregunta */}
+          <div className="form-group" style={{ marginBottom: '1.15rem' }}>
+            <label className="form-label" style={{ fontWeight: 700, marginBottom: '0.4rem' }}>
+              Pregunta Libre sobre {selectedProject ? `la obra [${selectedProject.nombre}]` : 'la Operación de CONSTRUCTA'}
+            </label>
             <textarea
               className="constructa-input"
-              rows={4}
+              rows={3}
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
-              placeholder="Escribe o pega aquí el texto que deseas procesar con Inteligencia Artificial..."
+              placeholder="Escribe tu consulta analítica (ej. ¿Qué pasaría si el gasto aumenta 10%? o ¿Qué materiales presentan riesgo de desabastecimiento?)..."
               style={{ lineHeight: 1.45 }}
             />
-          </div>
-
-          {/* Selector de Acciones */}
-          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-            <label className="form-label" style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
-              Acción a Ejecutar con el Modelo de IA
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.65rem' }}>
-              {[
-                { id: 'analizar', label: 'Analizar', icon: Sparkles, desc: 'Impacto y viabilidad' },
-                { id: 'resumir', label: 'Resumir', icon: FileText, desc: 'Puntos clave sintéticos' },
-                { id: 'explicar', label: 'Explicar', icon: HelpCircle, desc: 'Lenguaje claro y didáctico' },
-                { id: 'extraer_ideas', label: 'Extraer ideas', icon: ListOrdered, desc: 'Listado estructurado' }
-              ].map((act) => {
-                const Icon = act.icon;
-                const isSelected = selectedAction === act.id;
-                return (
-                  <button
-                    key={act.id}
-                    type="button"
-                    onClick={() => setSelectedAction(act.id)}
-                    style={{
-                      padding: '0.75rem 0.9rem',
-                      borderRadius: 'var(--radius-sm)',
-                      border: `1.5px solid ${isSelected ? 'var(--accent-blue)' : 'var(--border-medium)'}`,
-                      background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'var(--bg-card)',
-                      color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.2rem'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700, fontSize: '0.88rem' }}>
-                      <Icon size={16} />
-                      {act.label}
-                    </div>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{act.desc}</span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           {/* Botón de Ejecución */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.4rem' }}>
             <button
               type="button"
-              onClick={handleActionExecute}
+              onClick={() => handleExecuteAnalysis()}
               disabled={isLoading || !promptText.trim()}
               className="btn btn-primary"
-              style={{ minWidth: '160px' }}
+              style={{ minWidth: '170px' }}
             >
               {isLoading ? (
                 <>
-                  <Sparkles size={16} className="animate-spin" /> Analizando...
+                  <RefreshCw size={16} className="spin-animation" /> Analizando Datos...
                 </>
               ) : (
                 <>
-                  <Sparkles size={16} /> Ejecutar con {selectedProvider === 'gemini' ? 'Gemini' : 'OpenAI'}
+                  <Sparkles size={16} /> Consultar a la IA
                 </>
               )}
             </button>
@@ -387,12 +328,12 @@ export const AIAssistantModal = () => {
                 style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
               >
                 {isReadingVoice ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                {isReadingVoice ? 'Detener Voz' : '🔊 Leer resultado con voz'}
+                {isReadingVoice ? 'Detener Voz' : '🔊 Leer resultado'}
               </button>
             )}
           </div>
 
-          {/* Mensajes de Error Diagnósticos */}
+          {/* Mensajes de Error con Reintentar */}
           {errorMessage && (
             <div
               style={{
@@ -414,7 +355,7 @@ export const AIAssistantModal = () => {
                 <p style={{ margin: '0.25rem 0 0', color: 'var(--text-secondary)' }}>{errorMessage}</p>
                 <button
                   type="button"
-                  onClick={handleActionExecute}
+                  onClick={() => handleExecuteAnalysis()}
                   style={{
                     marginTop: '0.65rem',
                     padding: '0.35rem 0.75rem',
@@ -432,7 +373,7 @@ export const AIAssistantModal = () => {
             </div>
           )}
 
-          {/* Resultado Generado (Con Componente Propio Texting) */}
+          {/* Resultado Generado con Texting */}
           {responseResult && (
             <div
               style={{
@@ -443,21 +384,31 @@ export const AIAssistantModal = () => {
                 boxShadow: 'var(--shadow-sm)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.6rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.6rem', flexWrap: 'wrap', gap: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                  <Sparkles size={16} color="var(--accent-amber)" />
-                  Resultado de IA — {lastActionExecuted.toUpperCase()} ({selectedProvider.toUpperCase()})
+                  <Sparkles size={16} color="var(--color-gold)" />
+                  Dictamen Analítico {selectedProject ? `— [${selectedProject.nombre}]` : '— Cartera Corporativa'}
                 </div>
-                <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
-                  ✓ Respuesta Auténtica
+
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    background: engineType === 'AI_REAL' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                    color: engineType === 'AI_REAL' ? '#38bdf8' : 'var(--color-gold)',
+                    border: `1px solid ${engineType === 'AI_REAL' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+                  }}
+                >
+                  {engineType === 'AI_REAL' ? '✓ Google Gemini (IA Real)' : '⚡ Motor Analítico CONSTRUCTA (Fallback Hechos Reales)'}
                 </span>
               </div>
 
-              {/* Animación Texting nativa propia (sin librerías externas) */}
-              <div style={{ fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
+              <div style={{ fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
                 <Texting
                   text={responseResult}
-                  speed={20}
+                  speed={15}
                   cursor={true}
                 />
               </div>
@@ -468,7 +419,7 @@ export const AIAssistantModal = () => {
         {/* Pie */}
         <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            Proveedor activo: <strong>{selectedProvider.toUpperCase()}</strong> ({currentProviderConfigured ? 'Conectado' : 'Sin credencial'})
+            Exclusivo para: <strong>Dirección General (Administrador)</strong>
           </div>
           <button className="btn btn-secondary" onClick={closeAIAssistantModal}>
             Cerrar
