@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -341,31 +342,223 @@ function dbApiPlugin() {
           }
         }
 
-        // Función auxiliar para obtener la clave de Gemini sin reiniciar el servidor y sin exponerla al cliente
-        const getGeminiApiKey = () => {
-          if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()) {
-            return process.env.GEMINI_API_KEY.trim();
-          }
-          if (process.env.VITE_GEMINI_API_KEY && process.env.VITE_GEMINI_API_KEY.trim()) {
-            return process.env.VITE_GEMINI_API_KEY.trim();
+        // Función auxiliar para leer variables del servidor desde process.env o archivo .env
+        const getServerEnv = (key, defaultVal = '') => {
+          if (process.env[key] && process.env[key].trim()) {
+            return process.env[key].trim();
           }
           try {
             const envPath = path.resolve(__dirname, '.env');
             if (fs.existsSync(envPath)) {
               const envContent = fs.readFileSync(envPath, 'utf8');
-              const match = envContent.match(/^\s*GEMINI_API_KEY\s*=\s*([^\r\n#]+)/m);
+              const regex = new RegExp(`^\\s*${key}\\s*=\\s*([^\\r\\n#]+)`, 'm');
+              const match = envContent.match(regex);
               if (match && match[1]) {
                 const val = match[1].trim().replace(/^["']|["']$/g, '');
                 if (val) return val;
               }
-              const viteMatch = envContent.match(/^\s*VITE_GEMINI_API_KEY\s*=\s*([^\r\n#]+)/m);
-              if (viteMatch && viteMatch[1]) {
-                const val = viteMatch[1].trim().replace(/^["']|["']$/g, '');
-                if (val) return val;
-              }
             }
           } catch (_) {}
-          return '';
+          return defaultVal;
+        };
+
+        // 3.5 SERVICIO SEGURO DE CONTACTO Y CORREO OFICIAL (/api/contact)
+        if (req.url.startsWith('/api/contact')) {
+          if (req.method === 'POST') {
+            return parseJsonBody()
+              .then(async (body) => {
+                // Anti-spam honeypot
+                if (body.honeypot || body.website || body._gotcha) {
+                  return sendJson(200, {
+                    ok: true,
+                    message: 'Mensaje procesado.'
+                  });
+                }
+
+                const nombre = (body.nombre || '').trim();
+                const email = (body.email || '').trim().toLowerCase();
+                const telefono = (body.telefono || '').trim();
+                const asunto = (body.asunto || 'Cotización de Obra Nueva').trim();
+                const mensaje = (body.mensaje || '').trim();
+
+                // Validaciones
+                if (!nombre) {
+                  return sendJson(400, {
+                    ok: false,
+                    error: 'El nombre o razón social es obligatorio.'
+                  });
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!email || !emailRegex.test(email)) {
+                  return sendJson(400, {
+                    ok: false,
+                    error: 'El formato de correo electrónico no es válido.'
+                  });
+                }
+
+                if (!mensaje) {
+                  return sendJson(400, {
+                    ok: false,
+                    error: 'La descripción del requerimiento o mensaje es obligatoria.'
+                  });
+                }
+
+                if (mensaje.length < 5) {
+                  return sendJson(400, {
+                    ok: false,
+                    error: 'El mensaje debe tener al menos 5 caracteres.'
+                  });
+                }
+
+                if (mensaje.length > 5000) {
+                  return sendJson(400, {
+                    ok: false,
+                    error: 'El mensaje excede el límite máximo permitido (5,000 caracteres).'
+                  });
+                }
+
+                // Persistencia en db.json
+                const currentDb = readDb();
+                currentDb.requests = currentDb.requests || [];
+                currentDb.contactMessages = currentDb.contactMessages || [];
+
+                // ID consecutivo SOL-xxx
+                const existingNums = currentDb.requests.map((r) => {
+                  const match = String(r.id || '').match(/\d+/);
+                  return match ? parseInt(match[0], 10) : 0;
+                });
+                const maxNum = existingNums.length > 0 ? Math.max(...existingNums) : 0;
+                const newId = `SOL-${String(maxNum + 1).padStart(3, '0')}`;
+
+                const nuevaSolicitud = {
+                  id: newId,
+                  clienteNombre: nombre,
+                  clienteEmail: email,
+                  clienteTelefono: telefono,
+                  tipo: asunto,
+                  titulo: `[Web] ${asunto} - ${nombre}`,
+                  descripcion: mensaje,
+                  ubicacion: 'Contacto Web Público',
+                  origen: 'Formulario Web',
+                  estado: 'Pendiente',
+                  prioridad: 'Media',
+                  fechaCreacion: new Date().toISOString()
+                };
+
+                currentDb.requests.push(nuevaSolicitud);
+
+                // Destinatario oficial del servidor
+                const contactEmail = getServerEnv('CONTACT_EMAIL', 'contacto@constructa.cr');
+                const smtpHost = getServerEnv('SMTP_HOST', '');
+                const smtpPort = parseInt(getServerEnv('SMTP_PORT', '587'), 10);
+                const smtpSecure = getServerEnv('SMTP_SECURE', 'false') === 'true';
+                const smtpUser = getServerEnv('SMTP_USER', '');
+                const smtpPass = getServerEnv('SMTP_PASS', '');
+                const smtpFrom = getServerEnv('SMTP_FROM', `"CONSTRUCTA Notificaciones" <${contactEmail}>`);
+
+                let emailDelivery = {
+                  attempted: false,
+                  sent: false,
+                  status: 'PENDING_SMTP_CONFIG'
+                };
+
+                if (smtpHost && smtpUser && smtpPass) {
+                  emailDelivery.attempted = true;
+                  try {
+                    const transporter = nodemailer.createTransport({
+                      host: smtpHost,
+                      port: smtpPort,
+                      secure: smtpSecure,
+                      auth: {
+                        user: smtpUser,
+                        pass: smtpPass
+                      }
+                    });
+
+                    await transporter.sendMail({
+                      from: smtpFrom,
+                      to: contactEmail,
+                      replyTo: email,
+                      subject: `[CONSTRUCTA Contacto Web] ${asunto} - ${nombre}`,
+                      text: `Nueva solicitud recibida:\n\nID: ${newId}\nNombre: ${nombre}\nEmail: ${email}\nTeléfono: ${telefono || 'No registrado'}\nAsunto: ${asunto}\n\nMensaje:\n${mensaje}\n\nFecha: ${new Date().toLocaleString()}`,
+                      html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                          <h2 style="color: #d97706; margin-top: 0;">CONSTRUCTA — Solicitud de Contacto Web</h2>
+                          <p><strong>Identificador:</strong> ${newId}</p>
+                          <p><strong>Nombre / Razón Social:</strong> ${nombre}</p>
+                          <p><strong>Correo Electrónico:</strong> <a href="mailto:${email}">${email}</a></p>
+                          <p><strong>Teléfono:</strong> ${telefono || 'No registrado'}</p>
+                          <p><strong>Tipo de Requerimiento:</strong> ${asunto}</p>
+                          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+                          <h3 style="color: #0f172a;">Descripción del Proyecto:</h3>
+                          <p style="white-space: pre-wrap; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1;">${mensaje}</p>
+                          <footer style="margin-top: 20px; font-size: 0.8rem; color: #64748b;">
+                            Generado automáticamente por el portal web CONSTRUCTA.
+                          </footer>
+                        </div>
+                      `
+                    });
+                    emailDelivery.sent = true;
+                    emailDelivery.status = 'DELIVERED';
+                  } catch (mailErr) {
+                    console.error('[Contact SMTP Error]:', mailErr.message);
+                    emailDelivery.sent = false;
+                    emailDelivery.status = 'SMTP_ERROR';
+                    emailDelivery.error = mailErr.message;
+                  }
+                } else {
+                  emailDelivery.status = 'PERSISTED_NO_SMTP_CREDENTIALS';
+                }
+
+                currentDb.contactMessages.push({
+                  id: `MSG-${Date.now()}`,
+                  requestId: newId,
+                  nombre,
+                  email,
+                  telefono,
+                  asunto,
+                  mensaje,
+                  recipient: contactEmail,
+                  delivery: emailDelivery,
+                  fecha: new Date().toISOString()
+                });
+
+                writeDb(currentDb);
+
+                return sendJson(200, {
+                  ok: true,
+                  requestId: newId,
+                  emailSent: emailDelivery.sent,
+                  deliveryStatus: emailDelivery.status,
+                  recipient: contactEmail,
+                  requiresSmtpConfig: !emailDelivery.attempted,
+                  message: emailDelivery.sent
+                    ? 'Mensaje enviado exitosamente al correo oficial de CONSTRUCTA.'
+                    : 'Solicitud recibida y registrada exitosamente en el sistema de atención corporativa.'
+                });
+              })
+              .catch((err) => sendJson(400, { ok: false, error: err.message }));
+          }
+
+          if (req.method === 'GET') {
+            const contactEmail = getServerEnv('CONTACT_EMAIL', 'contacto@constructa.cr');
+            const smtpHost = getServerEnv('SMTP_HOST', '');
+            const smtpUser = getServerEnv('SMTP_USER', '');
+            return sendJson(200, {
+              ok: true,
+              service: 'constructa-contact-api',
+              officialRecipient: contactEmail,
+              smtpConfigured: Boolean(smtpHost && smtpUser)
+            });
+          }
+        }
+
+        // Función auxiliar para obtener la clave de Gemini sin reiniciar el servidor y sin exponerla al cliente
+        const getGeminiApiKey = () => {
+          const direct = getServerEnv('GEMINI_API_KEY');
+          if (direct) return direct;
+          return getServerEnv('VITE_GEMINI_API_KEY', '');
         };
 
         // 4. API DE CONSTRUCTA - SERVICIO INTERNO DE INFORMACIÓN EMPRESARIAL (/api/constructa/info)

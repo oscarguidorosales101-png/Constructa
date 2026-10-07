@@ -766,7 +766,7 @@ export const ClientPortal = ({ onNavigate }) => {
                   </div>
                   <div className="client-progress-labels">
                     <span>Avance Físico Certificado por Supervisión Técnica</span>
-                    <strong style={{ color: '#ffffff' }}>{primaryProject.avance || primaryProject.progreso || 68}% completado</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>{primaryProject.avance || primaryProject.progreso || 68}% completado</strong>
                   </div>
                 </div>
               </div>
@@ -779,10 +779,10 @@ export const ClientPortal = ({ onNavigate }) => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Mis Solicitudes y Cotizaciones de Construcción
                 </h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
                   Consulte el estado de análisis técnico, presupuestos preliminares y exporte expedientes en PDF.
                 </p>
               </div>
@@ -864,15 +864,15 @@ export const ClientPortal = ({ onNavigate }) => {
                             </div>
                           </td>
                           <td>
-                            <div style={{ color: '#cbd5e1' }}>{req.tipo || 'Cotización'}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                            <div style={{ color: 'var(--text-secondary)' }}>{req.tipo || 'Cotización'}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                               {req.areaAproximada ? `${req.areaAproximada} m²` : 'A definir'}
                             </div>
                           </td>
                           <td>{req.fechaCreacion || req.fecha}</td>
                           <td>{renderStatusBadge(req.estado)}</td>
                           <td>
-                            <span style={{ fontSize: '0.82rem', color: '#ffffff' }}>
+                            <span style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
                               {req.asignadoA || 'Ing. Fernando Mendoza (Admin)'}
                             </span>
                           </td>
@@ -1008,7 +1008,7 @@ export const ClientPortal = ({ onNavigate }) => {
                     </div>
                     <div className="client-progress-labels">
                       <span>Certificación de avance físico de obra</span>
-                      <strong style={{ color: '#ffffff' }}>{proj.avance || proj.progreso || 68}% completado</strong>
+                      <strong style={{ color: 'var(--text-primary)' }}>{proj.avance || proj.progreso || 68}% completado</strong>
                     </div>
                   </div>
 
@@ -1048,8 +1048,8 @@ export const ClientPortal = ({ onNavigate }) => {
                   </div>
 
                   {/* Galería de Fotografías de Avance Autorizadas */}
-                  <div style={{ marginTop: '1.75rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                    <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ marginTop: '1.75rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))' }}>
+                    <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <ImageIcon size={16} color="#f59e0b" /> Registro Fotográfico Autorizado de Supervisión
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
@@ -1101,10 +1101,10 @@ export const ClientPortal = ({ onNavigate }) => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Reuniones y Coordinación Técnica
                 </h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
                   Sesiones oficiales con la Gerencia de Construcción y Dirección General (Virtuales o en Obra).
                 </p>
               </div>
@@ -1120,9 +1120,9 @@ export const ClientPortal = ({ onNavigate }) => {
 
             <div className="client-card-panel">
               {myMeetings.length === 0 ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                   <Calendar size={36} color="#f59e0b" style={{ margin: '0 auto 0.75rem', opacity: 0.5 }} />
-                  <p style={{ fontSize: '0.92rem', color: '#ffffff', margin: '0 0 4px 0', fontWeight: 600 }}>
+                  <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', margin: '0 0 4px 0', fontWeight: 600 }}>
                     No tiene reuniones programadas actualmente.
                   </p>
                   <span style={{ fontSize: '0.8rem' }}>Puede agendar una cita técnica con la Gerencia en cualquier momento.</span>
@@ -1143,25 +1143,25 @@ export const ClientPortal = ({ onNavigate }) => {
                       {myMeetings.map((reu) => (
                         <tr key={reu.id}>
                           <td>
-                            <div style={{ fontWeight: 700, color: '#ffffff' }}>{reu.motivo}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{reu.motivo}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                               {reu.proyectoNombre || 'Proyecto General'}
                             </div>
                           </td>
                           <td>
-                            <div style={{ color: '#ffffff' }}>{reu.fecha}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#f59e0b' }}>{reu.hora} ({reu.duracionMinutos || 45} min)</div>
+                            <div style={{ color: 'var(--text-primary)' }}>{reu.fecha}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--accent-amber)' }}>{reu.hora} ({reu.duracionMinutos || 45} min)</div>
                           </td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               {reu.modalidad === 'Virtual' ? <Video size={14} color="#38bdf8" /> : <MapPin size={14} color="#f59e0b" />}
                               <span>{reu.modalidad}</span>
                             </div>
-                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{reu.lugar}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{reu.lugar}</div>
                           </td>
                           <td>
-                            <div style={{ color: '#ffffff' }}>{reu.responsable}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{reu.responsableRol || 'Gerente'}</div>
+                            <div style={{ color: 'var(--text-primary)' }}>{reu.responsable}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{reu.responsableRol || 'Gerente'}</div>
                           </td>
                           <td>{renderStatusBadge(reu.estado)}</td>
                         </tr>
@@ -1179,10 +1179,10 @@ export const ClientPortal = ({ onNavigate }) => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Expediente Digital del Proyecto
                 </h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
                   Descargue contratos y expedientes certificados en PDF y comparta archivos técnicos.
                 </p>
               </div>
@@ -1198,7 +1198,7 @@ export const ClientPortal = ({ onNavigate }) => {
 
             {/* Documentos Oficiales Emitidos */}
             <div style={{ marginBottom: '2.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#ffffff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ShieldCheck size={18} color="#10b981" /> Documentos Oficiales Emitidos por CONSTRUCTA
               </h3>
               <div className="doc-grid">
@@ -1272,7 +1272,7 @@ export const ClientPortal = ({ onNavigate }) => {
 
             {/* Documentos aportados por el cliente */}
             <div>
-              <h3 style={{ fontSize: '1.1rem', color: '#ffffff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Upload size={18} color="#f59e0b" /> Documentos y Archivos Aportados por el Cliente
               </h3>
               <div className="doc-grid">
@@ -1305,10 +1305,10 @@ export const ClientPortal = ({ onNavigate }) => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Control Financiero y Calendario de Pagos de Obra
                 </h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
                   Transparencia sobre el presupuesto contratado, anticipos amortizados y próximos hitos financieros.
                 </p>
               </div>
@@ -1439,10 +1439,10 @@ export const ClientPortal = ({ onNavigate }) => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Mesa de Ayuda y Soporte del Proyecto
                 </h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
                   Canal oficial bidireccional y persistente con la Administración y la Gerencia de Construcción.
                 </p>
               </div>
@@ -1460,13 +1460,13 @@ export const ClientPortal = ({ onNavigate }) => {
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 340px) 1fr', gap: '1.25rem', minHeight: '520px' }}>
               {/* Columna Izquierda: Lista de Conversaciones */}
               <div className="client-card-panel" style={{ padding: '1rem', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.04em' }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.04em' }}>
                   Mis Conversaciones ({myConversations.length})
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
                   {myConversations.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8', fontSize: '0.82rem' }}>
+                    <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
                       No tienes conversaciones activas. Inicia una con el botón "+ Nueva Consulta".
                     </div>
                   ) : (
@@ -1483,14 +1483,14 @@ export const ClientPortal = ({ onNavigate }) => {
                           style={{
                             padding: '10px 12px',
                             borderRadius: '8px',
-                            background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'rgba(255, 255, 255, 0.02)',
-                            border: isSelected ? '1px solid rgba(245, 158, 11, 0.35)' : '1px solid rgba(255, 255, 255, 0.06)',
+                            background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'var(--bg-surface-muted, rgba(255, 255, 255, 0.02))',
+                            border: isSelected ? '1px solid rgba(245, 158, 11, 0.35)' : '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                            <strong style={{ fontSize: '0.84rem', color: isSelected ? '#ffffff' : '#e2e8f0', lineHeight: 1.3 }}>
+                            <strong style={{ fontSize: '0.84rem', color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)', lineHeight: 1.3 }}>
                               {conv.asunto}
                             </strong>
                             {conv.noLeidosCliente > 0 && (
@@ -1510,15 +1510,15 @@ export const ClientPortal = ({ onNavigate }) => {
                             )}
                           </div>
 
-                          <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600, marginBottom: '4px' }}>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--accent-amber)', fontWeight: 600, marginBottom: '4px' }}>
                             {conv.proyectoNombre}
                           </div>
 
-                          <p style={{ fontSize: '0.76rem', color: '#94a3b8', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {lastMsg ? `${lastMsg.remitente}: ${lastMsg.contenido}` : 'Sin mensajes'}
                           </p>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: '#64748b' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                             <span>{conv.responsableRol || 'Administración'}</span>
                             <span>{conv.ultimaActualizacion?.split(' ')[0]}</span>
                           </div>
@@ -1534,16 +1534,16 @@ export const ClientPortal = ({ onNavigate }) => {
                 {activeConversation ? (
                   <>
                     {/* Encabezado del Hilo */}
-                    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', background: '#0f172a', borderRadius: '10px 10px 0 0' }}>
+                    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))', background: 'var(--bg-surface-elevated, #0f172a)', borderRadius: '10px 10px 0 0' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                         <div>
-                          <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase' }}>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--accent-amber)', fontWeight: 700, textTransform: 'uppercase' }}>
                             Proyecto Relacionado: {activeConversation.proyectoNombre}
                           </div>
-                          <h3 style={{ fontSize: '1.05rem', color: '#ffffff', margin: '2px 0 4px 0', fontWeight: 700 }}>
+                          <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', margin: '2px 0 4px 0', fontWeight: 700 }}>
                             {activeConversation.asunto}
                           </h3>
-                          <div style={{ fontSize: '0.76rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span><strong>Responsable:</strong> {activeConversation.responsable}</span>
                             <span style={{ padding: '1px 6px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontSize: '0.7rem' }}>
                               {activeConversation.responsableRol}
@@ -1714,16 +1714,16 @@ export const ClientPortal = ({ onNavigate }) => {
         {activeTab === 'perfil' && (
           <div style={{ maxWidth: '680px' }}>
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                 Perfil del Cliente
               </h2>
-              <p style={{ color: '#94a3b8', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
                 Datos de contacto oficiales registrados para emisión de cotizaciones y avisos de obra.
               </p>
             </div>
 
             <div className="client-card-panel" style={{ padding: '1.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem', paddingBottom: '1.25rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem', paddingBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))' }}>
                 <div
                   style={{
                     width: '64px',
@@ -1741,14 +1741,14 @@ export const ClientPortal = ({ onNavigate }) => {
                   {(currentUser?.nombre || 'C').charAt(0)}
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', color: '#ffffff', margin: 0 }}>
+                  <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', margin: 0 }}>
                     {currentUser?.nombre || 'Lic. Roberto Garza'}
                   </h3>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                     <span style={{ fontSize: '0.76rem', color: '#10b981', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       <CheckCircle2 size={13} /> {currentUser?.estadoVerificacion || 'Cuenta Verificada'}
                     </span>
-                    <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontFamily: 'monospace' }}>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
                       ID: {currentUser?.id || 'CLI-001'}
                     </span>
                   </div>
@@ -1757,37 +1757,37 @@ export const ClientPortal = ({ onNavigate }) => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.5rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                     Correo Electrónico (No modificable)
                   </label>
-                  <div style={{ fontSize: '0.9rem', color: '#ffffff', fontWeight: 600 }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>
                     {currentUser?.email || 'cliente@constructa.com'}
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                     Rol en Plataforma
                   </label>
-                  <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 700 }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--accent-amber)', fontWeight: 700 }}>
                     Cliente Externo
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                     Teléfono Registrado
                   </label>
-                  <div style={{ fontSize: '0.9rem', color: '#ffffff' }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                     {currentUser?.telefono || '+52 55 4920 1832'}
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                     Empresa / Razón Social
                   </label>
-                  <div style={{ fontSize: '0.9rem', color: '#ffffff' }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                     {currentUser?.empresa || 'Inversiones Inmobiliarias del Valle S.A.'}
                   </div>
                 </div>
@@ -2139,7 +2139,7 @@ export const ClientPortal = ({ onNavigate }) => {
                   >
                     <Paperclip size={20} color="#f59e0b" />
                     <div>
-                      <strong style={{ color: '#ffffff', fontSize: '0.84rem', display: 'block' }}>
+                      <strong style={{ color: 'var(--text-primary)', fontSize: '0.84rem', display: 'block' }}>
                         {uploadDocForm.archivoSeleccionado.name}
                       </strong>
                       <span style={{ fontSize: '0.74rem', color: '#10b981', fontWeight: 600 }}>

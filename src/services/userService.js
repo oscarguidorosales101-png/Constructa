@@ -5,6 +5,7 @@
  */
 
 import storageService from './storageService.js';
+import { normalizeRole } from '../utils/permissions.js';
 
 const STORAGE_KEY = 'constructa_users_cache';
 
@@ -111,9 +112,10 @@ export const userService = {
       tipoIdentificacion: userData.tipoIdentificacion || existingUser?.tipoIdentificacion || '01',
       tipoIdentificacionDescripcion: userData.tipoIdentificacionDescripcion || existingUser?.tipoIdentificacionDescripcion || 'Cédula Física',
       cargo: userData.cargo !== undefined ? userData.cargo.trim() : (existingUser?.cargo || userData.rol || 'Colaborador'),
-      rol: userData.rol ? userData.rol.trim() : (existingUser?.rol || 'Usuario / Invitado'),
+      rol: normalizeRole(userData.rol || existingUser?.rol || 'Usuario / Invitado'),
       activo: userData.activo !== undefined ? Boolean(userData.activo) : (existingUser?.activo !== undefined ? existingUser.activo : true),
       clave: userData.clave || userData.password || existingUser?.clave || 'Constructa2026!',
+      password: userData.clave || userData.password || existingUser?.clave || 'Constructa2026!',
       avatar: ((userData.nombre || existingUser?.nombre || 'U').trim().charAt(0) + (userData.apellidos?.trim().charAt(0) || existingUser?.apellidos?.trim().charAt(0) || '')).toUpperCase() || 'U',
       fechaCreacion: userData.fechaCreacion || existingUser?.fechaCreacion || new Date().toISOString()
     };

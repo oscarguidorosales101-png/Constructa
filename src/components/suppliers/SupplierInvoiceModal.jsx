@@ -520,7 +520,7 @@ export default function SupplierInvoiceModal({
                   <h4 style={{ margin: '0 0 6px 0', color: 'var(--color-rose)', fontSize: '0.98rem' }}>
                     Diferencia detectada en la Validación de Tres Elementos
                   </h4>
-                  <p style={{ margin: 0, fontSize: '0.84rem', color: '#ffffff', lineHeight: '1.4' }}>
+                  <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--color-text-primary)', lineHeight: '1.4' }}>
                     Revisa la orden, la recepción y la factura antes de continuar. El sistema no permite procesar pagos automáticos mientras existan discrepancias abiertas.
                   </p>
                   <ul style={{ margin: '8px 0 0 16px', padding: 0, fontSize: '0.82rem', color: 'var(--color-rose)' }}>
@@ -569,7 +569,7 @@ export default function SupplierInvoiceModal({
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-gold)', fontWeight: 700, textTransform: 'uppercase' }}>
                   1. Orden de Compra
                 </div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ffffff', marginTop: '4px' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '4px' }}>
                   {matchingResult.targetOrder?.numeroOrden || 'Sin orden vinculada'}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '6px' }}>
@@ -593,7 +593,7 @@ export default function SupplierInvoiceModal({
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-cyan)', fontWeight: 700, textTransform: 'uppercase' }}>
                   2. Recepción de Obra
                 </div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ffffff', marginTop: '4px' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '4px' }}>
                   {matchingResult.reception ? `Recibida (${matchingResult.reception.estadoRecepcion})` : 'Pendiente de entrega'}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '6px' }}>
@@ -617,7 +617,7 @@ export default function SupplierInvoiceModal({
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald)', fontWeight: 700, textTransform: 'uppercase' }}>
                   3. Factura del Proveedor
                 </div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ffffff', marginTop: '4px' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '4px' }}>
                   {formData.numero || 'Sin folio'}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '6px' }}>
@@ -639,7 +639,7 @@ export default function SupplierInvoiceModal({
                 borderRadius: 'var(--radius-sm)',
               }}
             >
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '0.92rem', color: '#ffffff' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '0.92rem', color: 'var(--color-text-primary)' }}>
                 Flujo de Aprobación y Pago en Sistema
               </h4>
               <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 14px 0' }}>

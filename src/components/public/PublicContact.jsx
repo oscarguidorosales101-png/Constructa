@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { COMPANY_CONFIG } from '../../config/companyConfig';
 import { useConstructa } from '../../context/ConstructaContext';
-import { sendContactEmail } from '../../services/emailjsService';
 import {
   MapPin,
   Phone,
@@ -23,7 +22,8 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
     email: '',
     telefono: '',
     asunto: 'Cotización de Obra Nueva',
-    mensaje: ''
+    mensaje: '',
+    website: '' // Honeypot anti-spam
   });
   const [errors, setErrors] = useState({});
   const [isSent, setIsSent] = useState(false);
@@ -35,10 +35,14 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
     if (!formData.nombre.trim()) errs.nombre = 'Ingresa tu nombre o razón social.';
     if (!formData.email.trim()) {
       errs.email = 'El correo electrónico es obligatorio.';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       errs.email = 'El formato de correo no es válido.';
     }
-    if (!formData.mensaje.trim()) errs.mensaje = 'Por favor escribe el mensaje o requerimiento.';
+    if (!formData.mensaje.trim()) {
+      errs.mensaje = 'Por favor escribe el mensaje o requerimiento.';
+    } else if (formData.mensaje.trim().length > 5000) {
+      errs.mensaje = 'El mensaje no puede superar los 5,000 caracteres.';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -47,43 +51,56 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
     e.preventDefault();
     if (!validate()) return;
 
+    // Si el honeypot fue completado, simular éxito silencioso sin procesar
+    if (formData.website) {
+      setIsSent(true);
+      return;
+    }
+
     setIsSending(true);
     setSendError(null);
 
     try {
-      // 1. Persistencia local de la solicitud
-      if (typeof saveClientRequest === 'function') {
-        saveClientRequest({
-          clienteNombre: formData.nombre.trim(),
-          clienteEmail: formData.email.trim(),
-          clienteTelefono: formData.telefono.trim(),
-          tipo: formData.asunto,
-          titulo: `[Web] ${formData.asunto} - ${formData.nombre.trim()}`,
-          descripcion: formData.mensaje.trim(),
-          ubicacion: 'Contacto Web Público',
-          origen: 'Formulario Web'
-        });
-      }
-
-      // 2. Envío a través de EmailJS con fallback seguro
-      const result = await sendContactEmail({
-        nombre: formData.nombre.trim(),
-        email: formData.email.trim(),
-        telefono: formData.telefono.trim(),
-        asunto: formData.asunto,
-        mensaje: formData.mensaje.trim()
+      // Envío seguro a través del proxy/endpoint backend del servidor
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombre: formData.nombre.trim(),
+          email: formData.email.trim(),
+          telefono: formData.telefono.trim(),
+          asunto: formData.asunto,
+          mensaje: formData.mensaje.trim(),
+          honeypot: formData.website
+        })
       });
 
-      if (result.success) {
+      const result = await res.json().catch(() => ({ ok: false, error: 'Respuesta inválida del servidor' }));
+
+      if (res.ok && result.ok) {
+        // Sincronización con el estado de contexto local si está activo
+        if (typeof saveClientRequest === 'function') {
+          saveClientRequest({
+            id: result.requestId,
+            clienteNombre: formData.nombre.trim(),
+            clienteEmail: formData.email.trim(),
+            clienteTelefono: formData.telefono.trim(),
+            tipo: formData.asunto,
+            titulo: `[Web] ${formData.asunto} - ${formData.nombre.trim()}`,
+            descripcion: formData.mensaje.trim(),
+            ubicacion: 'Contacto Web Público',
+            origen: 'Formulario Web'
+          });
+        }
         setIsSent(true);
       } else {
-        setSendError('El mensaje no pudo enviarse. Inténtalo nuevamente.');
+        setSendError(result.error || 'El mensaje no pudo enviarse. Inténtalo nuevamente.');
       }
     } catch (err) {
-      if (import.meta.env.DEV) {
-        console.error('[PublicContact] Error procesando contacto:', err);
-      }
-      setSendError('El mensaje no pudo enviarse. Inténtalo nuevamente.');
+      console.error('[PublicContact] Error procesando contacto:', err);
+      setSendError('Error de comunicación con el servicio de mensajería. Inténtalo nuevamente.');
     } finally {
       setIsSending(false);
     }
@@ -231,7 +248,8 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
                       email: '',
                       telefono: '',
                       asunto: 'Cotización de Obra Nueva',
-                      mensaje: ''
+                      mensaje: '',
+                      website: ''
                     });
                   }}
                 >
@@ -240,6 +258,18 @@ export default function PublicContact({ config = COMPANY_CONFIG, onNavigateSecti
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="public-contact-form">
+                {/* Campo trampa Anti-Spam (Honeypot) */}
+                <div style={{ display: 'none', position: 'absolute', left: '-9999px', opacity: 0 }} aria-hidden="true">
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                  />
+                </div>
+
                 <h3 className="public-form-title">Envíanos un Mensaje</h3>
                 <p className="public-form-subtitle">
                   Describe tu proyecto o requerimiento constructivo y te responderemos a la brevedad.

@@ -12,6 +12,7 @@ import AccessibilityModal from '../components/accessibility/AccessibilityModal';
 import AIAssistantModal from '../components/ai/AIAssistantModal';
 import VoiceReaderWidget from '../components/common/VoiceReaderWidget';
 import ErrorBoundary from '../components/common/ErrorBoundary';
+import { getDefaultRouteForRole, normalizeRole } from '../utils/permissions';
 
 export const AppRoutes = () => {
   const { 
@@ -34,13 +35,13 @@ export const AppRoutes = () => {
       if (hash === 'home') hash = 'inicio';
       
       if (!hash) {
-        const defaultView = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
+        const defaultView = currentUser ? getDefaultRouteForRole(currentUser) : 'inicio';
         setActiveView(defaultView);
         return;
       }
 
       if (routeConfig[hash]) {
-        // Protección por Autenticación (Requerimiento 47): Redirigir a login si no está autenticado
+        // Protección por Autenticación: Redirigir a login si no está autenticado
         if (routeConfig[hash].isPrivate && !currentUser) {
           setActiveView('login');
           window.location.hash = 'login';
@@ -68,7 +69,7 @@ export const AppRoutes = () => {
   }, [activeView]);
 
   // Resolución de la vista actual
-  const currentKey = activeView || (currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio');
+  const currentKey = activeView || (currentUser ? getDefaultRouteForRole(currentUser) : 'inicio');
   const currentRoute = routeConfig[currentKey];
 
   // Caso: Sitio Público Institucional (con soporte para navegación modular)
@@ -85,8 +86,8 @@ export const AppRoutes = () => {
     'contacto',
   ].includes(currentKey) ||
     (!currentUser && currentKey === 'proyectos') ||
-    (currentUser?.rol === 'Cliente' && currentKey === 'proyectos') ||
-    (currentUser?.rol === 'RRHH / Reclutamiento' && currentKey === 'proyectos');
+    (normalizeRole(currentUser?.rol) === 'Cliente' && currentKey === 'proyectos') ||
+    (normalizeRole(currentUser?.rol) === 'Recursos Humanos / Reclutamiento' && currentKey === 'proyectos');
 
   // Resolución del contenido según la ruta
   let content = null;
@@ -99,28 +100,32 @@ export const AppRoutes = () => {
     const RegisterComponent = routeConfig.registro.component;
     content = <RegisterComponent onNavigate={navigate} />;
   } else if (!currentRoute) {
-    const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
+    const homeTarget = currentUser ? getDefaultRouteForRole(currentUser) : 'inicio';
     content = <Status404 onBackToHome={() => navigate(homeTarget)} onGoToDashboard={() => navigate(homeTarget)} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === '401') {
     content = <Status401 onLogin={() => navigate('login')} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === '403') {
-    const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
+    const homeTarget = currentUser ? getDefaultRouteForRole(currentUser) : 'inicio';
     content = <Status403 onBackToHome={() => navigate(homeTarget)} onGoToDashboard={() => navigate(homeTarget)} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === '404') {
-    const homeTarget = currentUser ? (currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard') : 'inicio';
+    const homeTarget = currentUser ? getDefaultRouteForRole(currentUser) : 'inicio';
     content = <Status404 onBackToHome={() => navigate(homeTarget)} onGoToDashboard={() => navigate(homeTarget)} onGoToPublic={() => navigate('inicio')} />;
   } else if (currentKey === 'login') {
     if (currentUser) {
-      const targetRouteKey = currentUser.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
-      const TargetComponent = routeConfig[targetRouteKey].component;
+      const targetRouteKey = getDefaultRouteForRole(currentUser);
+      const targetRoute = routeConfig[targetRouteKey] || routeConfig.dashboard;
+      const TargetComponent = targetRoute.component;
       content = (
-        <PrivateRoutes route={routeConfig[targetRouteKey]}>
+        <PrivateRoutes route={targetRoute}>
           <TargetComponent onNavigate={navigate} />
         </PrivateRoutes>
       );
     } else {
       content = (
-        <Login onLoginSuccess={() => navigate(currentUser?.rol === 'Cliente' ? 'portal-cliente' : 'dashboard')} />
+        <Login onLoginSuccess={(loggedUser) => {
+          const destination = getDefaultRouteForRole(loggedUser || currentUser);
+          navigate(destination);
+        }} />
       );
     }
   } else if (currentRoute.isPrivate) {
@@ -131,7 +136,7 @@ export const AppRoutes = () => {
       </PrivateRoutes>
     );
   } else {
-    content = <Status404 onBackToHome={() => navigate(currentUser ? 'dashboard' : 'login')} />;
+    content = <Status404 onBackToHome={() => navigate(currentUser ? getDefaultRouteForRole(currentUser) : 'login')} />;
   }
 
   return (
@@ -162,7 +167,7 @@ export const AppRoutes = () => {
       </ErrorBoundary>
 
       {/* Asistente IA exclusivo para Administrador */}
-      {currentUser?.rol === 'Administrador' && (
+      {normalizeRole(currentUser?.rol) === 'Administrador' && (
         <ErrorBoundary fallback={null}>
           <AIAssistantModal />
         </ErrorBoundary>

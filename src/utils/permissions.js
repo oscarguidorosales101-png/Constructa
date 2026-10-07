@@ -3,6 +3,7 @@
  * 
  * Centraliza la matriz de control de acceso por roles empresariales:
  * - Soporta roles base del sistema y roles personalizados creados por el Administrador.
+ * - Normaliza variaciones de nombres de roles ('admin', 'Administrador', 'RRHH / Reclutamiento', etc.)
  * - Verifica permisos tanto de forma estática como dinámica mediante db.json/storage.
  */
 
@@ -15,6 +16,80 @@ export const ROLES = {
   CLIENTE: 'Cliente',
   PROVEEDOR: 'Proveedor',
   INVITADO: 'Usuario / Invitado'
+};
+
+/**
+ * Normaliza cualquier variante de nombre o código de rol a su forma canónica oficial.
+ * @param {string|object} roleInput - Rol en string o entidad de usuario { rol: '...' }
+ * @returns {string}
+ */
+export const normalizeRole = (roleInput) => {
+  if (!roleInput) return '';
+  const roleStr = typeof roleInput === 'object' && roleInput !== null
+    ? (roleInput.rol || roleInput.role || roleInput.nombre || roleInput.codigo || '')
+    : roleInput;
+
+  const r = String(roleStr).trim().toLowerCase();
+  if (!r) return '';
+
+  if (
+    r === 'admin' ||
+    r === 'administrador' ||
+    r === 'administrador general' ||
+    r === 'director general' ||
+    r === 'director' ||
+    r === 'superadmin'
+  ) {
+    return 'Administrador';
+  }
+
+  if (
+    r === 'gerente' ||
+    r === 'gerente de construcción' ||
+    r === 'gerente de construccion' ||
+    r === 'gerente_construccion' ||
+    r === 'gerente-construccion' ||
+    r === 'gerencia' ||
+    r === 'residente'
+  ) {
+    return 'Gerente de Construcción';
+  }
+
+  if (
+    r === 'rrhh' ||
+    r === 'rrhh / reclutamiento' ||
+    r === 'recursos humanos' ||
+    r === 'recursos humanos / reclutamiento' ||
+    r === 'reclutamiento' ||
+    r === 'talento'
+  ) {
+    return 'Recursos Humanos / Reclutamiento';
+  }
+
+  if (r.includes('entrevistador') || r === 'entrevistas') {
+    return 'Entrevistador';
+  }
+
+  if (r === 'cliente' || r === 'client') {
+    return 'Cliente';
+  }
+
+  if (r === 'proveedor' || r === 'supplier') {
+    return 'Proveedor';
+  }
+
+  if (
+    r === 'invitado' ||
+    r === 'usuario / invitado' ||
+    r === 'usuario' ||
+    r === 'colaborador' ||
+    r === 'user'
+  ) {
+    return 'Usuario / Invitado';
+  }
+
+  // Devolver el rol limpio si es un rol personalizado
+  return String(roleStr).trim();
 };
 
 export const ROLE_PERMISSIONS = {
@@ -87,7 +162,23 @@ export const ROLE_PERMISSIONS = {
     'agenda',
     'empleados'
   ],
+  'RRHH / Reclutamiento': [
+    'dashboard',
+    'postulantes',
+    'candidatos',
+    'rrhh',
+    'entrevistas',
+    'agenda',
+    'empleados'
+  ],
   'Entrevistador': [
+    'dashboard',
+    'entrevistas',
+    'postulantes',
+    'candidatos',
+    'agenda'
+  ],
+  'Entrevistador Técnico': [
     'dashboard',
     'entrevistas',
     'postulantes',
@@ -106,16 +197,26 @@ export const ROLE_PERMISSIONS = {
     'perfil-cliente'
   ],
   'Proveedor': [
-    'portal-proveedor',
-    'solicitudes-clientes',
     'proveedores',
-    'materiales'
+    'materiales',
+    'solicitudes-clientes'
   ],
   'Usuario / Invitado': [
     'dashboard',
     'proyectos'
   ]
 };
+
+// Aliases directos para tolerancia completa de mayúsculas/minúsculas y códigos
+ROLE_PERMISSIONS['admin'] = ROLE_PERMISSIONS['Administrador'];
+ROLE_PERMISSIONS['ADMIN'] = ROLE_PERMISSIONS['Administrador'];
+ROLE_PERMISSIONS['gerente'] = ROLE_PERMISSIONS['Gerente de Construcción'];
+ROLE_PERMISSIONS['GERENTE'] = ROLE_PERMISSIONS['Gerente de Construcción'];
+ROLE_PERMISSIONS['rrhh'] = ROLE_PERMISSIONS['Recursos Humanos / Reclutamiento'];
+ROLE_PERMISSIONS['RRHH'] = ROLE_PERMISSIONS['Recursos Humanos / Reclutamiento'];
+ROLE_PERMISSIONS['entrevistador'] = ROLE_PERMISSIONS['Entrevistador'];
+ROLE_PERMISSIONS['cliente'] = ROLE_PERMISSIONS['Cliente'];
+ROLE_PERMISSIONS['proveedor'] = ROLE_PERMISSIONS['Proveedor'];
 
 /**
  * Verifica si un rol o usuario cuenta con permiso de acceso a una ruta o módulo específico.
@@ -126,12 +227,16 @@ export const ROLE_PERMISSIONS = {
  */
 export const hasPermission = (userOrRole, routeKey, customRoles = null) => {
   if (!userOrRole || !routeKey) return false;
-  const roleStr = typeof userOrRole === 'object' && userOrRole !== null ? (userOrRole.rol || userOrRole.role) : userOrRole;
-  if (!roleStr) return false;
-  const cleanRole = String(roleStr).trim();
+  const rawRole = typeof userOrRole === 'object' && userOrRole !== null
+    ? (userOrRole.rol || userOrRole.role || userOrRole.nombre)
+    : userOrRole;
+  if (!rawRole) return false;
 
-  // El Administrador General siempre posee acceso a todo el sistema
-  if (cleanRole === 'Administrador' || cleanRole === 'Administrador General') {
+  const normalized = normalizeRole(rawRole);
+  const cleanRaw = String(rawRole).trim();
+
+  // El Administrador siempre posee acceso irrestricto a todo el sistema
+  if (normalized === 'Administrador') {
     return true;
   }
 
@@ -147,11 +252,14 @@ export const hasPermission = (userOrRole, routeKey, customRoles = null) => {
   }
 
   if (Array.isArray(rolesList)) {
-    const foundRole = rolesList.find(
-      (r) =>
-        (r.nombre && r.nombre.toLowerCase() === cleanRole.toLowerCase()) ||
-        (r.codigo && r.codigo.toLowerCase() === cleanRole.toLowerCase())
-    );
+    const foundRole = rolesList.find((r) => {
+      const rNorm = normalizeRole(r.nombre || r.codigo);
+      return (
+        rNorm === normalized ||
+        (r.nombre && r.nombre.toLowerCase() === cleanRaw.toLowerCase()) ||
+        (r.codigo && r.codigo.toLowerCase() === cleanRaw.toLowerCase())
+      );
+    });
 
     if (foundRole) {
       if (foundRole.activo === false) {
@@ -163,18 +271,22 @@ export const hasPermission = (userOrRole, routeKey, customRoles = null) => {
     }
   }
 
-  // 2. Fallback a la matriz base de permisos estáticos
-  const directMatch = ROLE_PERMISSIONS[cleanRole];
-  if (directMatch) {
-    return directMatch.includes(routeKey);
+  // 2. Coincidencia directa contra la matriz estática por nombre normalizado
+  if (ROLE_PERMISSIONS[normalized] && ROLE_PERMISSIONS[normalized].includes(routeKey)) {
+    return true;
   }
 
-  // Búsqueda insensible a mayúsculas
+  // 3. Fallback directo con el string original
+  if (ROLE_PERMISSIONS[cleanRaw] && ROLE_PERMISSIONS[cleanRaw].includes(routeKey)) {
+    return true;
+  }
+
+  // 4. Búsqueda insensible a mayúsculas
   const matchedKey = Object.keys(ROLE_PERMISSIONS).find(
-    (k) => k.toLowerCase() === cleanRole.toLowerCase()
+    (k) => k.toLowerCase() === cleanRaw.toLowerCase() || normalizeRole(k) === normalized
   );
-  if (matchedKey) {
-    return ROLE_PERMISSIONS[matchedKey].includes(routeKey);
+  if (matchedKey && ROLE_PERMISSIONS[matchedKey].includes(routeKey)) {
+    return true;
   }
 
   return false;
@@ -188,11 +300,13 @@ export const hasPermission = (userOrRole, routeKey, customRoles = null) => {
  */
 export const getAllowedRoutesForRole = (userOrRole, customRoles = null) => {
   if (!userOrRole) return [];
-  const roleStr = typeof userOrRole === 'object' && userOrRole !== null ? (userOrRole.rol || userOrRole.role) : userOrRole;
-  if (!roleStr) return [];
-  const cleanRole = String(roleStr).trim();
+  const rawRole = typeof userOrRole === 'object' && userOrRole !== null
+    ? (userOrRole.rol || userOrRole.role)
+    : userOrRole;
+  if (!rawRole) return [];
 
-  if (cleanRole === 'Administrador' || cleanRole === 'Administrador General') {
+  const normalized = normalizeRole(rawRole);
+  if (normalized === 'Administrador') {
     return ROLE_PERMISSIONS['Administrador General'];
   }
 
@@ -207,17 +321,19 @@ export const getAllowedRoutesForRole = (userOrRole, customRoles = null) => {
   }
 
   if (Array.isArray(rolesList)) {
-    const foundRole = rolesList.find(
-      (r) =>
-        (r.nombre && r.nombre.toLowerCase() === cleanRole.toLowerCase()) ||
-        (r.codigo && r.codigo.toLowerCase() === cleanRole.toLowerCase())
-    );
+    const foundRole = rolesList.find((r) => {
+      const rNorm = normalizeRole(r.nombre || r.codigo);
+      return (
+        rNorm === normalized ||
+        (r.nombre && r.nombre.toLowerCase() === String(rawRole).trim().toLowerCase())
+      );
+    });
     if (foundRole && Array.isArray(foundRole.permisos)) {
       return foundRole.permisos;
     }
   }
 
-  return ROLE_PERMISSIONS[cleanRole] || [];
+  return ROLE_PERMISSIONS[normalized] || ROLE_PERMISSIONS[String(rawRole).trim()] || [];
 };
 
 /**
@@ -226,15 +342,19 @@ export const getAllowedRoutesForRole = (userOrRole, customRoles = null) => {
  * @returns {string}
  */
 export const getDefaultRouteForRole = (userOrRole) => {
-  const roleStr = typeof userOrRole === 'object' && userOrRole !== null ? (userOrRole.rol || userOrRole.role) : userOrRole;
-  if (!roleStr) return 'login';
-  const clean = String(roleStr).trim();
+  if (!userOrRole) return 'login';
+  const rawRole = typeof userOrRole === 'object' && userOrRole !== null
+    ? (userOrRole.rol || userOrRole.role)
+    : userOrRole;
+  if (!rawRole) return 'login';
 
-  switch (clean) {
+  const normalized = normalizeRole(rawRole);
+
+  switch (normalized) {
     case 'Cliente':
       return 'portal-cliente';
     case 'Proveedor':
-      return 'portal-proveedor';
+      return 'proveedores';
     case 'Entrevistador':
       return 'entrevistas';
     case 'Recursos Humanos / Reclutamiento':
@@ -242,7 +362,6 @@ export const getDefaultRouteForRole = (userOrRole) => {
     case 'Gerente de Construcción':
       return 'proyectos';
     case 'Administrador':
-    case 'Administrador General':
     default:
       return 'dashboard';
   }

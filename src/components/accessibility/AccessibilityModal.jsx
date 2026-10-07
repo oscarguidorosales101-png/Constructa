@@ -694,9 +694,9 @@ export const AccessibilityModal = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem', marginBottom: '1.5rem' }}>
                   {[
                     { id: 'normal', label: '1. Visión Normal', desc: 'Paleta corporativa estándar (Ámbar, Verde, Rojo, Azul)' },
-                    { id: 'red-green', label: '2. Rojo - Verde', desc: 'Sustituye verdes y rojos confusos por ámbar y cian de alto contraste' },
-                    { id: 'green-red', label: '3. Verde - Rojo', desc: 'Diferenciación reforzada para deuteranomalía con texturas semánticas' },
-                    { id: 'blue-yellow', label: '4. Azul - Amarillo', desc: 'Esquema adaptado para tritanomalía evitando confusión cromática' }
+                    { id: 'red-green', label: '2. Azul', desc: 'Realza contrastes entre tonos azules y amarillos para una navegación más clara.' },
+                    { id: 'green-red', label: '3. Rojo', desc: 'Reemplaza tonos rojos por variantes de alto contraste para distinguirlos fácilmente.' },
+                    { id: 'blue-yellow', label: '4. Verde', desc: 'Mejora la separación entre verdes y tonos cálidos para evitar confusiones al leer alertas.' }
                   ].map((p) => {
                     const isSelected = activeColorVision === p.id;
                     return (

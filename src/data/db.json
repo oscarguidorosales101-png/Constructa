@@ -2922,24 +2922,57 @@
   ],
   "settings": {
     "theme": "dark",
-    "fontSize": "normal",
-    "colorVision": "red-green",
+    "fontSize": "small",
+    "colorVision": "normal",
     "reducedMotion": false,
     "voice": {
       "enabled": false,
       "voiceURI": "Google italiano",
-      "rate": 1,
+      "rate": 1.25,
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-07T17:17:01.376Z",
+    "updatedAt": "2026-10-07T20:44:26.972Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
-    "textSize": "normal",
-    "highContrast": false
+    "textSize": "small",
+    "highContrast": true
   },
   "requests": [
+    {
+      "id": "SOL-006",
+      "numero": "SOL-2026-006",
+      "clienteNombre": "Oscar Yabeth Guido Rosales",
+      "clienteEmail": "oscarguidorosales1@gmail.com",
+      "clienteTelefono": "+506 60586593",
+      "tipo": "Cotización de Obra Nueva",
+      "titulo": "[Web] Cotización de Obra Nueva - Oscar Yabeth Guido Rosales",
+      "tipoInmueble": "Vivienda",
+      "ubicacion": "Contacto Web Público",
+      "areaAproximada": 0,
+      "presupuestoEstimado": 0,
+      "plazoDeseado": "A convenir",
+      "poseeTerreno": false,
+      "poseePlanos": false,
+      "descripcion": "numero del administrador",
+      "necesidadesPrincipales": "",
+      "estado": "Recibida",
+      "asignadoA": "Ing. Fernando Mendoza",
+      "asignadoRol": "Administrador",
+      "fechaCreacion": "2026-10-07",
+      "ultimaActualizacion": "2026-10-07",
+      "documentos": [],
+      "historial": [
+        {
+          "fecha": "7/10/2026, 1:10:58 p.m.",
+          "autor": "Oscar Yabeth Guido Rosales",
+          "accion": "Solicitud creada formalmente en el portal de cliente."
+        }
+      ],
+      "observacionesTecnicas": "",
+      "propuestaCotizacion": null
+    },
     {
       "id": "SOL-004",
       "numero": "SOL-2026-004",
@@ -3106,6 +3139,20 @@
           "accion": "Recepción inicial en bandeja comercial."
         }
       ]
+    },
+    {
+      "id": "SOL-005",
+      "clienteNombre": "Ing. Carlos Mendoza",
+      "clienteEmail": "carlos.mendoza@inmobiliaria.cr",
+      "clienteTelefono": "+506 2234-5678",
+      "tipo": "Cotización de Obra Nueva",
+      "titulo": "[Web] Cotización de Obra Nueva - Ing. Carlos Mendoza",
+      "descripcion": "Requerimos cotización formal para el proyecto Torre Paseo Colón de 12 niveles.",
+      "ubicacion": "Contacto Web Público",
+      "origen": "Formulario Web",
+      "estado": "Pendiente",
+      "prioridad": "Media",
+      "fechaCreacion": "2026-10-07T18:34:06.668Z"
     }
   ],
   "users": [
@@ -3935,6 +3982,42 @@
       "resultado": "En espera de refacturación",
       "observaciones": "Se solicitó cancelar factura FAC-9140 y emitir nueva con el precio pactado de $185.",
       "registradoPor": "Ing. Fernando Mendoza"
+    }
+  ],
+  "contactMessages": [
+    {
+      "id": "MSG-1791398046700",
+      "requestId": "SOL-005",
+      "nombre": "Ing. Carlos Mendoza",
+      "email": "carlos.mendoza@inmobiliaria.cr",
+      "telefono": "+506 2234-5678",
+      "asunto": "Cotización de Obra Nueva",
+      "mensaje": "Requerimos cotización formal para el proyecto Torre Paseo Colón de 12 niveles.",
+      "recipient": "contacto@constructa.cr",
+      "delivery": {
+        "attempted": true,
+        "sent": false,
+        "status": "SMTP_ERROR",
+        "error": "getaddrinfo ENOTFOUND SMTP_PORT=587"
+      },
+      "fecha": "2026-10-07T18:34:06.700Z"
+    },
+    {
+      "id": "MSG-1791400258947",
+      "requestId": "SOL-006",
+      "nombre": "Oscar Yabeth Guido Rosales",
+      "email": "oscarguidorosales1@gmail.com",
+      "telefono": "+506 60586593",
+      "asunto": "Cotización de Obra Nueva",
+      "mensaje": "numero del administrador",
+      "recipient": "oscarguidorosales101@gmail.com",
+      "delivery": {
+        "attempted": true,
+        "sent": false,
+        "status": "SMTP_ERROR",
+        "error": "getaddrinfo ENOTFOUND SMTP_PORT=587"
+      },
+      "fecha": "2026-10-07T19:10:58.947Z"
     }
   ]
 }

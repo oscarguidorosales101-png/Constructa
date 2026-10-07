@@ -1,5 +1,6 @@
 import storageService from './storageService.js';
 import db from '../data/db.json' with { type: 'json' };
+import { normalizeRole } from '../utils/permissions.js';
 
 const KEYS = {
   INITIALIZED: 'constructa_db_init_v3',
@@ -944,6 +945,8 @@ export const dataService = {
         if (Array.isArray(liveDb.requests)) storageService.set(KEYS.CLIENT_REQUESTS, liveDb.requests);
         if (Array.isArray(liveDb.clientMeetings)) storageService.set(KEYS.CLIENT_MEETINGS, liveDb.clientMeetings);
         if (Array.isArray(liveDb.clientConversations)) storageService.set(KEYS.CLIENT_CONVERSATIONS, liveDb.clientConversations);
+        if (Array.isArray(liveDb.users)) storageService.set('constructa_users_cache', liveDb.users);
+        if (Array.isArray(liveDb.roles)) storageService.set('constructa_roles', liveDb.roles);
         return liveDb;
       }
     } catch (_) {}
@@ -1037,6 +1040,11 @@ export const dataService = {
     return storageService.get(KEYS.AUTH, null);
   },
 
+  getCurrentUser() {
+    const session = this.getSession();
+    return session?.usuario || null;
+  },
+
   setSession(sessionData) {
     storageService.set(KEYS.AUTH, sessionData);
   },
@@ -1089,14 +1097,17 @@ export const dataService = {
         `${matchedUser.usuario}123`,
         'admin123',
         'admin',
+        'Admin2026!',
         'gerente123',
         'Gerencia2026!',
+        'Gerente2026!',
         'rrhh123',
         'RRHH2026!',
         'Entrevista2026!',
         'Constructa2026!'
       ];
       if (validPasswords.filter(Boolean).includes(cleanPass)) {
+        matchedUser.rol = normalizeRole(matchedUser.rol);
         const sessionData = {
           usuario: matchedUser,
           fechaInicio: new Date().toISOString(),
@@ -1142,6 +1153,7 @@ export const dataService = {
           };
         }
 
+        matchedClient.rol = 'Cliente';
         const sessionData = {
           usuario: matchedClient,
           fechaInicio: new Date().toISOString(),

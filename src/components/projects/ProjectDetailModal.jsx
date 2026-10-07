@@ -78,7 +78,7 @@ export const ProjectDetailModal = ({ isOpen, onClose, project }) => {
                 {project.estado}
               </Badge>
             </div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.25rem' }}>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
               {project.nombre}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -110,16 +110,16 @@ export const ProjectDetailModal = ({ isOpen, onClose, project }) => {
 
       {/* Tarjetas Financieras del Proyecto */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ background: '#111724', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+        <div style={{ background: 'var(--bg-surface-elevated, #111724)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
           <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
             Presupuesto Asignado
           </span>
-          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
             {formatCurrency(project.presupuesto)}
           </div>
         </div>
 
-        <div style={{ background: '#111724', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
+        <div style={{ background: 'var(--bg-surface-elevated, #111724)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--accent-amber)', textTransform: 'uppercase', fontWeight: 600 }}>
               Fondos Gastados
@@ -131,11 +131,11 @@ export const ProjectDetailModal = ({ isOpen, onClose, project }) => {
           </div>
         </div>
 
-        <div style={{ background: '#111724', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-          <span style={{ fontSize: '0.74rem', color: 'var(--accent-green)', textTransform: 'uppercase', fontWeight: 600 }}>
+        <div style={{ background: 'var(--bg-surface-elevated, #111724)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+          <span style={{ fontSize: '0.74rem', color: 'var(--status-success)', textTransform: 'uppercase', fontWeight: 600 }}>
             Saldo Disponible
           </span>
-          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#34d399', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#10b981', marginTop: '0.25rem' }}>
             {formatCurrency(availableBudget)}
           </div>
         </div>

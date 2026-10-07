@@ -2,13 +2,14 @@ import React from 'react';
 import { ArrowLeft, Globe, LogIn } from 'lucide-react';
 import Button from '../../components/common/Button.jsx';
 import { useConstructa } from '../../context/ConstructaContext.jsx';
+import { normalizeRole, getDefaultRouteForRole } from '../../utils/permissions.js';
 
 export const Status403 = ({ onGoToDashboard, onBackToHome, onGoToPublic }) => {
   const { currentUser, navigateTo, setActiveView } = useConstructa();
   const navigate = navigateTo || setActiveView;
 
-  const isClient = currentUser?.rol === 'Cliente';
-  const roleTarget = isClient ? 'portal-cliente' : (currentUser ? 'dashboard' : 'login');
+  const isClient = normalizeRole(currentUser?.rol) === 'Cliente';
+  const roleTarget = getDefaultRouteForRole(currentUser);
 
   const handleBack = () => {
     if (onBackToHome) {

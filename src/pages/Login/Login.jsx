@@ -3,6 +3,7 @@ import { HardHat, Lock, Mail, ArrowRight, ArrowLeft, ShieldCheck, ChevronDown, C
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import Button from '../../components/common/Button.jsx';
 import ToastContainer from '../../components/common/ToastContainer.jsx';
+import { getDefaultRouteForRole } from '../../utils/permissions.js';
 
 export const Login = ({ onLoginSuccess }) => {
   const { login } = useConstructa();
@@ -43,6 +44,15 @@ export const Login = ({ onLoginSuccess }) => {
       name: 'Lic. Mariana Morales Solís',
       badge: 'Talento & Citas',
       color: '#a855f7',
+    },
+    {
+      role: 'Entrevistador',
+      title: 'Entrevistador Técnico',
+      email: 'entrevistador@constructa.com',
+      password: 'Entrevista2026!',
+      name: 'Lic. Esteban Vargas Soto',
+      badge: 'Evaluación Técnica',
+      color: '#ec4899',
     },
     {
       role: 'Cliente',
@@ -88,9 +98,9 @@ export const Login = ({ onLoginSuccess }) => {
       setIsSubmitting(false);
       if (res.ok) {
         if (onLoginSuccess) {
-          onLoginSuccess();
+          onLoginSuccess(res.usuario);
         } else {
-          const targetView = res.usuario.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
+          const targetView = getDefaultRouteForRole(res.usuario);
           window.location.hash = targetView;
         }
       }

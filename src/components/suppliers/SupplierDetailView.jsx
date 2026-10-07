@@ -166,7 +166,7 @@ export default function SupplierDetailView({
                 <span style={{ fontSize: '0.74rem', color: 'var(--color-gold)', fontWeight: 700, textTransform: 'uppercase' }}>
                   Información del Proveedor
                 </span>
-                <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#ffffff', margin: '4px 0 0 0' }}>
+                <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: '4px 0 0 0' }}>
                   {supplier.nombre || supplier.nombreComercial}
                 </h1>
                 <div style={{ fontSize: '0.84rem', color: 'var(--color-gold)', fontWeight: 500, marginTop: '2px' }}>
@@ -182,11 +182,11 @@ export default function SupplierDetailView({
             <div style={{ marginTop: '16px', fontSize: '0.84rem', color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div>
                 <span style={{ color: 'var(--color-text-muted)' }}>Identificación Fiscal:</span>{' '}
-                <strong style={{ color: '#ffffff' }}>{supplier.rfc || supplier.cif || 'No registrada'}</strong>
+                <strong style={{ color: 'var(--color-text-primary)' }}>{supplier.rfc || supplier.cif || 'No registrada'}</strong>
               </div>
               <div>
                 <span style={{ color: 'var(--color-text-muted)' }}>Categoría Especializada:</span>{' '}
-                <strong style={{ color: '#ffffff' }}>{supplier.especialidad || supplier.categoria || 'General'}</strong>
+                <strong style={{ color: 'var(--color-text-primary)' }}>{supplier.especialidad || supplier.categoria || 'General'}</strong>
               </div>
               {supplier.observaciones && (
                 <div style={{ marginTop: '4px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', fontStyle: 'italic', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
@@ -231,7 +231,7 @@ export default function SupplierDetailView({
                 <UserCheck size={15} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
                 <div style={{ overflow: 'hidden' }}>
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Contacto</span>
-                  <strong style={{ color: '#ffffff' }} className="text-truncate">{supplier.contacto || 'Sin contacto'}</strong>
+                  <strong style={{ color: 'var(--color-text-primary)' }} className="text-truncate">{supplier.contacto || 'Sin contacto'}</strong>
                 </div>
               </div>
 
@@ -239,7 +239,7 @@ export default function SupplierDetailView({
                 <Phone size={15} style={{ color: 'var(--color-emerald)', flexShrink: 0 }} />
                 <div style={{ overflow: 'hidden' }}>
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Teléfono</span>
-                  <strong style={{ color: '#ffffff' }} className="text-truncate">{supplier.telefono || 'Sin teléfono'}</strong>
+                  <strong style={{ color: 'var(--color-text-primary)' }} className="text-truncate">{supplier.telefono || 'Sin teléfono'}</strong>
                 </div>
               </div>
 
@@ -247,7 +247,7 @@ export default function SupplierDetailView({
                 <Mail size={15} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
                 <div style={{ overflow: 'hidden' }}>
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Correo</span>
-                  <strong style={{ color: '#ffffff' }} className="text-truncate" title={supplier.email}>{supplier.email || 'Sin correo'}</strong>
+                  <strong style={{ color: 'var(--color-text-primary)' }} className="text-truncate" title={supplier.email}>{supplier.email || 'Sin correo'}</strong>
                 </div>
               </div>
 
@@ -255,7 +255,7 @@ export default function SupplierDetailView({
                 <MapPin size={15} style={{ color: 'var(--color-rose)', flexShrink: 0 }} />
                 <div style={{ overflow: 'hidden' }}>
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Ubicación</span>
-                  <strong style={{ color: '#ffffff' }} className="text-truncate" title={supplier.direccion}>{supplier.direccion || 'No especificada'}</strong>
+                  <strong style={{ color: 'var(--color-text-primary)' }} className="text-truncate" title={supplier.direccion}>{supplier.direccion || 'No especificada'}</strong>
                 </div>
               </div>
 
@@ -263,7 +263,7 @@ export default function SupplierDetailView({
                 <CreditCard size={15} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
                 <div>
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Condición de Pago</span>
-                  <strong style={{ color: '#ffffff' }}>{supplier.condicionesPago || 'Crédito 30 días'}</strong>
+                  <strong style={{ color: 'var(--color-text-primary)' }}>{supplier.condicionesPago || 'Crédito 30 días'}</strong>
                 </div>
               </div>
 
@@ -271,7 +271,7 @@ export default function SupplierDetailView({
                 <Truck size={15} style={{ color: 'var(--color-cyan)', flexShrink: 0 }} />
                 <div>
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.72rem', display: 'block' }}>Tiempo de Entrega</span>
-                  <strong style={{ color: '#ffffff' }}>{supplier.tiempoEntregaEstimado || '48 a 72 hrs'}</strong>
+                  <strong style={{ color: 'var(--color-text-primary)' }}>{supplier.tiempoEntregaEstimado || '48 a 72 hrs'}</strong>
                 </div>
               </div>
             </div>
@@ -400,7 +400,7 @@ export default function SupplierDetailView({
                   {supplierOrders.map((ord) => (
                     <tr key={ord.id}>
                       <td>
-                        <strong style={{ color: '#ffffff' }}>{ord.numeroOrden}</strong>
+                        <strong style={{ color: 'var(--color-text-primary)' }}>{ord.numeroOrden}</strong>
                       </td>
                       <td style={{ color: 'var(--color-text-secondary)' }}>
                         {ord.proyectoNombre}
@@ -475,7 +475,7 @@ export default function SupplierDetailView({
                   {deliveredOrders.map((ord) => (
                     <tr key={ord.id}>
                       <td>
-                        <strong style={{ color: '#ffffff' }}>{ord.numeroOrden}</strong>
+                        <strong style={{ color: 'var(--color-text-primary)' }}>{ord.numeroOrden}</strong>
                       </td>
                       <td>{ord.proyectoNombre}</td>
                       <td>{ord.recepcion?.fechaRecepcion || ord.fechaRealEntrega || 'En tránsito'}</td>
@@ -524,7 +524,7 @@ export default function SupplierDetailView({
                   {supplierInvoicesList.map((fac) => (
                     <tr key={fac.id}>
                       <td>
-                        <strong style={{ color: '#ffffff' }}>{fac.numero}</strong>
+                        <strong style={{ color: 'var(--color-text-primary)' }}>{fac.numero}</strong>
                       </td>
                       <td>{fac.ordenNumero}</td>
                       <td>{fac.proyectoNombre}</td>
@@ -595,7 +595,7 @@ export default function SupplierDetailView({
                   {supplierInvoicesList.map((fac) => (
                     <tr key={fac.id}>
                       <td>
-                        <strong style={{ color: '#ffffff' }}>{fac.numero}</strong>
+                        <strong style={{ color: 'var(--color-text-primary)' }}>{fac.numero}</strong>
                       </td>
                       <td>{fac.ordenNumero}</td>
                       <td>{fac.metodoPago || 'Transferencia SPEI'}</td>
@@ -654,7 +654,7 @@ export default function SupplierDetailView({
                     return (
                       <tr key={mat.id}>
                         <td style={{ color: 'var(--color-gold)', fontWeight: 600 }}>{mat.codigo || mat.id}</td>
-                        <td style={{ fontWeight: 500, color: '#ffffff' }}>{mat.nombre}</td>
+                        <td style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{mat.nombre}</td>
                         <td>
                           <span style={{ color: isLow ? 'var(--color-rose)' : 'var(--color-emerald)', fontWeight: 600 }}>
                             {currentStock} {mat.unidad}
@@ -687,7 +687,7 @@ export default function SupplierDetailView({
               }}
             >
               <CheckCircle2 size={36} style={{ margin: '0 auto 10px auto' }} />
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: '#ffffff' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--color-text-primary)' }}>
                 Proveedor Sin Incidencias Reportadas
               </h3>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>

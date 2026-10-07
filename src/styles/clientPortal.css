@@ -904,3 +904,50 @@
 [data-theme="light"] .client-nav-link.active {
   color: #0f172a;
 }
+
+[data-theme="light"] .client-portal-wrapper h1,
+[data-theme="light"] .client-portal-wrapper h2,
+[data-theme="light"] .client-portal-wrapper h3,
+[data-theme="light"] .client-portal-wrapper h4 {
+  color: #0f172a;
+}
+
+[data-theme="light"] .client-stat-val {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .client-stat-lbl {
+  color: #64748b;
+}
+
+[data-theme="light"] .doc-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme="light"] .doc-details h4 {
+  color: #0f172a;
+}
+
+[data-theme="light"] .doc-details p {
+  color: #64748b;
+}
+
+[data-theme="light"] .client-nav-bar {
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .client-progress-container {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .client-progress-labels span {
+  color: #64748b;
+}
+
+[data-theme="light"] .client-progress-labels strong {
+  color: #0f172a;
+}

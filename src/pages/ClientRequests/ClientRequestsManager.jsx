@@ -688,22 +688,22 @@ export const ClientRequestsManager = ({ onNavigate }) => {
                             maxWidth: '75%',
                             padding: '10px 14px',
                             borderRadius: isFromClient ? '12px 12px 12px 2px' : '12px 12px 2px 12px',
-                            background: isFromClient ? '#1e293b' : 'rgba(245, 158, 11, 0.12)',
-                            border: isFromClient ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(245, 158, 11, 0.3)',
-                            color: '#ffffff',
+                            background: isFromClient ? 'var(--bg-surface-elevated, #1e293b)' : 'rgba(245, 158, 11, 0.15)',
+                            border: isFromClient ? '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))' : '1px solid rgba(245, 158, 11, 0.35)',
+                            color: 'var(--text-primary)',
                           }}
                         >
                           {/* Encabezado del Mensaje */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', fontSize: '0.72rem', color: isFromClient ? '#94a3b8' : '#f59e0b', fontWeight: 700 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', fontSize: '0.72rem', color: isFromClient ? 'var(--text-muted)' : 'var(--accent-amber)', fontWeight: 700 }}>
                             <span>{msg.remitente}</span>
                             <span style={{ opacity: 0.7 }}>•</span>
-                            <span style={{ background: isFromClient ? 'rgba(255, 255, 255, 0.08)' : 'rgba(245, 158, 11, 0.2)', padding: '1px 5px', borderRadius: '4px' }}>
+                            <span style={{ background: isFromClient ? 'var(--bg-surface-muted, rgba(255, 255, 255, 0.08))' : 'rgba(245, 158, 11, 0.2)', padding: '1px 5px', borderRadius: '4px' }}>
                               {msg.remitenteRol || (isFromClient ? 'Cliente' : 'Equipo CONSTRUCTA')}
                             </span>
                           </div>
 
                           {/* Contenido del Mensaje */}
-                          <p style={{ margin: 0, fontSize: '0.86rem', lineHeight: 1.5, wordBreak: 'break-word', color: '#e2e8f0' }}>
+                          <p style={{ margin: 0, fontSize: '0.86rem', lineHeight: 1.5, wordBreak: 'break-word', color: 'var(--text-primary)' }}>
                             {msg.contenido}
                           </p>
 

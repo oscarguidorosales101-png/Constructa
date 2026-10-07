@@ -799,7 +799,7 @@ select option:hover {
 .supplier-card-title {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--color-text-primary, var(--text-primary));
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;

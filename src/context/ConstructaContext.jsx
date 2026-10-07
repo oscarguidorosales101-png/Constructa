@@ -10,6 +10,7 @@ import aiService from '../services/aiService.js';
 import userService from '../services/userService.js';
 import roleService from '../services/roleService.js';
 import haciendaService from '../services/haciendaService.js';
+import { getDefaultRouteForRole, normalizeRole } from '../utils/permissions.js';
 
 const ConstructaContext = createContext(null);
 
@@ -20,6 +21,7 @@ export const ConstructaProvider = ({ children }) => {
     const s = dataService.getSession();
     return s ? s.usuario : null;
   });
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   // 2. Estado de Navegación Activa
   const [activeView, setActiveView] = useState(() => {
@@ -35,7 +37,7 @@ export const ConstructaProvider = ({ children }) => {
       if (publicPages.includes(hash)) return hash;
       return hash ? 'login' : 'inicio';
     }
-    return hash || (s.usuario?.rol === 'Cliente' ? 'portal-cliente' : 'dashboard');
+    return hash || (s.usuario ? getDefaultRouteForRole(s.usuario) : 'dashboard');
   });
 
   // Intención de navegación (parámetros entre módulos como abrir modal o activar pestaña)
@@ -219,7 +221,7 @@ export const ConstructaProvider = ({ children }) => {
     if (res.ok) {
       setSession(dataService.getSession());
       setCurrentUser(res.usuario);
-      const targetView = res.usuario.rol === 'Cliente' ? 'portal-cliente' : 'dashboard';
+      const targetView = getDefaultRouteForRole(res.usuario);
       setActiveView(targetView);
       if (window.location.hash.replace('#', '') !== targetView) {
         window.location.hash = targetView;
@@ -873,7 +875,11 @@ export const ConstructaProvider = ({ children }) => {
   // ----------------------------------------------------
   const saveUser = async (userData) => {
     try {
-      const saved = await userService.saveUser(userData);
+      const payload = {
+        ...userData,
+        rol: normalizeRole(userData.rol || 'Usuario / Invitado')
+      };
+      const saved = await userService.saveUser(payload);
       setUsers((prev) => {
         const exists = prev.some((u) => u.id === saved.id);
         return exists ? prev.map((u) => (u.id === saved.id ? saved : u)) : [...prev, saved];
@@ -1083,6 +1089,7 @@ export const ConstructaProvider = ({ children }) => {
         session,
         currentUser,
         isAuthenticated: !!session && !!currentUser,
+        isAuthLoading,
         activeView,
         setActiveView,
         navigateTo,

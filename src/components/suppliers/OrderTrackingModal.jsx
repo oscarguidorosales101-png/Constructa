@@ -122,7 +122,7 @@ export default function OrderTrackingModal({
             <div style={{ fontSize: '0.8rem', color: 'var(--color-gold)', fontWeight: 600, textTransform: 'uppercase' }}>
               {order.proyectoNombre}
             </div>
-            <h2 style={{ margin: '4px 0 0 0', fontSize: '1.25rem', color: '#ffffff' }}>
+            <h2 style={{ margin: '4px 0 0 0', fontSize: '1.25rem', color: 'var(--color-text-primary)' }}>
               Proveedor: {order.proveedorNombre}
             </h2>
             <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
@@ -168,7 +168,7 @@ export default function OrderTrackingModal({
           >
             <AlertTriangle size={22} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
             <div>
-              <strong style={{ color: '#ffffff', fontSize: '0.9rem' }}>
+              <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>
                 Entrega Reprogramada / Posible Afectación a Cronograma
               </strong>
               <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.82rem', marginTop: '2px' }}>
@@ -267,7 +267,7 @@ export default function OrderTrackingModal({
         >
           <div>
             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Fecha de Emisión</span>
-            <strong style={{ color: '#ffffff', fontSize: '0.9rem' }}>{order.fechaCreacion}</strong>
+            <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>{order.fechaCreacion}</strong>
           </div>
           <div>
             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Fecha Solicitada</span>
@@ -354,7 +354,7 @@ export default function OrderTrackingModal({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <UserCheck size={18} style={{ color: 'var(--color-gold)' }} />
-              <strong style={{ color: '#ffffff', fontSize: '0.92rem' }}>
+              <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.92rem' }}>
                 Estatus de Confirmación del Proveedor
               </strong>
             </div>
@@ -561,7 +561,7 @@ export default function OrderTrackingModal({
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <strong style={{ color: '#ffffff', fontSize: '0.85rem' }}>{h.estado}</strong>
+                    <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.85rem' }}>{h.estado}</strong>
                     <span style={{ fontSize: '0.78rem', color: 'var(--color-gold)' }}>• {h.usuario}</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>

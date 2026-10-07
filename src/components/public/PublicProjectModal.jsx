@@ -166,7 +166,7 @@ export default function PublicProjectModal({ project, isOpen, onClose, onNavigat
 
             <div className="public-metric-box">
               <span className="public-metric-lbl">Presupuesto Asignado</span>
-              <strong style={{ fontSize: '1.25rem', color: '#ffffff', display: 'block', margin: '4px 0' }}>
+              <strong style={{ fontSize: '1.25rem', color: 'var(--text-primary)', display: 'block', margin: '4px 0' }}>
                 {formatCurrency(project.presupuesto)}
               </strong>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted, #94a3b8)' }}>

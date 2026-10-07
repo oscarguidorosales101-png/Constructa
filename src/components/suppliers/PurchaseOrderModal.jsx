@@ -394,7 +394,7 @@ export default function PurchaseOrderModal({
                         onChange={(e) => handleItemChange(idx, 'precioUnitario', e.target.value)}
                       />
                     </td>
-                    <td style={{ fontWeight: 600, color: '#ffffff' }}>
+                    <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
                       ${Number(item.subtotal || 0).toLocaleString('es-MX')}
                     </td>
                     <td>
@@ -442,7 +442,7 @@ export default function PurchaseOrderModal({
             <div style={{ display: 'flex', gap: '20px', textAlign: 'right', flexWrap: 'wrap', alignItems: 'center' }}>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Subtotal</span>
-                <span style={{ fontSize: '0.95rem', color: '#ffffff', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.95rem', color: 'var(--color-text-primary)', fontWeight: 600 }}>
                   ${subtotal.toLocaleString('es-MX')}
                 </span>
               </div>
