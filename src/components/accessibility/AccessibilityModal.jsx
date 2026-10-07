@@ -791,7 +791,7 @@ export const AccessibilityModal = () => {
                     }}
                   >
                     {isVoiceActive ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                    {isVoiceActive ? '🔊 Lectura activada' : 'Lectura desactivada'}
+                    {isVoiceActive ? 'Lectura activada' : 'Lectura desactivada'}
                   </button>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
@@ -816,7 +816,7 @@ export const AccessibilityModal = () => {
                       ) : (
                         voices.map((v) => (
                           <option key={v.voiceURI} value={v.voiceURI}>
-                            {v.name} ({v.lang}) — {v.gender} {v.isSpanish ? '★ Español' : ''}
+                            {v.name} ({v.lang}) — {v.gender} {v.isSpanish ? '(Español)' : ''}
                           </option>
                         ))
                       )}

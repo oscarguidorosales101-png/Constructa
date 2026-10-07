@@ -28,6 +28,7 @@ export const VoiceReaderWidget = () => {
       // Ignorar clicks dentro del propio widget de voz o dentro de modales de configuración
       if (widgetRef.current && widgetRef.current.contains(e.target)) return;
       if (e.target.closest('.accessibility-modal-backdrop') || e.target.closest('.modal-backdrop')) return;
+      if (e.target.closest('input, textarea, select, [contenteditable="true"], .search-box')) return;
 
       // Ignorar si el usuario está seleccionando texto libre
       const selection = window.getSelection();
@@ -123,7 +124,7 @@ export const VoiceReaderWidget = () => {
           aria-label="Activar asistencia de voz nativa"
         >
           <Volume2 size={16} />
-          <span>🔊 Lectura</span>
+          <span>Lectura</span>
         </button>
       </aside>
     );
@@ -142,7 +143,7 @@ export const VoiceReaderWidget = () => {
             <Volume2 size={16} />
           </div>
           <div className="voice-status-text">
-            <span className="voice-title">🔊 Lectura activada</span>
+            <span className="voice-title">Lectura activada</span>
             <span className="voice-subtitle">
               {speechState.isSpeaking
                 ? speechState.isPaused

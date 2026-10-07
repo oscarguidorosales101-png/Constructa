@@ -337,7 +337,7 @@ export const FutureProjection = ({ onNavigate, embedded = false }) => {
               onChange={handleProjectChange}
               style={{ padding: '8px 12px', fontSize: '0.88rem' }}
             >
-              <option value="">🌐 Consolidado General (Toda la Cartera)</option>
+              <option value="">Consolidado General (Toda la Cartera)</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.codigo ? `[${p.codigo}] ` : ''}{p.nombre}
@@ -575,7 +575,7 @@ export const FutureProjection = ({ onNavigate, embedded = false }) => {
                 e.currentTarget.style.borderColor = 'var(--color-border)';
               }}
             >
-              💬 {q}
+              <MessageSquare size={13} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} /> {q}
             </button>
           ))}
         </div>

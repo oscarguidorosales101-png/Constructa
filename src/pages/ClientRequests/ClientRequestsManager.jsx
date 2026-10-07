@@ -28,6 +28,7 @@ import {
 import { useConstructa } from '../../context/ConstructaContext.jsx';
 import Button from '../../components/common/Button.jsx';
 import ToastContainer from '../../components/common/ToastContainer.jsx';
+import SearchInput from '../../components/common/SearchInput.jsx';
 
 export const ClientRequestsManager = ({ onNavigate }) => {
   const {
@@ -306,8 +307,8 @@ export const ClientRequestsManager = ({ onNavigate }) => {
     return (
       <div className="module-container" style={{ padding: '3rem 2rem', textAlign: 'center', color: '#94a3b8' }}>
         <div style={{ maxWidth: '520px', margin: '0 auto', background: 'rgba(255, 255, 255, 0.03)', padding: '2rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <h2 style={{ color: '#ffffff', marginBottom: '0.75rem', fontSize: '1.25rem' }}>Acceso Restringido</h2>
-          <p style={{ lineHeight: 1.6, fontSize: '0.9rem', color: '#cbd5e1' }}>
+          <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem', fontSize: '1.25rem' }}>Acceso Restringido</h2>
+          <p style={{ lineHeight: 1.6, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             El módulo de Solicitudes Comerciales y Mensajería con Clientes es exclusivo de Administración y Gerencia de Construcción. Recursos Humanos gestiona de forma aislada la selección de postulantes y citas laborales.
           </p>
         </div>
@@ -325,7 +326,7 @@ export const ClientRequestsManager = ({ onNavigate }) => {
               <Inbox size={22} />
             </div>
             <div>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                 Bandeja de Solicitudes y Cotizaciones de Clientes
               </h1>
               <p style={{ fontSize: '0.86rem', color: '#94a3b8', margin: '2px 0 0' }}>
@@ -426,16 +427,14 @@ export const ClientRequestsManager = ({ onNavigate }) => {
               </select>
 
               {/* Buscador */}
-              <div style={{ position: 'relative', width: '220px' }}>
-                <input
-                  type="text"
-                  className="client-input"
-                  style={{ padding: '0.4rem 0.75rem 0.4rem 2rem', fontSize: '0.82rem', width: '100%' }}
+              <div style={{ width: '260px' }}>
+                <SearchInput
                   placeholder="Buscar cliente u obra..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={setSearchTerm}
+                  onClear={() => setSearchTerm('')}
+                  style={{ maxWidth: '260px' }}
                 />
-                <Search size={14} style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               </div>
             </div>
           </div>
@@ -443,9 +442,9 @@ export const ClientRequestsManager = ({ onNavigate }) => {
           {/* Tabla de Gestión */}
           <div className="client-card-panel">
             {filteredRequests.length === 0 ? (
-              <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+              <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                 <Inbox size={36} color="#f59e0b" style={{ margin: '0 auto 0.75rem', opacity: 0.5 }} />
-                <p style={{ color: '#ffffff', fontWeight: 700, margin: 0 }}>No hay solicitudes en este filtro</p>
+                <p style={{ color: 'var(--text-primary)', fontWeight: 700, margin: 0 }}>No hay solicitudes en este filtro</p>
                 <p style={{ fontSize: '0.84rem', margin: '4px 0 0' }}>
                   Cuando los clientes registrados envíen requerimientos de construcción aparecerán aquí para su gestión.
                 </p>
@@ -468,11 +467,11 @@ export const ClientRequestsManager = ({ onNavigate }) => {
                     {filteredRequests.map((req) => (
                       <tr key={req.id}>
                         <td>
-                          <strong style={{ color: '#ffffff', display: 'block' }}>{req.titulo}</strong>
+                          <strong style={{ color: 'var(--text-primary)', display: 'block' }}>{req.titulo}</strong>
                           <span style={{ fontSize: '0.72rem', color: '#f59e0b', fontFamily: 'monospace' }}>{req.id}</span>
                         </td>
                         <td>
-                          <div style={{ fontWeight: 600, color: '#ffffff' }}>{req.clienteNombre}</div>
+                          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{req.clienteNombre}</div>
                           <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{req.clienteEmail}</span>
                         </td>
                         <td>
@@ -548,16 +547,14 @@ export const ClientRequestsManager = ({ onNavigate }) => {
             </div>
 
             {/* Buscador de conversaciones */}
-            <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-              <input
-                type="text"
-                className="client-input"
-                style={{ padding: '0.4rem 0.6rem 0.4rem 1.8rem', fontSize: '0.8rem', width: '100%' }}
+            <div style={{ marginBottom: '0.75rem' }}>
+              <SearchInput
                 placeholder="Buscar cliente, proyecto, asunto..."
                 value={convSearchTerm}
-                onChange={(e) => setConvSearchTerm(e.target.value)}
+                onChange={setConvSearchTerm}
+                onClear={() => setConvSearchTerm('')}
+                style={{ width: '100%' }}
               />
-              <Search size={13} style={{ position: 'absolute', left: '0.55rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             </div>
 
             {/* Lista Scrollable */}
@@ -589,7 +586,7 @@ export const ClientRequestsManager = ({ onNavigate }) => {
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#ffffff' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
                             {conv.clienteNombre}
                           </span>
                         </div>
@@ -641,7 +638,7 @@ export const ClientRequestsManager = ({ onNavigate }) => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#ffffff', fontWeight: 800 }}>
+                        <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: 800 }}>
                           {activeConversation.asunto}
                         </h3>
                         <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
@@ -762,9 +759,9 @@ export const ClientRequestsManager = ({ onNavigate }) => {
                 </form>
               </>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#94a3b8' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-muted)' }}>
                 <Inbox size={42} style={{ opacity: 0.3, marginBottom: '0.75rem' }} />
-                <p style={{ fontWeight: 700, margin: 0, color: '#ffffff' }}>Seleccione una conversación</p>
+                <p style={{ fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Seleccione una conversación</p>
                 <p style={{ fontSize: '0.82rem', margin: '4px 0 0' }}>Haga clic en la lista lateral para ver el hilo completo y responder.</p>
               </div>
             )}

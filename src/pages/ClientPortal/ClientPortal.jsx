@@ -42,6 +42,7 @@ import {
   buildQuotationRequestPDF,
   buildFinancialStatementPDF,
 } from '../../utils/pdfGenerator.js';
+import SearchInput from '../../components/common/SearchInput.jsx';
 
 export const ClientPortal = ({ onNavigate }) => {
   const {
@@ -72,8 +73,9 @@ export const ClientPortal = ({ onNavigate }) => {
   // Pestaña activa
   const [activeTab, setActiveTab] = useState('inicio');
 
-  // Filtro de solicitudes
+  // Filtro y búsqueda de solicitudes
   const [requestFilter, setRequestFilter] = useState('Todas');
+  const [requestSearchTerm, setRequestSearchTerm] = useState('');
 
   // Modales
   const [isNewRequestModalOpen, setIsNewRequestModalOpen] = useState(false);
@@ -165,9 +167,22 @@ export const ClientPortal = ({ onNavigate }) => {
   }, [clientRequests, clientEmail]);
 
   const filteredRequests = useMemo(() => {
-    if (requestFilter === 'Todas') return myRequests;
-    return myRequests.filter((r) => r.estado === requestFilter);
-  }, [myRequests, requestFilter]);
+    let list = myRequests;
+    if (requestFilter !== 'Todas') {
+      list = list.filter((r) => r.estado === requestFilter);
+    }
+    if (requestSearchTerm.trim()) {
+      const q = requestSearchTerm.toLowerCase();
+      list = list.filter((r) =>
+        (r.titulo || '').toLowerCase().includes(q) ||
+        (r.numero || '').toLowerCase().includes(q) ||
+        (r.id || '').toLowerCase().includes(q) ||
+        (r.tipo || '').toLowerCase().includes(q) ||
+        (r.ubicacion || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [myRequests, requestFilter, requestSearchTerm]);
 
   const myMeetings = useMemo(() => {
     return (clientMeetings || []).filter(
@@ -782,34 +797,46 @@ export const ClientPortal = ({ onNavigate }) => {
             </div>
 
             {/* Filtros */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '4px' }}>
-              {['Todas', 'Recibida', 'En revisión', 'En evaluación', 'Aprobada'].map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setRequestFilter(f)}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '20px',
-                    background: requestFilter === f ? 'var(--color-gold)' : 'rgba(255, 255, 255, 0.04)',
-                    color: requestFilter === f ? '#000000' : '#cbd5e1',
-                    fontWeight: requestFilter === f ? 700 : 500,
-                    fontSize: '0.8rem',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {f}
-                </button>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '1.25rem' }}>
+              <div style={{ flex: 1, minWidth: '240px', maxWidth: '380px' }}>
+                <SearchInput
+                  placeholder="Buscar solicitud por título, folio o tipo..."
+                  value={requestSearchTerm}
+                  onChange={setRequestSearchTerm}
+                  onClear={() => setRequestSearchTerm('')}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                {['Todas', 'Recibida', 'En revisión', 'En evaluación', 'Aprobada'].map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setRequestFilter(f)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      background: requestFilter === f ? 'var(--color-gold)' : 'rgba(255, 255, 255, 0.04)',
+                      color: requestFilter === f ? '#000000' : '#cbd5e1',
+                      fontWeight: requestFilter === f ? 700 : 500,
+                      fontSize: '0.8rem',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="client-card-panel">
               {filteredRequests.length === 0 ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                   <FileText size={36} color="#f59e0b" style={{ margin: '0 auto 0.75rem', opacity: 0.5 }} />
-                  <p style={{ fontSize: '0.92rem', color: '#ffffff', margin: '0 0 4px 0', fontWeight: 600 }}>
+                  <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', margin: '0 0 4px 0', fontWeight: 600 }}>
                     No se encontraron solicitudes con este filtro.
                   </p>
                   <span style={{ fontSize: '0.8rem' }}>Haga clic en "Nueva Solicitud de Obra" para registrar una consulta técnica.</span>
@@ -831,7 +858,7 @@ export const ClientPortal = ({ onNavigate }) => {
                       {filteredRequests.map((req) => (
                         <tr key={req.id}>
                           <td>
-                            <div style={{ fontWeight: 700, color: '#ffffff' }}>{req.titulo}</div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{req.titulo}</div>
                             <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>
                               {req.numero || req.id}
                             </div>
@@ -884,7 +911,7 @@ export const ClientPortal = ({ onNavigate }) => {
         {activeTab === 'mis-proyectos' && (
           <div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                 Proyectos Asociados y Seguimiento de Obra
               </h2>
               <p style={{ color: '#94a3b8', fontSize: '0.86rem', margin: '4px 0 0 0' }}>
@@ -893,9 +920,9 @@ export const ClientPortal = ({ onNavigate }) => {
             </div>
 
             {myProjects.length === 0 ? (
-              <div className="client-card-panel" style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+              <div className="client-card-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                 <Building size={36} color="#f59e0b" style={{ margin: '0 auto 0.75rem', opacity: 0.5 }} />
-                <h3 style={{ color: '#ffffff', margin: '0 0 0.5rem' }}>Aún no cuenta con un contrato de obra activo</h3>
+                <h3 style={{ color: 'var(--text-primary)', margin: '0 0 0.5rem' }}>Aún no cuenta con un contrato de obra activo</h3>
                 <p style={{ fontSize: '0.86rem', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
                   Sus solicitudes de cotización pasarán por revisión técnica y presupuestal. Una vez formalizado el contrato correspondiente, la obra aparecerá en este módulo.
                 </p>
@@ -916,7 +943,7 @@ export const ClientPortal = ({ onNavigate }) => {
                           Render Conceptual Arquitectónico
                         </span>
                       </div>
-                      <h3 style={{ fontSize: '1.4rem', color: '#ffffff', margin: '2px 0 6px' }}>
+                      <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: '2px 0 6px' }}>
                         {proj.nombre}
                       </h3>
                       <div className="client-project-meta">

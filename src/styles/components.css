@@ -30,16 +30,17 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #0b0f17;
-  border: 1px solid #d97706;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+  background: var(--color-button, var(--color-primary));
+  color: var(--color-button-text, #0b0f17);
+  border: 1px solid var(--color-primary-active, var(--color-primary));
+  box-shadow: 0 2px 8px var(--color-primary-glow, rgba(217, 119, 6, 0.25));
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
-  border-color: #fbbf24;
+  background: var(--color-primary-hover, var(--color-primary));
+  box-shadow: 0 4px 14px var(--color-primary-glow, rgba(245, 158, 11, 0.35));
+  border-color: var(--color-primary-hover, var(--color-primary));
+  color: var(--color-button-text, #0b0f17);
 }
 
 .btn-secondary {
@@ -78,25 +79,26 @@
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: var(--status-danger-bg, rgba(239, 68, 68, 0.15));
+  color: var(--status-danger, #f87171);
+  border: 1px solid var(--status-danger-border, rgba(239, 68, 68, 0.35));
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #ef4444;
+  background: var(--status-danger, #ef4444);
   color: #ffffff;
-  border-color: #ef4444;
+  border-color: var(--status-danger, #ef4444);
 }
 
 .btn-danger-solid {
-  background: #dc2626;
+  background: var(--status-danger, #dc2626);
   color: #ffffff;
-  border: 1px solid #b91c1c;
+  border: 1px solid var(--status-danger, #b91c1c);
 }
 
 .btn-danger-solid:hover:not(:disabled) {
-  background: #b91c1c;
+  background: var(--status-danger, #b91c1c);
+  filter: brightness(0.9);
 }
 
 .btn-sm {
@@ -181,7 +183,7 @@
 .constructa-page-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
@@ -215,11 +217,11 @@ textarea.constructa-input,
 .form-input,
 .form-textarea {
   width: 100%;
-  background-color: #0e1420;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background-color: var(--bg-input, #0e1420);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.16));
   border-radius: var(--radius-sm);
   padding: 0.65rem 0.95rem;
-  color: #f8fafc;
+  color: var(--text-primary, #f8fafc);
   font-size: 0.9rem;
   font-family: inherit;
   transition: all var(--transition-fast);
@@ -230,19 +232,37 @@ textarea.constructa-input:focus,
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  background-color: #141c2d;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+  background-color: var(--bg-input-focus, #141c2d);
+  border-color: var(--border-focus, #f59e0b);
+  box-shadow: 0 0 0 3px var(--color-primary-glow, rgba(245, 158, 11, 0.2));
 }
 
 input.constructa-input::placeholder,
 textarea.constructa-input::placeholder,
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #64748b;
+  color: var(--text-muted, #64748b);
 }
 
-/* REGLA CRÍTICA: ESTILIZADO NEGRO ELEGANTE PARA TODOS LOS SELECTS */
+[data-theme="light"] input.constructa-input,
+[data-theme="light"] textarea.constructa-input,
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-textarea {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] input.constructa-input:focus,
+[data-theme="light"] textarea.constructa-input:focus,
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .form-textarea:focus {
+  background-color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+/* REGLA CRÍTICA: ESTILIZADO ELEGANTE PARA TODOS LOS SELECTS */
 select,
 select.constructa-input,
 select.form-select,
@@ -251,9 +271,9 @@ select.form-select,
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
   width: 100%;
-  background-color: #0e1420 !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background-color: var(--bg-input, #0e1420) !important;
+  color: var(--text-primary, #f8fafc) !important;
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.16)) !important;
   border-radius: var(--radius-sm) !important;
   padding: 0.65rem 2.5rem 0.65rem 0.95rem !important;
   font-size: 0.9rem !important;
@@ -272,33 +292,70 @@ select.form-select,
 select:hover,
 select.constructa-input:hover,
 select.form-select:hover {
-  background-color: #141c2d !important;
-  border-color: rgba(245, 158, 11, 0.6) !important;
+  background-color: var(--bg-input-focus, #141c2d) !important;
+  border-color: var(--color-primary) !important;
 }
 
 select:focus,
 select.constructa-input:focus,
 select.form-select:focus {
   outline: none !important;
-  background-color: #141c2d !important;
-  border-color: #f59e0b !important;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22) !important;
+  background-color: var(--bg-input-focus, #141c2d) !important;
+  border-color: var(--border-focus, #f59e0b) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-glow, rgba(245, 158, 11, 0.22)) !important;
 }
 
 /* Opciones del menú desplegable */
 select option,
 select.constructa-input option,
 select.form-select option {
-  background-color: #0d121c !important;
-  color: #f8fafc !important;
+  background-color: var(--bg-surface-elevated, #0d121c) !important;
+  color: var(--text-primary, #f8fafc) !important;
   padding: 10px 14px !important;
   font-size: 0.9rem !important;
 }
 
 select option:checked,
 select option:hover {
-  background-color: #1a2336 !important;
-  color: #f59e0b !important;
+  background-color: var(--bg-card-hover, #1a2336) !important;
+  color: var(--color-primary, #f59e0b) !important;
+}
+
+[data-theme="light"] select,
+[data-theme="light"] select.constructa-input,
+[data-theme="light"] select.form-select,
+[data-theme="light"] .constructa-input[type="select"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] select:hover,
+[data-theme="light"] select.constructa-input:hover,
+[data-theme="light"] select.form-select:hover {
+  background-color: #f8fafc !important;
+  border-color: var(--color-primary) !important;
+}
+
+[data-theme="light"] select:focus,
+[data-theme="light"] select.constructa-input:focus,
+[data-theme="light"] select.form-select:focus {
+  background-color: #ffffff !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-glow) !important;
+}
+
+[data-theme="light"] select option,
+[data-theme="light"] select.constructa-input option,
+[data-theme="light"] select.form-select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] select option:checked,
+[data-theme="light"] select option:hover {
+  background-color: #f1f5f9 !important;
+  color: var(--color-primary) !important;
 }
 
 /* Errores y validaciones */
@@ -478,19 +535,19 @@ select option:hover {
   height: 100%;
   border-radius: var(--radius-full);
   transition: width 0.4s ease;
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: var(--color-primary);
 }
 
 .progress-fill.success {
-  background: linear-gradient(90deg, #10b981, #059669);
+  background: var(--status-success);
 }
 
 .progress-fill.warning {
-  background: linear-gradient(90deg, #f59e0b, #b45309);
+  background: var(--status-warning);
 }
 
 .progress-fill.danger {
-  background: linear-gradient(90deg, #ef4444, #b91c1c);
+  background: var(--status-danger);
 }
 
 /* 8. MODAL RESPONSIVE EN PRIMER PLANO */
@@ -500,7 +557,7 @@ select option:hover {
 .ai-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.82);
+  background: var(--bg-modal-overlay, rgba(0, 0, 0, 0.82));
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -513,7 +570,7 @@ select option:hover {
 
 .modal-content,
 .constructa-modal {
-  background: #111724;
+  background: var(--bg-modal, #111724);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   width: 100%;
@@ -537,7 +594,7 @@ select option:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #111724;
+  background: var(--bg-modal, #111724);
   flex-shrink: 0;
 }
 
@@ -560,7 +617,7 @@ select option:hover {
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
-  background: #111724;
+  background: var(--bg-modal, #111724);
   flex-shrink: 0;
   flex-wrap: wrap;
 }
@@ -829,5 +886,64 @@ select option:hover {
 @keyframes spin-kf {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   SEARCH & FILTER UTILITIES (GLOBAL & ACCESIBLE)
+   ========================================================================== */
+.search-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding-left: 2.5rem !important;
+  padding-right: 2.2rem !important;
+  height: 40px;
+  background-color: var(--bg-input, #0e1420) !important;
+  color: var(--text-primary, #f8fafc) !important;
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.16)) !important;
+  border-radius: var(--radius-sm, 6px) !important;
+  font-size: 0.9rem !important;
+  pointer-events: auto !important;
+  transition: all var(--transition-fast) !important;
+}
+
+.search-input:focus {
+  outline: none !important;
+  background-color: var(--bg-input-focus, #141c2d) !important;
+  border-color: var(--border-focus, #f59e0b) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-glow, rgba(245, 158, 11, 0.2)) !important;
+}
+
+[data-theme="light"] .search-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .search-input:focus {
+  background-color: #ffffff !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-glow) !important;
+}
+
+.filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 

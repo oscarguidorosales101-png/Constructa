@@ -25,8 +25,42 @@
         min-height: 100vh;
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-M2A2tmt4.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-D9ZJEPfU.css">
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem('constructa_global_settings');
+          if (raw) {
+            var s = JSON.parse(raw);
+            var root = document.documentElement;
+            if (s.theme) {
+              var theme = s.theme;
+              if (theme === 'system') {
+                theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+              }
+              root.setAttribute('data-theme', theme);
+              root.style.colorScheme = theme;
+            }
+            if (s.colorVision) {
+              var cv = s.colorVision;
+              if (cv === 'protanopia') cv = 'red-green';
+              if (cv === 'deuteranopia') cv = 'green-red';
+              if (cv === 'tritanopia') cv = 'blue-yellow';
+              root.setAttribute('data-color-vision', cv);
+            }
+            if (s.textSize || s.fontSize) {
+              var sz = s.textSize || s.fontSize;
+              root.setAttribute('data-text-size', sz);
+              root.setAttribute('data-font-size', sz);
+            }
+            if (s.highContrast) {
+              root.setAttribute('data-high-contrast', 'true');
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-DBW0rZeE.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CollXXIa.css">
   </head>
   <body>
     <div id="root"></div>

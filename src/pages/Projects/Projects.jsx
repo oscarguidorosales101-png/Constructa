@@ -212,17 +212,17 @@ export const Projects = () => {
                     </Badge>
                   </div>
 
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.35rem', lineHeight: 1.3 }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem', lineHeight: 1.3 }}>
                     {project.nombre}
                   </h3>
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                     {project.cliente}
                   </p>
 
-                  <div style={{ background: '#0e1420', padding: '0.85rem 0.95rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  <div style={{ background: 'var(--bg-surface-elevated, #0e1420)', padding: '0.85rem 0.95rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                       <span>Presupuesto</span>
-                      <strong style={{ color: '#ffffff', fontSize: '0.88rem' }}>
+                      <strong style={{ color: 'var(--text-primary)', fontSize: '0.88rem' }}>
                         {formatCurrency(project.presupuesto)}
                       </strong>
                     </div>

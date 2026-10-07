@@ -229,13 +229,13 @@ img, video, iframe {
 .public-brand-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--accent-amber, #f59e0b) 0%, #d97706 100%);
-  color: #000000;
+  background: var(--color-primary);
+  color: var(--color-button-text, #000000);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 4px 14px var(--color-primary-glow, rgba(245, 158, 11, 0.25));
 }
 
 .public-brand-text {
@@ -247,7 +247,7 @@ img, video, iframe {
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: #ffffff;
+  color: var(--text-primary, #ffffff);
   line-height: 1.1;
 }
 
@@ -256,7 +256,7 @@ img, video, iframe {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--accent-amber, #f59e0b);
+  color: var(--color-primary);
 }
 
 .public-nav-links {

@@ -261,7 +261,7 @@ export const UsersRoles = () => {
         <div style={{ flex: 1, minWidth: '240px' }}>
           <SearchInput
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
             onClear={() => setSearchTerm('')}
             placeholder={activeTab === 'users' ? 'Buscar usuario por nombre, email, identificación...' : 'Buscar rol por nombre o permiso...'}
           />

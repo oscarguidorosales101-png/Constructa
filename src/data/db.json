@@ -2921,25 +2921,58 @@
     }
   ],
   "settings": {
-    "theme": "light",
+    "theme": "dark",
     "fontSize": "normal",
-    "colorVision": "blue-yellow",
+    "colorVision": "red-green",
     "reducedMotion": false,
     "voice": {
       "enabled": false,
-      "voiceURI": "",
+      "voiceURI": "Google italiano",
       "rate": 1,
       "pitch": 1,
       "volume": 1
     },
-    "updatedAt": "2026-10-06T22:34:41.045Z",
+    "updatedAt": "2026-10-07T17:17:01.376Z",
     "voiceEnabled": true,
     "voiceRate": 1.9,
     "voiceURI": "Google UK English Male",
     "textSize": "normal",
-    "highContrast": true
+    "highContrast": false
   },
   "requests": [
+    {
+      "id": "SOL-004",
+      "numero": "SOL-2026-004",
+      "clienteNombre": "Oscar Yabeth Guido Rosales",
+      "clienteEmail": "oscarguidorosales101@gmail.com",
+      "clienteTelefono": "922988292",
+      "tipo": "Cotización de Obra Nueva",
+      "titulo": "[Web] Cotización de Obra Nueva - Oscar Yabeth Guido Rosales",
+      "tipoInmueble": "Vivienda",
+      "ubicacion": "Contacto Web Público",
+      "areaAproximada": 0,
+      "presupuestoEstimado": 0,
+      "plazoDeseado": "A convenir",
+      "poseeTerreno": false,
+      "poseePlanos": false,
+      "descripcion": "cdcjdcjdc",
+      "necesidadesPrincipales": "",
+      "estado": "Recibida",
+      "asignadoA": "Ing. Fernando Mendoza",
+      "asignadoRol": "Administrador",
+      "fechaCreacion": "2026-10-07",
+      "ultimaActualizacion": "2026-10-07",
+      "documentos": [],
+      "historial": [
+        {
+          "fecha": "7/10/2026, 11:21:35 a.m.",
+          "autor": "Oscar Yabeth Guido Rosales",
+          "accion": "Solicitud creada formalmente en el portal de cliente."
+        }
+      ],
+      "observacionesTecnicas": "",
+      "propuestaCotizacion": null
+    },
     {
       "id": "SOL-003",
       "numero": "SOL-2026-003",

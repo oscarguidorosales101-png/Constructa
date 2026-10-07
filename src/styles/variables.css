@@ -85,18 +85,35 @@
   --font-small: calc(0.82rem * var(--font-scale-multiplier));
   --font-xs: calc(0.72rem * var(--font-scale-multiplier));
 
-  /* Alias de compatibilidad previa */
-  --color-bg-page: var(--bg-app);
-  --color-bg-card: var(--bg-card);
+  /* --- 9. TOKENS GLOBALES SEMÁNTICOS (Única Fuente de Verdad para Accesibilidad) --- */
+  --color-bg: var(--bg-app);
+  --color-surface: var(--bg-card);
+  --color-surface-elevated: var(--bg-surface-elevated);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
-  --color-gold: var(--accent-amber);
   --color-border: var(--border-medium);
   --color-border-subtle: var(--border-subtle);
-  --color-emerald: var(--status-success);
-  --color-rose: var(--status-danger);
-  --color-cyan: var(--status-info);
+  --color-primary: var(--accent-primary);
+  --color-primary-hover: var(--accent-amber-light);
+  --color-primary-active: var(--accent-amber-dark);
+  --color-primary-glow: var(--accent-amber-glow);
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-danger: var(--status-danger);
+  --color-info: var(--status-info);
+  --color-focus: var(--border-focus);
+  --color-link: var(--accent-amber-light);
+  --color-button: var(--accent-primary);
+  --color-button-text: #0a0d14;
+
+  /* Alias de compatibilidad previa */
+  --color-bg-page: var(--color-bg);
+  --color-bg-card: var(--color-surface);
+  --color-gold: var(--color-primary);
+  --color-emerald: var(--color-success);
+  --color-rose: var(--color-danger);
+  --color-cyan: var(--color-info);
 }
 
 /* ==========================================================================
@@ -133,6 +150,15 @@
   --accent-amber-dark: #b45309;
   --accent-amber-glow: rgba(217, 119, 6, 0.15);
   --accent-primary: #d97706;
+
+  --color-primary: var(--accent-primary);
+  --color-primary-hover: var(--accent-amber-light);
+  --color-primary-active: var(--accent-amber-dark);
+  --color-primary-glow: var(--accent-amber-glow);
+  --color-button: var(--accent-primary);
+  --color-button-text: #ffffff;
+  --color-link: #d97706;
+  --color-focus: var(--border-focus);
 
   --accent-blue: #0284c7;
   --accent-blue-dark: #0369a1;
@@ -185,42 +211,235 @@
 }
 
 /* ==========================================================================
-   PERFILES DE PERCEPCIÓN DE COLOR (DALTONISMO SEMÁNTICO)
-   Sin filtros destructivos en imágenes o fotografías
+   PERFILES DE PERCEPCIÓN DE COLOR (DALTONISMO SEMÁNTICO GLOBAL)
+   Sin filtros destructivos en imágenes, videos, planos ni multimedia
    ========================================================================== */
 
-/* 1. Rojo-Verde (Protanopia / Deuteranopia común) */
+/* 1. Visión Normal */
+[data-color-vision="normal"] {
+  /* Conserva la paleta corporativa estándar */
+}
+
+/* 2. Rojo - Verde (Protanopia / Deuteranopia) */
 [data-color-vision="red-green"] {
-  --status-danger: #3b82f6 !important; /* Azul cobalto en vez de rojo confuso */
-  --status-danger-bg: rgba(59, 130, 246, 0.18) !important;
-  --status-danger-border: rgba(59, 130, 246, 0.45) !important;
+  --color-danger: #3b82f6 !important; /* Azul cobalto nítido */
+  --color-success: #06b6d4 !important; /* Cian profundo */
+  --color-warning: #f59e0b !important; /* Ámbar oro */
+  --color-info: #38bdf8 !important;
+  --color-focus: #3b82f6 !important;
+  --color-link: #60a5fa !important;
+  --color-primary: #2563eb !important;
+  --color-primary-hover: #3b82f6 !important;
+  --color-primary-active: #1d4ed8 !important;
+  --color-primary-glow: rgba(37, 99, 235, 0.25) !important;
+  --color-button: #2563eb !important;
+  --color-button-text: #ffffff !important;
 
-  --status-warning: #f59e0b !important; /* Ámbar/Amarillo reconocible */
-  --status-success: #0284c7 !important; /* Cian profundo */
-  --status-success-bg: rgba(2, 132, 199, 0.18) !important;
-  --status-success-border: rgba(2, 132, 199, 0.45) !important;
+  --accent-amber: #2563eb !important;
+  --accent-amber-light: #3b82f6 !important;
+  --accent-amber-dark: #1d4ed8 !important;
+  --accent-amber-glow: rgba(37, 99, 235, 0.25) !important;
+  --accent-primary: #2563eb !important;
+
+  --status-danger: #3b82f6 !important;
+  --status-danger-bg: rgba(59, 130, 246, 0.20) !important;
+  --status-danger-border: rgba(59, 130, 246, 0.50) !important;
+
+  --status-success: #06b6d4 !important;
+  --status-success-bg: rgba(6, 182, 212, 0.20) !important;
+  --status-success-border: rgba(6, 182, 212, 0.50) !important;
+
+  --status-warning: #f59e0b !important;
+  --status-warning-bg: rgba(245, 158, 11, 0.20) !important;
+  --status-warning-border: rgba(245, 158, 11, 0.50) !important;
+
+  --border-focus: #3b82f6 !important;
 }
 
-/* 2. Verde-Rojo (Deuteranopia específica) */
+[data-theme="light"][data-color-vision="red-green"],
+:root[data-theme="light"][data-color-vision="red-green"] {
+  --color-danger: #1d4ed8 !important;
+  --color-success: #0891b2 !important;
+  --color-warning: #b45309 !important;
+  --color-info: #0284c7 !important;
+  --color-focus: #1d4ed8 !important;
+  --color-link: #1d4ed8 !important;
+  --color-primary: #1d4ed8 !important;
+  --color-primary-hover: #2563eb !important;
+  --color-primary-active: #1e40af !important;
+  --color-primary-glow: rgba(29, 78, 216, 0.15) !important;
+  --color-button: #1d4ed8 !important;
+  --color-button-text: #ffffff !important;
+
+  --accent-amber: #1d4ed8 !important;
+  --accent-amber-light: #2563eb !important;
+  --accent-amber-dark: #1e40af !important;
+  --accent-amber-glow: rgba(29, 78, 216, 0.15) !important;
+  --accent-primary: #1d4ed8 !important;
+
+  --status-danger: #1d4ed8 !important;
+  --status-danger-bg: rgba(29, 78, 216, 0.14) !important;
+  --status-danger-border: rgba(29, 78, 216, 0.40) !important;
+
+  --status-success: #0891b2 !important;
+  --status-success-bg: rgba(8, 145, 178, 0.14) !important;
+  --status-success-border: rgba(8, 145, 178, 0.40) !important;
+
+  --status-warning: #b45309 !important;
+  --status-warning-bg: rgba(180, 83, 9, 0.14) !important;
+  --status-warning-border: rgba(180, 83, 9, 0.40) !important;
+
+  --border-focus: #1d4ed8 !important;
+}
+
+/* 3. Verde - Rojo (Deuteranomalía Reforzada) */
 [data-color-vision="green-red"] {
-  --status-success: #06b6d4 !important; /* Cian turquesa brillante */
-  --status-success-bg: rgba(6, 182, 212, 0.18) !important;
-  --status-success-border: rgba(6, 182, 212, 0.45) !important;
+  --color-success: #06b6d4 !important; /* Cian turquesa brillante */
+  --color-danger: #f97316 !important; /* Naranja bermellón */
+  --color-warning: #eab308 !important; /* Amarillo canario */
+  --color-info: #8b5cf6 !important; /* Violeta */
+  --color-primary: #f97316 !important;
+  --color-primary-hover: #fb923c !important;
+  --color-primary-active: #ea580c !important;
+  --color-primary-glow: rgba(249, 115, 22, 0.25) !important;
+  --color-button: #f97316 !important;
+  --color-button-text: #0a0d14 !important;
+  --color-focus: #06b6d4 !important;
+  --color-link: #38bdf8 !important;
 
-  --status-danger: #f97316 !important; /* Naranja fuego distintivo */
-  --status-danger-bg: rgba(249, 115, 22, 0.18) !important;
-  --status-danger-border: rgba(249, 115, 22, 0.45) !important;
+  --accent-amber: #f97316 !important;
+  --accent-primary: #f97316 !important;
+  --border-focus: #06b6d4 !important;
+
+  --status-success: #06b6d4 !important;
+  --status-success-bg: rgba(6, 182, 212, 0.20) !important;
+  --status-success-border: rgba(6, 182, 212, 0.50) !important;
+
+  --status-danger: #f97316 !important;
+  --status-danger-bg: rgba(249, 115, 22, 0.20) !important;
+  --status-danger-border: rgba(249, 115, 22, 0.50) !important;
+
+  --status-warning: #eab308 !important;
+  --status-warning-bg: rgba(234, 179, 8, 0.20) !important;
+  --status-warning-border: rgba(234, 179, 8, 0.50) !important;
+
+  --status-info: #8b5cf6 !important;
+  --status-info-bg: rgba(139, 92, 246, 0.20) !important;
+  --status-info-border: rgba(139, 92, 246, 0.50) !important;
 }
 
-/* 3. Azul-Amarillo (Tritanopia) */
-[data-color-vision="blue-yellow"] {
-  --status-info: #0d9488 !important; /* Cerceta verdosa */
-  --status-info-bg: rgba(13, 148, 136, 0.18) !important;
-  --status-info-border: rgba(13, 148, 136, 0.45) !important;
+[data-theme="light"][data-color-vision="green-red"],
+:root[data-theme="light"][data-color-vision="green-red"] {
+  --color-success: #0891b2 !important;
+  --color-danger: #ea580c !important;
+  --color-warning: #ca8a04 !important;
+  --color-info: #7c3aed !important;
+  --color-primary: #ea580c !important;
+  --color-primary-hover: #c2410c !important;
+  --color-primary-active: #9a3412 !important;
+  --color-primary-glow: rgba(234, 88, 12, 0.15) !important;
+  --color-button: #ea580c !important;
+  --color-button-text: #ffffff !important;
+  --color-focus: #0891b2 !important;
+  --color-link: #0369a1 !important;
 
-  --status-warning: #e11d48 !important; /* Magenta/Rosa intenso en vez de amarillo */
-  --status-warning-bg: rgba(225, 29, 72, 0.18) !important;
-  --status-warning-border: rgba(225, 29, 72, 0.45) !important;
+  --accent-amber: #ea580c !important;
+  --accent-primary: #ea580c !important;
+  --border-focus: #0891b2 !important;
+
+  --status-success: #0891b2 !important;
+  --status-success-bg: rgba(8, 145, 178, 0.14) !important;
+  --status-success-border: rgba(8, 145, 178, 0.40) !important;
+
+  --status-danger: #ea580c !important;
+  --status-danger-bg: rgba(234, 88, 12, 0.14) !important;
+  --status-danger-border: rgba(234, 88, 12, 0.40) !important;
+
+  --status-warning: #ca8a04 !important;
+  --status-warning-bg: rgba(202, 138, 4, 0.14) !important;
+  --status-warning-border: rgba(202, 138, 4, 0.40) !important;
+
+  --status-info: #7c3aed !important;
+  --status-info-bg: rgba(124, 58, 237, 0.14) !important;
+  --status-info-border: rgba(124, 58, 237, 0.40) !important;
+}
+
+/* 4. Azul - Amarillo (Tritanopia) */
+[data-color-vision="blue-yellow"] {
+  --color-warning: #e11d48 !important; /* Magenta vibrante en vez de amarillo */
+  --color-info: #0d9488 !important; /* Cerceta verdosa en vez de azul */
+  --color-success: #059669 !important; /* Verde esmeralda nítido */
+  --color-danger: #dc2626 !important; /* Rojo carmesí */
+  --color-primary: #0d9488 !important; /* Cerceta en botones principales */
+  --color-primary-hover: #14b8a6 !important;
+  --color-primary-active: #0f766e !important;
+  --color-primary-glow: rgba(13, 148, 136, 0.25) !important;
+  --color-button: #0d9488 !important;
+  --color-button-text: #ffffff !important;
+  --color-focus: #e11d48 !important;
+  --color-link: #14b8a6 !important;
+
+  --accent-amber: #0d9488 !important;
+  --accent-amber-light: #14b8a6 !important;
+  --accent-amber-dark: #0f766e !important;
+  --accent-amber-glow: rgba(13, 148, 136, 0.25) !important;
+  --accent-primary: #0d9488 !important;
+  --border-focus: #e11d48 !important;
+
+  --status-warning: #e11d48 !important;
+  --status-warning-bg: rgba(225, 29, 72, 0.20) !important;
+  --status-warning-border: rgba(225, 29, 72, 0.50) !important;
+
+  --status-info: #0d9488 !important;
+  --status-info-bg: rgba(13, 148, 136, 0.20) !important;
+  --status-info-border: rgba(13, 148, 136, 0.50) !important;
+
+  --status-success: #059669 !important;
+  --status-success-bg: rgba(5, 150, 105, 0.20) !important;
+  --status-success-border: rgba(5, 150, 105, 0.50) !important;
+
+  --status-danger: #dc2626 !important;
+  --status-danger-bg: rgba(220, 38, 38, 0.20) !important;
+  --status-danger-border: rgba(220, 38, 38, 0.50) !important;
+}
+
+[data-theme="light"][data-color-vision="blue-yellow"],
+:root[data-theme="light"][data-color-vision="blue-yellow"] {
+  --color-warning: #be123c !important;
+  --color-info: #0f766e !important;
+  --color-success: #047857 !important;
+  --color-danger: #b91c1c !important;
+  --color-primary: #0f766e !important;
+  --color-primary-hover: #115e59 !important;
+  --color-primary-active: #134e4a !important;
+  --color-primary-glow: rgba(15, 118, 110, 0.15) !important;
+  --color-button: #0f766e !important;
+  --color-button-text: #ffffff !important;
+  --color-focus: #be123c !important;
+  --color-link: #0f766e !important;
+
+  --accent-amber: #0f766e !important;
+  --accent-amber-light: #115e59 !important;
+  --accent-amber-dark: #134e4a !important;
+  --accent-amber-glow: rgba(15, 118, 110, 0.15) !important;
+  --accent-primary: #0f766e !important;
+  --border-focus: #be123c !important;
+
+  --status-warning: #be123c !important;
+  --status-warning-bg: rgba(190, 18, 60, 0.14) !important;
+  --status-warning-border: rgba(190, 18, 60, 0.40) !important;
+
+  --status-info: #0f766e !important;
+  --status-info-bg: rgba(15, 118, 110, 0.14) !important;
+  --status-info-border: rgba(15, 118, 110, 0.40) !important;
+
+  --status-success: #047857 !important;
+  --status-success-bg: rgba(4, 120, 87, 0.14) !important;
+  --status-success-border: rgba(4, 120, 87, 0.40) !important;
+
+  --status-danger: #b91c1c !important;
+  --status-danger-bg: rgba(185, 28, 28, 0.14) !important;
+  --status-danger-border: rgba(185, 28, 28, 0.40) !important;
 }
 
 /* Blindaje: Las fotos, renders y videos jamás se alteran por filtros de color */

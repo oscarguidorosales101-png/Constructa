@@ -843,3 +843,64 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   SOPORTE INTEGRAL DE MODO CLARO PARA PORTAL DEL CLIENTE
+   ========================================================================== */
+[data-theme="light"] .client-portal-wrapper {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+[data-theme="light"] .client-header {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .client-brand-title,
+[data-theme="light"] .client-user-name {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .client-card-panel,
+[data-theme="light"] .client-stat-card,
+[data-theme="light"] .client-project-hero,
+[data-theme="light"] .client-chat-container,
+[data-theme="light"] .client-conv-item {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+[data-theme="light"] .client-table th {
+  background: #f1f5f9;
+  color: #475569;
+  border-bottom-color: #cbd5e1;
+}
+
+[data-theme="light"] .client-table td {
+  border-bottom-color: #f1f5f9;
+  color: #1e293b;
+}
+
+[data-theme="light"] .client-input,
+[data-theme="light"] .client-select,
+[data-theme="light"] .client-textarea {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .client-form-group label {
+  color: #334155;
+}
+
+[data-theme="light"] .client-nav-link {
+  color: #64748b;
+}
+
+[data-theme="light"] .client-nav-link:hover,
+[data-theme="light"] .client-nav-link.active {
+  color: #0f172a;
+}

@@ -276,7 +276,7 @@ export const Dashboard = ({ onNavigate }) => {
                     }}
                   >
                     <div>
-                      <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block' }}>
+                      <strong style={{ color: 'var(--text-primary)', fontSize: '0.9rem', display: 'block' }}>
                         {inv.postulanteNombre}
                       </strong>
                       <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
@@ -327,7 +327,7 @@ export const Dashboard = ({ onNavigate }) => {
                   }}
                 >
                   <div>
-                    <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block' }}>
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.9rem', display: 'block' }}>
                       {app.nombre}
                     </strong>
                     <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
@@ -402,10 +402,10 @@ export const Dashboard = ({ onNavigate }) => {
                 <AlertTriangle size={22} />
               </div>
               <div>
-                <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
                   Atención en Almacén: {lowStockItems.length} materiales bajo stock mínimo
                 </strong>
-                <p style={{ color: '#fca5a5', fontSize: '0.82rem', margin: '2px 0 0 0' }}>
+                <p style={{ color: 'var(--accent-red, #ef4444)', fontSize: '0.82rem', margin: '2px 0 0 0' }}>
                   {lowStockItems.map((m) => m.nombre).slice(0, 3).join(', ')}
                 </p>
               </div>
@@ -653,7 +653,7 @@ export const Dashboard = ({ onNavigate }) => {
                   <Badge variant={act.tipo === 'Visitas' ? 'success' : 'warning'}>
                     {act.tipo}
                   </Badge>
-                  <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block', marginTop: '6px' }}>
+                  <strong style={{ color: 'var(--text-primary)', fontSize: '0.9rem', display: 'block', marginTop: '6px' }}>
                     {act.titulo}
                   </strong>
                   <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
@@ -687,7 +687,7 @@ export const Dashboard = ({ onNavigate }) => {
               >
                 <div>
                   <Badge variant="info">Entrevista Técnica</Badge>
-                  <strong style={{ color: '#ffffff', fontSize: '0.9rem', display: 'block', marginTop: '6px' }}>
+                  <strong style={{ color: 'var(--text-primary)', fontSize: '0.9rem', display: 'block', marginTop: '6px' }}>
                     {inv.postulanteNombre}
                   </strong>
                   <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
@@ -790,10 +790,10 @@ export const Dashboard = ({ onNavigate }) => {
               <AlertTriangle size={22} />
             </div>
             <div>
-              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+              <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
                 Atención requerida en almacén: {lowStockItems.length} insumos con stock bajo
               </strong>
-              <p style={{ color: '#fca5a5', fontSize: '0.82rem', margin: '2px 0 0 0' }}>
+              <p style={{ color: 'var(--accent-red, #ef4444)', fontSize: '0.82rem', margin: '2px 0 0 0' }}>
                 {lowStockItems.map((m) => m.nombre).slice(0, 3).join(', ')}
                 {lowStockItems.length > 3 ? ` y ${lowStockItems.length - 3} más...` : '.'}
               </p>

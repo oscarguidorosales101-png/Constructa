@@ -394,7 +394,7 @@ export default function Suppliers() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px', marginBottom: '22px' }}>
         <div className="constructa-card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => setActiveTab('directorio')}>
           <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Proveedores Homologados</div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 700, color: '#ffffff', marginTop: '3px' }}>
+          <div style={{ fontSize: '1.45rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
             {data.suppliers?.length || 0}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-gold)', marginTop: '2px' }}>
@@ -880,7 +880,7 @@ export default function Suppliers() {
                       <tr key={sup.id}>
                         <td>
                           <div
-                            style={{ fontWeight: 600, color: '#ffffff', cursor: 'pointer' }}
+                            style={{ fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
                             onClick={() => setSelectedSupplierId(sup.id)}
                             title={sup.nombre || sup.nombreComercial}
                           >
@@ -999,7 +999,7 @@ export default function Suppliers() {
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <strong style={{ color: '#ffffff', fontSize: '1rem' }}>{req.numero}</strong>
+                      <strong style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>{req.numero}</strong>
                       <Badge
                         variant={
                           req.prioridad === 'Urgente'
@@ -1026,7 +1026,7 @@ export default function Suppliers() {
                       </Badge>
                     </div>
 
-                    <div style={{ fontSize: '0.92rem', color: '#ffffff', fontWeight: 600, marginTop: '4px' }}>
+                    <div style={{ fontSize: '0.92rem', color: 'var(--text-primary)', fontWeight: 600, marginTop: '4px' }}>
                       {req.cantidad} {req.unidad} de {req.materialNombre}
                     </div>
 
@@ -1123,7 +1123,7 @@ export default function Suppliers() {
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <strong style={{ color: '#ffffff', fontSize: '1.05rem' }}>{ord.numeroOrden}</strong>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '1.05rem' }}>{ord.numeroOrden}</strong>
                         <Badge
                           variant={
                             ord.estado === 'Entregada'
@@ -1145,7 +1145,7 @@ export default function Suppliers() {
                       </div>
 
                       <div style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                        Proveedor: <strong style={{ color: '#ffffff' }}>{ord.proveedorNombre}</strong> • Proyecto: <strong>{ord.proyectoNombre}</strong>
+                        Proveedor: <strong style={{ color: 'var(--text-primary)' }}>{ord.proveedorNombre}</strong> • Proyecto: <strong>{ord.proyectoNombre}</strong>
                       </div>
 
                       <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
@@ -1243,7 +1243,7 @@ export default function Suppliers() {
                   <div key={ord.id} className="constructa-card" style={{ padding: '18px 20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
                       <div>
-                        <strong style={{ color: '#ffffff', fontSize: '1rem' }}>{ord.numeroOrden}</strong>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>{ord.numeroOrden}</strong>
                         <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginLeft: '8px' }}>
                           {ord.proveedorNombre} • {ord.proyectoNombre}
                         </span>
@@ -1312,7 +1312,7 @@ export default function Suppliers() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '20px' }}>
             <div className="constructa-card" style={{ padding: '14px' }}>
               <span style={{ fontSize: '0.78rem', color: 'var(--color-sky)', fontWeight: 600 }}>Próximos Pagos</span>
-              <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#ffffff', marginTop: '4px' }}>
+              <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
                 {(supplierInvoices || []).filter((f) => f.estado === 'Programada para pago').length} facturas
               </div>
             </div>
@@ -1367,7 +1367,7 @@ export default function Suppliers() {
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <strong style={{ color: '#ffffff', fontSize: '1.05rem' }}>{fac.numero}</strong>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '1.05rem' }}>{fac.numero}</strong>
                         <Badge
                           variant={
                             fac.estado === 'Pagada'
@@ -1390,7 +1390,7 @@ export default function Suppliers() {
                       </div>
 
                       <div style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                        Proveedor: <strong style={{ color: '#ffffff' }}>{fac.proveedorNombre}</strong> • Orden: <strong>{fac.ordenNumero}</strong> ({fac.proyectoNombre})
+                        Proveedor: <strong style={{ color: 'var(--text-primary)' }}>{fac.proveedorNombre}</strong> • Orden: <strong>{fac.ordenNumero}</strong> ({fac.proyectoNombre})
                       </div>
 
                       <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>

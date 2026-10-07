@@ -225,7 +225,7 @@ export const AIAssistantModal = () => {
                 }}
                 style={{ padding: '6px 12px', fontSize: '0.85rem', minWidth: '260px', maxWidth: '380px' }}
               >
-                <option value="">🌐 Toda la Cartera (Consultas Globales)</option>
+                <option value="">Toda la Cartera (Consultas Globales)</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.codigo ? `[${p.codigo}] ` : ''}{p.nombre}
@@ -240,7 +240,7 @@ export const AIAssistantModal = () => {
                 Motor activo en servidor: <strong>{serverStatus.configured ? 'Google Gemini 1.5 Flash (Conectado)' : 'Motor Analítico Local CONSTRUCTA (Fallback Hechos Reales)'}</strong>
               </span>
               <span className={`badge ${serverStatus.configured ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '0.7rem' }}>
-                {serverStatus.configured ? '✓ Gemini Online' : '⚡ Modo Hechos Operativos'}
+                {serverStatus.configured ? '✓ Gemini Online' : '• Modo Hechos Operativos'}
               </span>
             </div>
           </div>
@@ -279,7 +279,7 @@ export const AIAssistantModal = () => {
                     e.currentTarget.style.borderColor = 'var(--border-medium)';
                   }}
                 >
-                  💡 {q}
+                  <Sparkles size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} /> {q}
                 </button>
               ))}
             </div>
@@ -328,7 +328,7 @@ export const AIAssistantModal = () => {
                 style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
               >
                 {isReadingVoice ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                {isReadingVoice ? 'Detener Voz' : '🔊 Leer resultado'}
+                {isReadingVoice ? 'Detener Voz' : 'Leer resultado'}
               </button>
             )}
           </div>
@@ -401,7 +401,7 @@ export const AIAssistantModal = () => {
                     border: `1px solid ${engineType === 'AI_REAL' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
                   }}
                 >
-                  {engineType === 'AI_REAL' ? '✓ Google Gemini (IA Real)' : '⚡ Motor Analítico CONSTRUCTA (Fallback Hechos Reales)'}
+                  {engineType === 'AI_REAL' ? '✓ Google Gemini (IA Real)' : '• Motor Analítico CONSTRUCTA (Fallback Hechos Reales)'}
                 </span>
               </div>
 

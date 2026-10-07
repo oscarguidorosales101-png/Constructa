@@ -218,6 +218,142 @@ export function resolveTargetProject(question = '', projects = [], defaultProjec
   return defaultProject;
 }
 
+export const OUT_OF_SCOPE_RESPONSE =
+  'Esta consulta está fuera del alcance del asistente de CONSTRUCTA. Puedo ayudarte únicamente con información relacionada con la operación, proyectos, clientes, proveedores, empleados, compras, obras, reportes y demás información disponible dentro de CONSTRUCTA.';
+
+/**
+ * Clasificador previo de relevancia para la operación de CONSTRUCTA
+ */
+export function classifyQuestionRelevance(question = '', projects = []) {
+  if (!question || !question.trim()) {
+    return { isOutOfScope: false, isHybrid: false, activeQuery: '', rawQuery: '' };
+  }
+
+  const raw = question.trim();
+  const lower = raw.toLowerCase();
+
+  // 1. Patrones de cultura general, personajes ficticios, chistes, memes, entretenimiento o ciencias ajenas
+  const outOfScopePatterns = [
+    /\bgoku\b/,
+    /\bdragon\s*ball\b/,
+    /\bvegeta\b/,
+    /\banime\b/,
+    /\bnaruto\b/,
+    /\bbebita\s*vaca\b/,
+    /\bvaca\s*lola\b/,
+    /\bchiste\b/,
+    /\bchistes\b/,
+    /\bcanci[oó]n\b/,
+    /\bcanciones\b/,
+    /\bpoema\b/,
+    /\bpoemas\b/,
+    /\badivinanza\b/,
+    /\bcuento\b/,
+    /\breceta\b/,
+    /\bf[ií]sica\b/,
+    /\bqu[ií]mica\b/,
+    /\bcu[aá]ntica\b/,
+    /\bastronom[ií]a\b/,
+    /\bplaneta\b/,
+    /\buniverso\b/,
+    /\bcapital\s+de\b/,
+    /\bpresidente\s+de\b/,
+    /\brey\s+de\b/,
+    /\bqui[eé]n\s+fue\b/,
+    /\bqui[eé]n\s+es\b(?!\s+(el\s+)?(director|residente|gerente|ingeniero|arquitecto|responsable|cliente|proveedor|empleado|carlos\s+mendoza))/,
+    /\bcu[aá]ntos\s+a[nñ]os\s+tiene\b(?!\s+(la\s+)?(obra|constructa|empresa))/,
+    /\bqui[eé]n\s+pint[oó]\b/,
+    /\bqui[eé]n\s+descubri[oó]\b/,
+    /\bdistancia\s+entre\b/,
+    /\ba[nñ]o\s+del\s+descubrimiento\b/,
+    /\bpel[ií]cula\b/,
+    /\bf[uú]tbol\b/
+  ];
+
+  const hasOutOfScope = outOfScopePatterns.some((pattern) => pattern.test(lower));
+
+  // 2. Vocabulario operativo y de construcción de CONSTRUCTA
+  const constructaTerms = [
+    'obra', 'obras', 'proyecto', 'proyectos', 'construc', 'presupuesto', 'presupuestos',
+    'gasto', 'gastos', 'gastado', 'costo', 'costos', 'costará', 'costara', 'saldo', 'dinero',
+    'cronograma', 'avance', 'progreso', 'etapa', 'fase', 'retraso', 'atraso', 'atrasada', 'atrasadas',
+    'material', 'materiales', 'cemento', 'varilla', 'arena', 'grava', 'almacén', 'almacen', 'stock',
+    'compra', 'compras', 'pedido', 'proveedor', 'proveedores', 'orden de compra', 'factura', 'facturas',
+    'empleado', 'empleados', 'personal', 'cuadrilla', 'colaborador', 'trabajador', 'cliente', 'clientes',
+    'solicitud', 'cotización', 'cotizacion', 'agenda', 'altavista', 'nexus', 'bicentenario', 'lomas', 'santa fe',
+    'riesgo', 'riesgos', 'hipoteca', 'fianza', 'flujo de caja', 'concreto', 'hormigón', 'hormigon', 'bitácora', 'bitacora',
+    'estimación', 'estimacion', 'licencia', 'licencias', 'permiso', 'permisos', 'plano', 'planos', 'maquinaria', 'equipo',
+    'equipos', 'subcontratista', 'contratista', 'seguridad', 'calidad', 'incidente', 'incidentes'
+  ];
+
+  const projectNames = projects.map((p) => (p.nombre || '').toLowerCase()).filter(Boolean);
+  const projectCodes = projects.map((p) => (p.codigo || p.id || '').toLowerCase()).filter(Boolean);
+
+  const hasConstructa =
+    constructaTerms.some((t) => lower.includes(t)) ||
+    projectNames.some((pName) => lower.includes(pName)) ||
+    projectCodes.some((pCode) => lower.includes(pCode));
+
+  // Caso 1: Pregunta puramente fuera del alcance
+  if (hasOutOfScope && !hasConstructa) {
+    return {
+      isOutOfScope: true,
+      isHybrid: false,
+      activeQuery: raw,
+      rawQuery: raw
+    };
+  }
+
+  // Caso 2: Pregunta híbrida / disfrazada (Ej. "¿Quién es Goku y cuánto cuesta actualmente la obra Torre Altavista?")
+  if (hasOutOfScope && hasConstructa) {
+    const parts = raw.split(/\s+(?:y|e|además|ademas|pero|también|tambien|;|,)\s+/i);
+    const constructaPart = parts.find((part) => {
+      const pLower = part.toLowerCase();
+      return (
+        constructaTerms.some((t) => pLower.includes(t)) ||
+        projectNames.some((pName) => pLower.includes(pName)) ||
+        projectCodes.some((pCode) => pLower.includes(pCode))
+      );
+    });
+
+    return {
+      isOutOfScope: false,
+      isHybrid: true,
+      activeQuery: (constructaPart || raw).trim(),
+      rawQuery: raw
+    };
+  }
+
+  // Caso 3: Pregunta sin términos explícitos pero sobre marcha general de la empresa
+  const isGenericOperational =
+    lower.includes('cómo vamos') ||
+    lower.includes('como vamos') ||
+    lower.includes('cómo va') ||
+    lower.includes('como va') ||
+    lower.includes('novedades') ||
+    lower.includes('resumen') ||
+    lower.includes('estado general') ||
+    lower.includes('hola') ||
+    lower.includes('buenos días') ||
+    lower.includes('buenas tardes');
+
+  if (!hasConstructa && !isGenericOperational) {
+    return {
+      isOutOfScope: true,
+      isHybrid: false,
+      activeQuery: raw,
+      rawQuery: raw
+    };
+  }
+
+  return {
+    isOutOfScope: false,
+    isHybrid: false,
+    activeQuery: raw,
+    rawQuery: raw
+  };
+}
+
 /**
  * Clasifica la intención de una pregunta del usuario
  */
@@ -349,12 +485,29 @@ export const aiService = {
     question = '',
     conversationHistory = []
   }) {
+    // 0. Pre-validación estricta de pertinencia para CONSTRUCTA
+    const relevance = classifyQuestionRelevance(question, data.projects || []);
+    if (relevance.isOutOfScope) {
+      return {
+        ok: true,
+        text: OUT_OF_SCOPE_RESPONSE,
+        isOutOfScope: true,
+        provider: 'Asistente CONSTRUCTA',
+        model: 'Filtro de Pertinencia Operativa',
+        isRealGemini: false,
+        engineType: 'AI_LOCAL_FALLBACK',
+        facts: null
+      };
+    }
+
+    const effectiveQuestion = relevance.isHybrid ? relevance.activeQuery : question;
+
     // 1. Identificar si la pregunta se refiere a un proyecto específico mencionado en el texto
-    const targetProject = resolveTargetProject(question, data.projects || [], project);
+    const targetProject = resolveTargetProject(effectiveQuestion, data.projects || [], project);
     const isSingleProject = Boolean(targetProject);
     const projectFacts = isSingleProject ? buildProjectContext(targetProject, data) : null;
     const globalFacts = buildGlobalPortfolioContext(data);
-    const intent = detectQuestionIntent(question);
+    const intent = detectQuestionIntent(effectiveQuestion);
 
     // Validación de datos mínimos
     if (isSingleProject && !projectFacts) {
@@ -374,26 +527,19 @@ export const aiService = {
     }
 
     // 2. Preparación del System Prompt para Gemini (AI_REAL) con instrucciones de clasificación y naturalidad
-    const systemPrompt = `Eres el Asistente Inteligente de CONSTRUCTA para Dirección General.
+    const systemPrompt = `Eres el Asistente Inteligente de CONSTRUCTA para Dirección General y Operaciones de Obra.
 
 DIRECTRICES FUNDAMENTALES DE RESPUESTA:
-1. CLASIFICACIÓN DE INTENCIÓN Y FLEXIBILIDAD:
-   - A) PREGUNTAS GENERALES O NO RELACIONADAS CON CONSTRUCTA (ej. "¿Cuál es la capital de Francia?", "¿Qué es una hipoteca?"):
-        Responde normalmente con tu conocimiento general en lenguaje fluido, directo y profesional. NUNCA fuerces una conexión artificial con CONSTRUCTA ni inventes que tiene que ver con una obra.
-        Ejemplo: si preguntan "¿Cuál es la capital de Francia?", responde directamente: "La capital de Francia es París."
-        Ejemplo: si preguntan "¿Qué es una hipoteca?", explica el concepto financiero/inmobiliario claramente sin atarlo a una obra particular.
-   - B) PREGUNTAS SOBRE CONSTRUCTA EN GENERAL (ej. "¿Cuánto hemos gastado este mes?", "¿Qué obras están atrasadas?", "¿Cuál proyecto presenta mayor riesgo?"):
-        Utiliza prioritariamente los datos reales del sistema proporcionados en el contexto consolidado. Responde con lenguaje natural integrando los números reales sin inventar cifras.
-   - C) PREGUNTAS SOBRE UNA OBRA ESPECÍFICA (ej. "¿Cómo va Proyecto A?", o sobre la obra seleccionada si preguntan "¿Qué riesgos tiene?" o "¿Está dentro del presupuesto?"):
-        Utiliza exclusivamente los hechos reales de esa obra provistos en el contexto. Si el usuario pregunta por una obra diferente a la seleccionada pero mencionada por nombre, enfoca la respuesta en esa obra.
-   - D) INFORMACIÓN NO DISPONIBLE O PREDICCIONES FUTURAS EXACTAS IMPOSIBLES (ej. "¿Cuánto costará exactamente el cemento dentro de 8 meses?"):
-        NUNCA inventes números, proveedores, fechas ni datos que no existan en el sistema. Responde con honestidad profesional indicando: "No tengo información suficiente en CONSTRUCTA para determinarlo con exactitud."
-
-2. ESTILO Y NATURALIDAD:
-   - Responde en lenguaje natural, conciso y profesional en español.
-   - NO comiences siempre con "Según los datos de CONSTRUCTA..." cuando la pregunta no requiera datos del sistema.
-   - NO muestres código, formato JSON técnico, variables de entorno ni stack traces.
-   - Diferencia claramente entre datos reales del sistema, conocimiento general e inferencias analíticas.`;
+1. RESTRICCIÓN EXCLUSIVA A CONSTRUCTA:
+   - TIENES ESTRICTAMENTE PROHIBIDO responder preguntas de conocimiento general ajenas a la empresa (como cultura general, personajes ficticios como Goku, anime, chistes, canciones, física o memes).
+   - Ante preguntas ajenas a CONSTRUCTA, debes responder EXACTAMENTE:
+     "${OUT_OF_SCOPE_RESPONSE}"
+   - Si la pregunta es híbrida o disfrazada (ej. "¿Quién es Goku y cuánto cuesta actualmente la obra Torre Altavista?"), ignora totalmente la parte ajena y responde ÚNICAMENTE la consulta relacionada con CONSTRUCTA utilizando los datos disponibles.
+2. CONTEXTO OPERATIVO Y CERO ALUCINACIONES:
+   - Responde siempre basándote en los datos disponibles de CONSTRUCTA proporcionados.
+   - NUNCA inventes números, porcentajes, presupuestos, fechas ni personal. Si un dato no está en el contexto, indica claramente: "No tengo información suficiente en CONSTRUCTA para determinarlo con exactitud."
+3. ESTILO:
+   - Responde en español formal, técnico y ejecutivo, sin código ni formato JSON.`;
 
     // 3. Preparación del bloque de contexto para Gemini
     let contextText = '';
@@ -500,23 +646,7 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
     }
     // Caso B: Pregunta general no relacionada con CONSTRUCTA
     else if (intent === 'GENERAL_NON_CONSTRUCTION') {
-      if (qLower.includes('francia')) {
-        localResponse = 'La capital de Francia es París.';
-      } else if (qLower.includes('españa') || qLower.includes('espana')) {
-        localResponse = 'La capital de España es Madrid.';
-      } else if (qLower.includes('costa rica')) {
-        localResponse = 'La capital de Costa Rica es San José.';
-      } else if (qLower.includes('méxico') || qLower.includes('mexico')) {
-        localResponse = 'La capital de México es la Ciudad de México.';
-      } else if (qLower.includes('italia')) {
-        localResponse = 'La capital de Italia es Roma.';
-      } else if (qLower.includes('alemania')) {
-        localResponse = 'La capital de Alemania es Berlín.';
-      } else if (qLower.includes('colombia')) {
-        localResponse = 'La capital de Colombia es Bogotá.';
-      } else {
-        localResponse = 'Esta es una consulta de conocimiento general, independiente de la operación de CONSTRUCTA. En modo local sin conexión activa a Gemini, las respuestas sobre conocimiento universal están limitadas. Para respuestas abiertas en vivo sobre cualquier tema, configure GEMINI_API_KEY o active el asistente N8N.';
-      }
+      localResponse = OUT_OF_SCOPE_RESPONSE;
     }
     // Caso C: Pregunta conceptual general (construcción, legal o finanzas)
     else if (intent === 'CONCEPTUAL_KNOWLEDGE') {
@@ -712,7 +842,22 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
       return { ok: false, success: false, error: 'Por favor ingresa una pregunta válida.' };
     }
 
-    const targetProject = resolveTargetProject(question, data.projects || [], project);
+    const relevance = classifyQuestionRelevance(question, data.projects || []);
+    if (relevance.isOutOfScope) {
+      return {
+        ok: true,
+        success: true,
+        answer: OUT_OF_SCOPE_RESPONSE,
+        text: OUT_OF_SCOPE_RESPONSE,
+        isOutOfScope: true,
+        isRealAI: false,
+        engineType: 'AI_LOCAL_FALLBACK',
+        status: 'IA CONECTADA'
+      };
+    }
+
+    const effectiveQuestion = relevance.isHybrid ? relevance.activeQuery : question;
+    const targetProject = resolveTargetProject(effectiveQuestion, data.projects || [], project);
     const isSingleProject = Boolean(targetProject);
     const projectFacts = isSingleProject ? buildProjectContext(targetProject, data) : null;
     const globalFacts = buildGlobalPortfolioContext(data);
@@ -726,7 +871,7 @@ CONSOLIDADO OPERATIVO CORPORATIVO DE CONSTRUCTA:
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          question: question.trim(),
+          question: effectiveQuestion.trim(),
           role,
           projectId: targetProject?.id || null,
           projectName: targetProject?.nombre || null,

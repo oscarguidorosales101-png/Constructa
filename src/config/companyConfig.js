@@ -219,7 +219,7 @@ export const COMPANY_CONFIG = {
   video: {
     title: 'Nuestra Metodología en Obra: Solidez que Inspira Confianza',
     subtitle: 'Un recorrido por nuestros frentes de trabajo, procesos constructivos y el equipo humano que lidera la ingeniería de CONSTRUCTA.',
-    src: './video/CONSTRUCTA_guion_completo_16x9_CORREGIDO.mp4',
+    src: '/video/CONSTRUCTA__Visión_Moderna.mp4',
     mimeType: 'video/mp4',
     poster: '',
     duration: '2:15 min',

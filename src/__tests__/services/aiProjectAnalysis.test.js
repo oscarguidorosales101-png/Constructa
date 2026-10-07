@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { aiService, buildProjectContext, buildGlobalPortfolioContext } from '../../services/aiService.js';
+import { aiService, buildProjectContext, buildGlobalPortfolioContext, OUT_OF_SCOPE_RESPONSE } from '../../services/aiService.js';
 import { hasPermission } from '../../utils/permissions.js';
 
 describe('Pruebas Automatizadas de IA y Proyección por Obra (AI-001 a AI-012)', () => {
@@ -344,13 +344,12 @@ describe('Pruebas Automatizadas de IA y Proyección por Obra (AI-001 a AI-012)',
     expect(res.error).toBe('No fue posible obtener una respuesta de IA en este momento.');
   });
 
-  it('AI-013: Pregunta no relacionada ("¿Cuál es la capital de Francia?") responde "París" sin forzar relación con CONSTRUCTA ni con la obra', async () => {
+  it('AI-013: Pregunta no relacionada ("¿Cuál es la capital de Francia?") responde con mensaje formal fuera de alcance de CONSTRUCTA', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       json: async () => ({ ok: false, noKey: true })
     });
 
-    // Torre Altavista está seleccionada como obra actual
     const res = await aiService.analyzeProject({
       project: mockProjectA,
       data: mockData,
@@ -358,10 +357,43 @@ describe('Pruebas Automatizadas de IA y Proyección por Obra (AI-001 a AI-012)',
     });
 
     expect(res.ok).toBe(true);
-    expect(res.text).toBe('La capital de Francia es París.');
-    expect(res.text).not.toContain('Torre Altavista');
-    expect(res.text).not.toContain('presupuesto');
-    expect(res.text).not.toContain('CONSTRUCTA');
+    expect(res.text).toBe(OUT_OF_SCOPE_RESPONSE);
+  });
+
+  it('AI-013b: Pregunta sobre personajes ("¿Quién es Goku?") es rechazada con el mensaje estándar fuera de alcance', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ ok: false, noKey: true })
+    });
+
+    const res = await aiService.analyzeProject({
+      project: mockProjectA,
+      data: mockData,
+      question: '¿Quién es Goku?'
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.text).toBe(OUT_OF_SCOPE_RESPONSE);
+  });
+
+  it('AI-013c: Pregunta híbrida ("¿Quién es Goku y cuánto cuesta actualmente la obra Torre Altavista?") aísla la parte de CONSTRUCTA y responde sólo los datos reales', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ ok: false, noKey: true })
+    });
+
+    const res = await aiService.analyzeProject({
+      project: mockProjectA,
+      data: mockData,
+      question: '¿Quién es Goku y cuánto cuesta actualmente la obra Torre Altavista?'
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.text).not.toBe(OUT_OF_SCOPE_RESPONSE);
+    expect(res.text).not.toContain('Goku');
+    expect(res.facts).toBeDefined();
+    expect(res.facts.projectName).toBe('Torre Altavista Residencial');
+    expect(res.facts.budget).toBe(4500000);
   });
 
   it('AI-014: Pregunta conceptual ("¿Qué es una hipoteca?") explica el concepto sin contaminar con la obra seleccionada', async () => {
